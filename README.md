@@ -55,6 +55,3 @@ make tests = run all tests
 npm run tests:e2e = run 'end to end' tests
 npm run tests:unit = run 'unit' tests
 ```
-
-##### Alongside tests, this app have 'test mode' which will help you run e2e tests. It runs in memory instance of mongoDB and fill it with "fakeData.json" data
-
