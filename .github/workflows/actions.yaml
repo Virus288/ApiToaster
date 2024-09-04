@@ -52,12 +52,6 @@ jobs:
           restore-keys: |
             ${{ runner.OS }}-node-
 
-      - name: Download config
-        uses: actions/download-artifact@v2
-        with:
-          name: config
-          path: config/
-
       - name: Lint
         run: npm run lint
 
@@ -83,12 +77,6 @@ jobs:
           key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.OS }}-node-
-
-      - name: Download config
-        uses: actions/download-artifact@v2
-        with:
-          name: config
-          path: config/
 
       - name: Build
         run: npm run build
