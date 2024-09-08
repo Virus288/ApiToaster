@@ -9,6 +9,10 @@
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "exports": {
+    "import": "./lib/index.js",
+    "require": "./lib/commonIndex.cjs"
+  },
   "files": [
     "/lib",
     "/types"
@@ -26,6 +30,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "build:common": "rollup lib/index.js --file lib/commonIndex.cjs --format cjs",
     "build:watch": "tsc -w -p tsconfig.json",
     "lint": "cross-env NODE_ENV=development eslint -c eslint.config.mjs . --fix",
     "listErrors": "node_modules/.bin/tsc --skipLibCheck",
@@ -75,6 +80,7 @@
     "jest": "29.7.0",
     "jest-config": "29.7.0",
     "prettier": "3.3.3",
+    "rollup": "^4.21.2",
     "ts-jest": "29.2.5",
     "ts-node": "^10.9.2",
     "tsx": "^4.7.2",
