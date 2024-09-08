@@ -1,5 +1,4 @@
 import type { IConfig } from '../../types';
-import path from 'path';
 
 /**
  * Function to get path.
@@ -7,7 +6,7 @@ import path from 'path';
  * @returns Path of project directory.
  */
 function getPath(): string {
-  return (import?.meta?.dirname) ?? path.resolve(__dirname);
+  return process.cwd();
 }
 
 export default function(): IConfig {
@@ -15,8 +14,9 @@ export default function(): IConfig {
     path: getPath(),
     method: true,
     body: true,
-    getRequest: true,
     queryParams: true,
+    headers: false,
+    ip: false,
     obfuscate: ['password'],
   };
 }

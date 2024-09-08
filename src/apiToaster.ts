@@ -1,8 +1,17 @@
 import defaultConfig from './tools/config.js';
+import saveFile from './tools/saveFile.js';
 import State from './tools/state.js';
 import type { IConfig } from '../types';
 import type express from 'express';
 
+// fn init state
+// logs {
+// *  key:ksdjfslkdfjsdlf->protobuf wartosc,
+// *
+// }
+// indexes plik {
+//  indexes:[]
+// }
 /**
  * Main function to handle logging.
  * @description Default function used to handle req logging and much more.
@@ -18,5 +27,7 @@ export default function(
   config?: IConfig,
 ): void {
   State.state = { ...defaultConfig(), ...config };
+  saveFile(_req);
+  console.log(defaultConfig());
   next();
 }
