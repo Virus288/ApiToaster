@@ -30,7 +30,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "build:common": "rollup lib/index.js --file lib/commonIndex.cjs --format cjs",
+    "build:common": "rollup --config",
     "build:watch": "tsc -w -p tsconfig.json",
     "lint": "cross-env NODE_ENV=development eslint -c eslint.config.mjs . --fix",
     "listErrors": "node_modules/.bin/tsc --skipLibCheck",
@@ -51,15 +51,15 @@
     "node": ">=18"
   },
   "dependencies": {
-    "chalk": "5.3.0",
-    "winston": "3.14.2",
-    "winston-daily-rotate-file": "5.0.0"
+    "chalk": "5.3.0"
   },
   "devDependencies": {
     "@eslint/compat": "^1.1.1",
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.9.0",
     "@jest/globals": "29.7.0",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/cookie-parser": "^1.4.7",
     "@types/express": "^4.17.21",
     "@types/node": "22.5.4",
