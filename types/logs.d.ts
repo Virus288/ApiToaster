@@ -4,11 +4,10 @@ export interface ILog {
   key: string;
   value: {
     path?: string;
-    method?: express.Request['method'];
-    body?: express.Request['body'];
-    queryParams?: express.Request['query'];
-    headers?: express.Request['headers'];
-    ip?: express.Request['ip'];
-    obfuscate: string[];
+    method?: string;
+    body?: Record<string, unknown>|string;
+    queryParams?: express.Request['query']|string;
+    headers?: express.Request['headers']|string;
+    ip?: string;
   };
 }

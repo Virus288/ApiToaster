@@ -9,7 +9,11 @@ function getPath(): string {
   return process.cwd();
 }
 
-export default function(): IConfig {
+/**
+ * Function to get default config .
+ * @returns Configuration for a logging middleware.
+ */
+export default function (): IConfig {
   return {
     path: getPath(),
     method: true,
