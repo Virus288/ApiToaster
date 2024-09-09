@@ -1,9 +1,53 @@
-// import defaultConfig from './tools/config.js';
-import initPath from './tools/initPath.js';
-import saveFile from './tools/saveFile.js';
-// import State from './tools/state.js';
+import FileReader from './module/fileReader.js';
+import defaultConfig from './tools/config.js';
+import Log from './tools/logger.js';
+import State from './tools/state.js';
 import type { IConfig } from '../types';
 import type express from 'express';
+import path from 'path';
+
+class Toaster {
+  private _fileReader: FileReader;
+  constructor() {
+    this._fileReader = new FileReader();
+  }
+
+  public get fileReader(): FileReader {
+    return this._fileReader;
+  }
+
+  public set fileReader(value: FileReader) {
+    this._fileReader = value;
+  }
+
+  async init(req: express.Request, config?: IConfig): Promise<void> {
+    return new Promise((resolve) => {
+      this.initPath(config);
+      this.readFile(req);
+      this.saveFile();
+      resolve();
+    });
+  }
+
+  private initPath(config?: IConfig): void {
+    if (config?.path) {
+      const root = process.cwd();
+      const str = config.path.startsWith('/') ? config.path.slice(1) : config.path;
+      const dirPath = path.resolve(root, str);
+      State.state = { ...config, path: dirPath };
+    } else {
+      State.state = defaultConfig();
+    }
+  }
+
+  private readFile(req: express.Request): void {
+    this.fileReader.readfile(req);
+  }
+
+  private saveFile(): void {
+    this.fileReader.saveFile();
+  }
+}
 
 /**
  * Main function to handle logging.
@@ -19,7 +63,8 @@ export default function (
   next: express.NextFunction,
   config?: IConfig,
 ): void {
-  initPath(config);
-  saveFile(req);
+  new Toaster().init(req, config).catch((err) => {
+    Log.error('Main action', 'Got error', (err as Error).message);
+  });
   next();
 }
