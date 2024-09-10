@@ -1,6 +1,6 @@
 import Log from '../tools/logger.js';
 import State from '../tools/state.js';
-import type { IIndex, IIndexEntry, ILog, ILogEntry, ILogs } from '../../types';
+import type { IIndex, IIndexEntry, ILog, IFullError, ILogEntry, ILogs } from '../../types';
 import type express from 'express';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
@@ -74,15 +74,18 @@ export default class FileReader {
    */
   private createLogFile(name: string): void {
     const logPath = path.resolve(State.state.path as string, name);
-    if (!fs.existsSync(logPath)) {
-      try {
-        const fd = fs.openSync(logPath, 'wx+');
-        const content = JSON.stringify({ logs: {} });
-        const buffer = Buffer.from(content);
-        fs.writeSync(fd, buffer);
-        fs.closeSync(fd);
-      } catch (error) {
-        Log.error('FileReader', 'Writing File', error);
+    try {
+      const fd = fs.openSync(logPath, 'wx+');
+      const content = JSON.stringify({ logs: {} });
+      const buffer = Buffer.from(content);
+      fs.writeSync(fd, buffer);
+      fs.closeSync(fd);
+    } catch (error) {
+      if ((error as IFullError).code === 'EEXIST') {
+        // Ignore if the file already exists
+        Log.log('FileReader', `File ${this.logPath} already exists, skipping creation.`);
+      } else {
+        Log.error('FileReader', 'Error handling file', error);
       }
     }
     this.logPath = logPath; // Update logPath to the new file
@@ -92,15 +95,18 @@ export default class FileReader {
    */
   private createIndexFile(): void {
     if (!this.indexPath) return;
-    if (!fs.existsSync(this.indexPath)) {
-      try {
-        const fd = fs.openSync(this.indexPath, 'wx+');
-        const content = JSON.stringify({ indexes: {} });
-        const buffer = Buffer.from(content);
-        fs.writeSync(fd, buffer);
-        fs.closeSync(fd);
-      } catch (error) {
-        Log.error('Initialize index file', 'Writing File', error);
+    try {
+      const fd = fs.openSync(this.indexPath, 'wx+');
+      const content = JSON.stringify({ indexes: {} });
+      const buffer = Buffer.from(content);
+      fs.writeSync(fd, buffer);
+      fs.closeSync(fd);
+    } catch (error) {
+      if ((error as IFullError).code === 'EEXIST') {
+        // Ignore if the file already exists
+        Log.log('FileReader', `File ${this.indexPath} already exists, skipping creation.`);
+      } else {
+        Log.error('FileReader', 'Error handling file', error);
       }
     }
   }
