@@ -23,8 +23,7 @@ class Toaster {
   async init(req: express.Request, config?: IConfig): Promise<void> {
     return new Promise((resolve) => {
       this.initPath(config);
-      this.readFile(req);
-      this.saveFile();
+      this.save(req);
       resolve();
     });
   }
@@ -34,18 +33,14 @@ class Toaster {
       const root = process.cwd();
       const str = config.path.startsWith('/') ? config.path.slice(1) : config.path;
       const dirPath = path.resolve(root, str);
-      State.state = { ...config, path: dirPath };
+      State.state = { ...defaultConfig(), ...config, path: dirPath };
     } else {
       State.state = defaultConfig();
     }
   }
 
-  private readFile(req: express.Request): void {
-    this.fileReader.readfile(req);
-  }
-
-  private saveFile(): void {
-    this.fileReader.saveFile();
+  private save(req: express.Request): void {
+    this.fileReader.save(req);
   }
 }
 
