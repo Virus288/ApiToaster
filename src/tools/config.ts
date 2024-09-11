@@ -1,21 +1,14 @@
 import type { IConfig } from '../../types';
-
-/**
- * Function to get path.
- * @description Function used to get the path of current project directory.
- * @returns Path of project directory.
- */
-function getPath(): string {
-  return process.cwd();
-}
+import path from 'path';
 
 /**
  * Function to get default config .
  * @returns Configuration for a logging middleware.
+ * @default
  */
 export default function (): IConfig {
   return {
-    path: getPath(),
+    path: path.resolve(process.cwd(), 'Toaster'),
     method: true,
     body: true,
     queryParams: true,
