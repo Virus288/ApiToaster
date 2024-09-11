@@ -30,7 +30,7 @@ class Toaster {
    * @async
    */
   async init(req: express.Request, config?: IToasterConfig): Promise<void> {
-    Log.debug('Main action', 'Initing');
+    Log.log('Main action', 'Initing');
 
     return new Promise((resolve) => {
       this.initPath(config);
@@ -55,6 +55,7 @@ class Toaster {
       config !== null &&
       Object.keys(config).length > 0
     ) {
+      Log.log('Main action', 'User provided config');
       if (config.path) {
         const root = process.cwd();
         const str = config.path.startsWith('/') ? config.path.slice(1) : config.path;
@@ -63,6 +64,10 @@ class Toaster {
       } else {
         State.config = { ...defaultConfig(), ...config };
       }
+    } else {
+      Log.log('Main action', 'User did not provide config');
+
+      State.config = defaultConfig();
     }
   }
 }

@@ -8,6 +8,8 @@ TLDR;
 
 ## 1. Use this package
 
+This package only supports servers, which accept json. Other servers might be supported in the future
+
 ## 2. Work on this project
 
 ### 2.1 How to start
