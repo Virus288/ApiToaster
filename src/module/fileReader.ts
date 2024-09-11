@@ -50,9 +50,8 @@ export default class FileReader {
   }
 
   /**
-   *  Function to initialize directories and files
+   *  Method to initialize directories and files
    *  on given path.
-   * @returns Path to log file.
    */
   private initDirectories(): void {
     if (!State.state.path) {
@@ -88,7 +87,7 @@ export default class FileReader {
         Log.error('FileReader', 'Error handling file', error);
       }
     }
-    this.logPath = logPath; // Update logPath to the new file
+    this.logPath = logPath;
   }
   /**
    *  Method to create index file.
@@ -143,7 +142,7 @@ export default class FileReader {
     });
   }
   /**
-   *  Function to read and update logs.
+   *  Method to read and update logs.
    * @param req Express request.
    */
   private readLogfile(req: express.Request): void {
@@ -174,7 +173,7 @@ export default class FileReader {
   }
 
   /**
-   *  Function to save logs and index to a file.
+   *  Method to save logs and index to a file.
    */
   private saveFiles(): void {
     try {
