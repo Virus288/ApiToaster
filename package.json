@@ -36,19 +36,8 @@
     "listErrors": "node_modules/.bin/tsc --skipLibCheck",
     "lintStaged": "npx lint-staged",
     "test": "echo 'If you want to run all the tests, please use makefile'",
-    "test:e2e": "jest --runInBand --config __tests__/jest.config.e2e.ts",
-    "test:unit": "jest --config __tests__/jest.config.unit.ts"
-  },
-  "lint-staged": {
-    "*.ts": [
-      "cross-env NODE_ENV=development eslint --cache"
-    ],
-    "*.json,.{eslintrc,prettierrc}": [
-      "prettier --ignore-path .eslintignore --parser json --write"
-    ]
-  },
-  "engines": {
-    "node": ">=18"
+    "test:e2e": "cross-env NODE_ENV=test jest --runInBand --config __tests__/jest.config.e2e.ts",
+    "test:unit": "cross-env NODE_ENV=test jest --config __tests__/jest.config.unit.ts"
   },
   "dependencies": {
     "chalk": "5.3.0"
@@ -90,5 +79,16 @@
     "eslint-plugin-import": {
       "eslint": "^9"
     }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "cross-env NODE_ENV=development eslint --cache"
+    ],
+    "*.json,.{eslintrc,prettierrc}": [
+      "prettier --ignore-path .eslintignore --parser json --write"
+    ]
   }
 }

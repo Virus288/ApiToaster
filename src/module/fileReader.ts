@@ -1,6 +1,7 @@
+import { CannotCreateFile } from '../errors/index.js';
 import Log from '../tools/logger.js';
 import State from '../tools/state.js';
-import type { IIndex, IIndexEntry, ILog, IFullError, ILogEntry, ILogs } from '../../types';
+import type { IIndex, ILog, ILogEntry, ILogs } from '../../types';
 import type express from 'express';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
@@ -9,185 +10,184 @@ import path from 'path';
 export default class FileReader {
   private _logs: ILogs;
   private _index: IIndex;
-  private _logPath?: string;
-  private _indexPath?: string;
+
   constructor() {
     this._logs = { logs: {} };
     this._index = { indexes: {} };
   }
 
-  public get logs(): ILogs {
+  private get logs(): ILogs {
     return this._logs;
   }
 
-  public set logs(value: ILogs) {
+  private set logs(value: ILogs) {
     this._logs = value;
   }
 
-  public get index(): IIndex {
+  private get index(): IIndex {
     return this._index;
   }
 
-  public set index(value: IIndex) {
+  private set index(value: IIndex) {
     this._index = value;
-  }
-  public get logPath(): string {
-    this._logPath = path.resolve(State.state.path as string, 'logs.json');
-    return this._logPath;
-  }
-
-  public set logPath(value: string) {
-    this._logPath = value;
-  }
-
-  public get indexPath(): string {
-    this._indexPath = path.resolve(State.state.path as string, 'index.json');
-    return this._indexPath;
-  }
-
-  public set indexPath(value: string | undefined) {
-    this._indexPath = value;
   }
 
   /**
-   *  Method to initialize directories and files
-   *  on given path.
+   * Save new log.
+   * @description Preapre and save new log.
+   * @param req {express.Request} Request received from user.
+   * @returns {void} Void.
+   */
+  save(req: express.Request): void {
+    this.initDirectories();
+    this.validateFile('index.json', JSON.stringify({ indexes: {} }));
+    this.validateFile('logd.json', JSON.stringify({ logs: {} }));
+
+    this.prepareLogfile();
+    this.prepraeIndexFile();
+
+    this.prepareLog(req);
+    this.saveFiles();
+  }
+
+  /**
+   * Initialize location.
+   * @description  Initialize directories and files on given path.
+   * @returns {void} Void.
+   * @private
    */
   private initDirectories(): void {
-    if (!State.state.path) {
-      Log.error('Log', 'No path provided');
-      return;
-    }
-    const dirPath = State.state.path;
+    const dirPath = State.config.path;
+
     if (!fs.existsSync(dirPath)) {
       try {
         fs.mkdirSync(dirPath, { recursive: true });
       } catch (error) {
-        Log.error('Initialize directories', 'Make Directory', error);
+        Log.error('File reader', 'Error while making logs directory', error);
       }
     }
   }
+
   /**
-   *  Method to create log file.
-   * @param name Filename.
+   * Preapre new log.
+   * @description Preapre new log and index it.
+   * @param req {express.Request} Request received from user.
+   * @returns {void} Void.
+   * @private
    */
-  private createLogFile(name: string): void {
-    const logPath = path.resolve(State.state.path as string, name);
-    try {
-      const fd = fs.openSync(logPath, 'wx+');
-      const content = JSON.stringify({ logs: {} });
-      const buffer = Buffer.from(content);
-      fs.writeSync(fd, buffer);
-      fs.closeSync(fd);
-    } catch (error) {
-      if ((error as IFullError).code === 'EEXIST') {
-        // Ignore if the file already exists
-        Log.log('FileReader', `File ${this.logPath} already exists, skipping creation.`);
-      } else {
-        Log.error('FileReader', 'Error handling file', error);
-      }
-    }
-    this.logPath = logPath;
-  }
-  /**
-   *  Method to create index file.
-   */
-  private createIndexFile(): void {
-    if (!this.indexPath) return;
-    try {
-      const fd = fs.openSync(this.indexPath, 'wx+');
-      const content = JSON.stringify({ indexes: {} });
-      const buffer = Buffer.from(content);
-      fs.writeSync(fd, buffer);
-      fs.closeSync(fd);
-    } catch (error) {
-      if ((error as IFullError).code === 'EEXIST') {
-        // Ignore if the file already exists
-        Log.log('FileReader', `File ${this.indexPath} already exists, skipping creation.`);
-      } else {
-        Log.error('FileReader', 'Error handling file', error);
-      }
-    }
-  }
-  /**
-   *  Method to read index file, and update it fields.
-   * @param key Key that matches individual log key.
-   * @param fileName Name of the log file that key matches.
-   */
-  private readIndex(key: string, fileName: string): void {
-    const indexEntry: IIndexEntry = {
-      [key]: fileName,
+  private prepareLog(req: express.Request): void {
+    const uuid = randomUUID() as string;
+
+    const body = {
+      method: State.config.method ? req.method : undefined,
+      body: State.config.body ? (req.body as Record<string, unknown>) : undefined,
+      queryParams: State.config.queryParams ? req.query : undefined,
+      headers: State.config.headers ? req.headers : undefined,
+      ip: State.config.ip ? req.ip : undefined,
     };
 
-    try {
-      const data = fs.readFileSync(this.indexPath).toString();
-      this.index = JSON.parse(data) as IIndex;
-    } catch (error) {
-      Log.error('Parse data', error);
-    }
-    Object.assign(this.index.indexes, indexEntry);
-  }
-  /**
-   *  Method to obfuscate provided in config fields.
-   * @param log Single log.
-   */
-  private obfuscate(log: ILog): void {
-    Object.keys(log).forEach((uuid) => {
-      State.state.obfuscate?.forEach((field) => {
-        const logEntry = log[uuid];
-        if (logEntry && field in logEntry) {
-          logEntry[field as keyof ILogEntry] = '***';
-        }
-      });
-    });
-  }
-  /**
-   *  Method to read and update logs.
-   * @param req Express request.
-   */
-  private readLogfile(req: express.Request): void {
-    const tempFileName = 'logs.json';
-    const uuid = randomUUID();
-    this.createLogFile(tempFileName);
+    this.obfuscate(body);
 
     const log: ILog = {
-      [uuid]: {
-        method: State.state.method ? req.method : undefined,
-        body: State.state.body ? (req.body as Record<string, unknown>) : undefined,
-        queryParams: State.state.queryParams ? req.query : undefined,
-        headers: State.state.headers ? req.headers : undefined,
-        ip: State.state.ip ? req.ip : undefined,
-      },
+      [uuid]: body,
     };
 
-    this.readIndex(uuid, tempFileName);
-    this.obfuscate(log);
-
-    try {
-      const data = fs.readFileSync(this.logPath).toString();
-      this.logs = JSON.parse(data) as ILogs;
-    } catch (error) {
-      Log.error('Parse data', error);
-    }
-    Object.assign(this._logs.logs, log);
+    this.logs.logs = { ...this.logs.logs, ...log };
+    this.index.indexes[uuid] = path.resolve(State.config.path, 'index.json');
   }
 
   /**
-   *  Method to save logs and index to a file.
+   * Validate and create files.
+   * @description Validate and create files with base validates if they do not exist.
+   * @param target File to validate.
+   * @param baseBody File's body to initialize.
+   * @returns {void} Void.
+   * @throws {CannotCreateFile} Error whenever file cannot be created.
+   * @private
+   */
+  private validateFile(target: string, baseBody: string): void {
+    const location = path.resolve(State.config.path, target);
+
+    try {
+      if (!fs.existsSync(location)) {
+        fs.writeFileSync(location, baseBody);
+      }
+    } catch (err) {
+      Log.error('File reader', `Cannot create ${target} file`, (err as Error).message);
+      throw new CannotCreateFile(target);
+    }
+  }
+
+  /**
+   * Save data.
+   * @description Save prepared data to files.
+   * @returns {void} Void.
+   * @private
    */
   private saveFiles(): void {
+    const indexLocation = path.resolve(State.config.path, 'index.json');
+    const logsLocation = path.resolve(State.config.path, 'logs.json');
+
     try {
-      fs.writeFileSync(this.logPath, JSON.stringify(this.logs, null, 2));
-      fs.writeFileSync(this.indexPath, JSON.stringify(this.index, null, 2));
+      fs.writeFileSync(logsLocation, JSON.stringify(this.logs, null, 2));
+      fs.writeFileSync(indexLocation, JSON.stringify(this.index, null, 2));
     } catch (error) {
       Log.error('Save File', error);
     }
   }
 
-  save(req: express.Request): void {
-    this.initDirectories();
-    this.createIndexFile();
-    this.readLogfile(req);
-    this.saveFiles();
+  /**
+   * Preapre index files.
+   * @description Read, validate and prepare index files.
+   * @returns {void} Void.
+   * @private
+   */
+  private prepraeIndexFile(): void {
+    const location = path.resolve(State.config.path, 'index.json');
+
+    try {
+      const data = fs.readFileSync(location).toString();
+      this.index = JSON.parse(data) as IIndex;
+    } catch (error) {
+      Log.error('File reader', 'Got error while parsing indexes', (error as Error).message);
+      this.index = { indexes: {} };
+    }
+  }
+
+  /**
+   * Preapre log files.
+   * @description Read, validate and prepare log files.
+   * @returns {void} Void.
+   * @private
+   */
+  private prepareLogfile(): void {
+    try {
+      const location = path.resolve(State.config.path, 'logs.json');
+      const data = fs.readFileSync(location).toString();
+      const file = JSON.parse(data) as ILogs;
+
+      if (file?.logs) {
+        this.logs = file;
+      } else {
+        Log.warn('File reader', 'Log file seems to be malformatted. Will replace it on next save');
+        this.logs = file ?? { logs: {} };
+      }
+    } catch (error) {
+      Log.warn('File reader', 'Got error while parsing data', (error as Error).message);
+      this.logs = { logs: {} };
+    }
+  }
+
+  /**
+   * Obfuscate parameters from requests.
+   * @description Method to obfuscate provided in config fields.
+   * @param log Single log.
+   * @returns {void} Void.
+   * @private
+   */
+  private obfuscate(log: ILogEntry): void {
+    State.config.obfuscate.forEach((e) => {
+      if (log[e as keyof ILogEntry]) log[e as keyof ILogEntry] = '***';
+    });
   }
 }

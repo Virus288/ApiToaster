@@ -4,6 +4,7 @@ import path from 'path';
 /**
  * Function to get default config .
  * @returns Configuration for a logging middleware.
+ * @default
  */
 export default function (): IConfig {
   return {

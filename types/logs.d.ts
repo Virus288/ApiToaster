@@ -7,16 +7,19 @@ export interface ILogEntry {
   headers?: express.Request['headers'] | string;
   ip?: string;
 }
+
 export interface ILog {
   [key: string]: ILogEntry;
 }
 
 export interface ILogs {
-  logs:ILog
+  logs: ILog
 }
-export interface IIndexEntry{
-  [key:string]:string
+
+export interface IIndexEntry {
+  [key: string]: string
 }
-export interface IIndex{
-  indexes:IIndexEntry
+
+export interface IIndex {
+  indexes: IIndexEntry
 }

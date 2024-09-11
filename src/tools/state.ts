@@ -1,12 +1,15 @@
-import type { IConfig } from '../../types';
+import type { IConfig, IState } from '../../types';
 
-export default class State {
-  private static _state: IConfig;
+class State implements IState {
+  private _config: IConfig | null = null;
 
-  public static get state(): IConfig {
-    return this._state;
+  get config(): IConfig {
+    return this._config as IConfig;
   }
-  public static set state(value: IConfig) {
-    this._state = value;
+
+  set config(val: IConfig) {
+    this._config = val;
   }
 }
+
+export default new State();
