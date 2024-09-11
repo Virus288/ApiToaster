@@ -41,7 +41,7 @@ export default class FileReader {
   save(req: express.Request): void {
     this.initDirectories();
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));
-    this.validateFile('logd.json', JSON.stringify({ logs: {} }));
+    this.validateFile('logs.json', JSON.stringify({ logs: {} }));
 
     this.prepareLogfile();
     this.prepraeIndexFile();

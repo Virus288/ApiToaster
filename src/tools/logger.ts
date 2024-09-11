@@ -43,9 +43,7 @@ export default class Log {
 
   private static buildLog(color: () => string, message: unknown, error?: boolean): void {
     if (process.env.NODE_ENV === 'test' || error) {
-      console.info(
-        `[${chalk.gray(Log.getDate())}] [${process.env.APP_NAME ?? process.env.npm_package_name}] ${color()} ${Log.toString(message)}`,
-      );
+      console.info(`[${chalk.gray(Log.getDate())}] [ApiToaster] ${color()} ${Log.toString(message)}`);
     }
   }
 
