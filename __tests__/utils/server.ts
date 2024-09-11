@@ -1,6 +1,6 @@
 import express from 'express';
 import http from 'http';
-import Middleware from './middleware.js
+import Middleware from './middleware.js'
 import Log from '../../src/tools/logger.js'
 
 export default class Router {

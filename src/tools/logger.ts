@@ -10,11 +10,8 @@ export default class Log {
   }
 
   static error(target: string, ...messages: unknown[]): void {
-    if (process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'production') {
-      console.trace(target);
-    }
     messages.forEach((m) => {
-      Log.buildLog(() => chalk.red(`Log.ERROR: ${target}`), m);
+      Log.buildLog(() => chalk.red(`Log.ERROR: ${target}`), m, true);
     });
   }
 
@@ -37,16 +34,19 @@ export default class Log {
   }
 
   static trace(target: string, ...messages: unknown[]): void {
-    console.trace(chalk.yellowBright(target));
+    if (process.env.NODE_ENV === 'test') console.trace(chalk.yellowBright(target));
+
     messages.forEach((m) => {
       Log.buildLog(() => chalk.yellowBright(`Log.TRACE: ${target}`), m);
     });
   }
 
-  private static buildLog(color: () => string, message: unknown): void {
-    console.info(
-      `[${chalk.gray(Log.getDate())}] [${process.env.APP_NAME ?? process.env.npm_package_name}] ${color()} ${Log.toString(message)}`,
-    );
+  private static buildLog(color: () => string, message: unknown, error?: boolean): void {
+    if (process.env.NODE_ENV === 'test' || error) {
+      console.info(
+        `[${chalk.gray(Log.getDate())}] [${process.env.APP_NAME ?? process.env.npm_package_name}] ${color()} ${Log.toString(message)}`,
+      );
+    }
   }
 
   private static toString(message: unknown): string {
