@@ -1,7 +1,7 @@
 import { CannotCreateFile } from '../errors/index.js';
 import Log from '../tools/logger.js';
 import State from '../tools/state.js';
-import type { IIndex, ILog, ILogEntry, ILogs } from '../../types';
+import type { IIndex, ILog, ILogEntry, ILogs, INotFormattedLogEntry } from '../../types';
 import type express from 'express';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
@@ -39,15 +39,39 @@ export default class FileReader {
    * @returns {void} Void.
    */
   save(req: express.Request): void {
-    this.initDirectories();
-    this.validateFile('index.json', JSON.stringify({ indexes: {} }));
-    this.validateFile('logs.json', JSON.stringify({ logs: {} }));
+    this.pre();
 
     this.prepareLogfile();
     this.prepraeIndexFile();
 
     this.prepareLog(req);
     this.saveFiles();
+  }
+
+  /**
+   * Read logs files.
+   * @description Read log files and return them for usage.
+   * @returns {ILogs} Saved logs.
+   */
+  read(): ILogs {
+    this.pre();
+
+    this.validateFile('index.json', JSON.stringify({ indexes: {} }));
+    this.validateFile('logs.json', JSON.stringify({ logs: {} }));
+
+    this.prepareLogfile();
+    return this.logs;
+  }
+
+  /**
+   * Init basic files.
+   * @description Initialize basic directories and files.
+   * @returns {ILogs} Saved logs.
+   */
+  private pre(): void {
+    this.initDirectories();
+    this.validateFile('index.json', JSON.stringify({ indexes: {} }));
+    this.validateFile('logs.json', JSON.stringify({ logs: {} }));
   }
 
   /**
@@ -60,6 +84,8 @@ export default class FileReader {
     const dirPath = State.config.path;
 
     if (!fs.existsSync(dirPath)) {
+      Log.debug('File reader', 'Path does not exist. Creating one');
+
       try {
         fs.mkdirSync(dirPath, { recursive: true });
       } catch (error) {
@@ -78,10 +104,10 @@ export default class FileReader {
   private prepareLog(req: express.Request): void {
     const uuid = randomUUID() as string;
 
-    const body = {
+    const body: INotFormattedLogEntry = {
       method: State.config.method ? req.method : undefined,
-      body: State.config.body ? (req.body as Record<string, unknown>) : undefined,
-      queryParams: State.config.queryParams ? req.query : undefined,
+      body: State.config.body ? ((req.body ?? {}) as Record<string, unknown>) : {},
+      queryParams: State.config.queryParams ? (req.query as Record<string, string>) : undefined,
       headers: State.config.headers ? req.headers : undefined,
       ip: State.config.ip ? req.ip : undefined,
     };
@@ -89,7 +115,7 @@ export default class FileReader {
     this.obfuscate(body);
 
     const log: ILog = {
-      [uuid]: body,
+      [uuid]: { ...body, body: JSON.stringify(body.body) },
     };
 
     this.logs.logs = { ...this.logs.logs, ...log };
@@ -185,9 +211,9 @@ export default class FileReader {
    * @returns {void} Void.
    * @private
    */
-  private obfuscate(log: ILogEntry): void {
+  private obfuscate(log: INotFormattedLogEntry): void {
     State.config.obfuscate.forEach((e) => {
-      if (log[e as keyof ILogEntry]) log[e as keyof ILogEntry] = '***';
+      if (log[e as keyof ILogEntry]) log.body[e as keyof ILogEntry] = '***';
     });
   }
 }
