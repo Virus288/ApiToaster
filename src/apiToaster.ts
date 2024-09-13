@@ -34,7 +34,8 @@ class Toaster {
 
     return new Promise((resolve) => {
       this.initPath(config);
-      this.fileReader.save(req);
+      const shouldSave = this.shouldSave(req);
+      if (shouldSave) this.fileReader.save(req);
 
       resolve();
     });
@@ -69,6 +70,10 @@ class Toaster {
 
       State.config = defaultConfig();
     }
+  }
+
+  private shouldSave(req: express.Request): boolean {
+    return req.headers?.['x-toaster'] === undefined;
   }
 }
 

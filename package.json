@@ -17,6 +17,9 @@
     "/lib",
     "/types"
   ],
+  "bin": {
+    "apiToaster": "./lib/cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/Virus288/ApiToaster"

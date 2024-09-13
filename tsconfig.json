@@ -31,7 +31,7 @@
       ],
       "module": "ESNext",
       "moduleResolution": "Node",
-      "newLine": "crlf",
+      "newLine": "lf",
       "noEmit": false,
       "noEmitHelpers": false,
       "noEmitOnError": false,
@@ -71,6 +71,9 @@
       "useDefineForClassFields": true,
       "useUnknownInCatchVariables": true,
       "verbatimModuleSyntax": false
+    },
+    "ts-node": {
+      "swc": true
     },
     "exclude": ["node_modules", "build", "eslint.config.mjs"],
     "include": [ "src/**/*.ts"]

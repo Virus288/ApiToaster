@@ -1,4 +1,5 @@
 export * from './config'
+export * from './timeTravel'
 export * from './state'
 export * from './logs'
 export * from './error'

@@ -1,10 +1,18 @@
-import express from 'express';
+import { IncomingHttpHeaders } from 'http';
 
 export interface ILogEntry {
   method?: string;
-  body?: Record<string, unknown> | string;
-  queryParams?: express.Request['query'] | string;
-  headers?: express.Request['headers'] | string;
+  body: string;
+  queryParams?: Record<string, string>;
+  headers?: IncomingHttpHeaders;
+  ip?: string;
+}
+
+export interface INotFormattedLogEntry {
+  method?: string;
+  body: Record<string, unknown>;
+  queryParams?: Record<string, string>;
+  headers?: IncomingHttpHeaders;
   ip?: string;
 }
 

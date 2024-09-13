@@ -1,12 +1,26 @@
 import chalk from 'chalk';
 
 export default class Log {
+  private static _shouldLog: boolean = false;
+
+  private static get shouldLog(): boolean {
+    return this._shouldLog;
+  }
+
+  private static set shouldLog(val: boolean) {
+    this._shouldLog = val;
+  }
+
   private static getDate(): string {
     const date = new Date();
     const h = date.getHours().toString().length === 1 ? `0${date.getHours()}:` : `${date.getHours()}:`;
     const m = date.getMinutes().toString().length === 1 ? `0${date.getMinutes()}:` : `${date.getMinutes()}:`;
     const s = date.getSeconds().toString().length === 1 ? `0${date.getSeconds()}` : `${date.getSeconds()}`;
     return `${h}${m}${s}`;
+  }
+
+  static logAll(): void {
+    this.shouldLog = true;
   }
 
   static error(target: string, ...messages: unknown[]): void {
@@ -28,6 +42,8 @@ export default class Log {
   }
 
   static debug(target: string, ...messages: unknown[]): void {
+    if (process.env.NODE_ENV !== 'test') return;
+
     messages.forEach((m) => {
       Log.buildLog(() => chalk.magenta(`Log.Debug: ${target}`), m);
     });
@@ -42,7 +58,7 @@ export default class Log {
   }
 
   private static buildLog(color: () => string, message: unknown, error?: boolean): void {
-    if (process.env.NODE_ENV === 'test' || error) {
+    if (process.env.NODE_ENV === 'test' || error || Log.shouldLog) {
       console.info(`[${chalk.gray(Log.getDate())}] [ApiToaster] ${color()} ${Log.toString(message)}`);
     }
   }
