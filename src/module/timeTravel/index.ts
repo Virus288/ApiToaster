@@ -60,10 +60,15 @@ export default class TimeTravel {
     Log.log('Time travel', `Sending req with id ${log[0]}`);
     Log.debug('Time travel', 'Sending req with body', log[1].body);
 
+    const headers = (log[1].headers as Record<string, string>) ?? {
+      'Content-Type': 'application/json',
+    };
+
     const res = await fetch(`http://localhost:${this.config.port}`, {
       method: 'POST',
-      headers: (log[1].headers as Record<string, string>) ?? {
-        'Content-Type': 'application/json',
+      headers: {
+        ...headers,
+        'X-Toaster': 'true',
       },
       body: JSON.stringify(log[1].body) ?? '',
     });
