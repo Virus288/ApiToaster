@@ -32,7 +32,7 @@ class Toaster {
   async init(req: express.Request, config?: IToasterConfig): Promise<void> {
     Log.log('Main action', 'Initing');
 
-    this.initPath(config); // No need to await if initPath is synchronous
+    this.initPath(config);
 
     const shouldSave = this.shouldSave(req);
 
@@ -85,7 +85,7 @@ class Toaster {
  * @param config Config used for logging middleware.
  * @default
  */
-export default function(
+export default function (
   req: express.Request,
   _res: express.Response,
   next: express.NextFunction,

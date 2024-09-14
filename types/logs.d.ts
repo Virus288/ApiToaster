@@ -21,9 +21,7 @@ export interface INotFormattedLogEntry {
 export interface ILogProto {
   [key: string]: string;
 }
-// export interface ILogProto {
-//   [key: string]: Buffer;
-// }
+
 export interface ILog {
   [key: string]: ILogEntry;
 }

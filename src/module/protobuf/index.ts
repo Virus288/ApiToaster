@@ -19,10 +19,21 @@ export default class Proto {
     this._modulePath = value;
   }
 
+  /**
+   * Load protobuf file.
+   * @description It sets protobuf root from file.
+   * @returns {protobuf.Root} Reference to protobuf file root.
+   */
   async loadProto(): Promise<protobuf.Root> {
     return protobuf.load(path.resolve(this.modulePath, '..', '..', '..', 'protos/log.proto'));
   }
 
+  /**
+   * Encoding single log.
+   * @description Encoding single log to base64 string.
+   * @param logEntry Single string version of log entry.
+   * @returns {string} String representation of buffer.
+   */
   async encodeLog(logEntry: ILogEntry): Promise<string> {
     const root = await this.loadProto();
 
@@ -49,12 +60,18 @@ export default class Proto {
     return Buffer.from(encodedLog).toString('base64');
   }
 
+  /**
+   * Decoding single log.
+   * @description Decoding single log from base64 string to log entry.
+   * @param logEntry Single value of Buffer as a base64 string from log file.
+   * @returns {ILogEntry} String version of log entry.
+   */
   async decodeLogEntry(logEntry: string): Promise<ILogEntry> {
     const root = await this.loadProto();
 
     const LogEntry = root.lookupType('apitoaster.LogEntry');
 
-    const buf = Buffer.from(logEntry,'base64');
+    const buf = Buffer.from(logEntry, 'base64');
     const decoded = LogEntry.decode(buf) as unknown as ILogEntry;
 
     const error = LogEntry.verify(decoded);

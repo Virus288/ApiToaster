@@ -1,8 +1,8 @@
 import Log from '../../tools/logger.js';
 import FileReader from '../fileReader/index.js';
+import Proto from '../protobuf/index.js';
 import type { ILogProto, ILogsProto, INotFormattedLogEntry } from '../../../types/logs.js';
 import type { ITimeTravelStats, IToasterTimeTravel } from '../../../types/timeTravel.js';
-import Proto from 'module/protobuf/index.js';
 
 export default class TimeTravel {
   private readonly _fileReader: FileReader;
@@ -100,7 +100,7 @@ export default class TimeTravel {
     }
   }
 
-  private async prepareLogs(logs: ILogProto): Promise<[string, INotFormattedLogEntry][]> {
+  async prepareLogs(logs: ILogProto): Promise<[string, INotFormattedLogEntry][]> {
     const proto = new Proto();
     const malformed: string[] = [];
 
