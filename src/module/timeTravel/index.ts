@@ -1,7 +1,8 @@
 import Log from '../../tools/logger.js';
-import FileReader from '../fileReader.js';
-import type { ILog, ILogs, INotFormattedLogEntry } from '../../../types/logs.js';
+import FileReader from '../fileReader/index.js';
+import type { ILogProto, ILogsProto, INotFormattedLogEntry } from '../../../types/logs.js';
 import type { ITimeTravelStats, IToasterTimeTravel } from '../../../types/timeTravel.js';
+import Proto from 'module/protobuf/index.js';
 
 export default class TimeTravel {
   private readonly _fileReader: FileReader;
@@ -34,14 +35,14 @@ export default class TimeTravel {
 
     const logs = this.readLogs();
     this.config = config;
-    const preparedLogs = this.prepareLogs(logs.logs);
+    const preparedLogs = await this.prepareLogs(logs.logs);
     await this.sendRequests(preparedLogs);
 
     this.cleanUp();
     this.presentData();
   }
 
-  private readLogs(): ILogs {
+  private readLogs(): ILogsProto {
     return this.fileReader.read();
   }
 
@@ -99,30 +100,44 @@ export default class TimeTravel {
     }
   }
 
-  private prepareLogs(logs: ILog): [string, INotFormattedLogEntry][] {
+  private async prepareLogs(logs: ILogProto): Promise<[string, INotFormattedLogEntry][]> {
+    const proto = new Proto();
     const malformed: string[] = [];
 
-    const prepared = Object.entries(logs)
-      .map(([k, v]) => {
+    const prepared = await Promise.all(
+      Object.entries(logs).map(async ([k, v]) => {
+        const decodedLog = await proto.decodeLogEntry(v);
         try {
-          return [k, { ...v, body: JSON.parse(v.body) as Record<string, unknown> } as INotFormattedLogEntry];
+          return [
+            k,
+            {
+              ...decodedLog,
+              body: JSON.parse(decodedLog.body) as Record<string, unknown>,
+              occured: new Date(decodedLog.occured).getTime(),
+              queryParams: decodedLog.queryParams
+                ? (JSON.parse(decodedLog.queryParams) as Record<string, unknown>)
+                : {},
+              headers: decodedLog.headers ? (JSON.parse(decodedLog.headers) as Record<string, unknown>) : {},
+            } as INotFormattedLogEntry,
+          ];
         } catch (_err) {
           if (
-            v.body &&
-            typeof v.body === 'object' &&
-            !Array.isArray(v.body) &&
-            v.body !== null &&
-            Object.keys(v.body).length > 0
+            decodedLog.body &&
+            typeof decodedLog.body === 'object' &&
+            !Array.isArray(decodedLog.body) &&
+            decodedLog.body !== null &&
+            Object.keys(decodedLog.body).length > 0
           ) {
-            Log.debug('Time travel', `Log ${k} seems to be a object type instead of json type`);
+            Log.debug('Time travel', `Log ${k} seems to be an object type instead of JSON type`);
             return [k, v] as unknown as [string, INotFormattedLogEntry];
           }
 
           malformed.push(k);
           return null;
         }
-      })
-      .filter((e) => e);
+      }),
+    );
+    const filteredPrepared = prepared.filter((e) => e);
 
     if (malformed.length > 0) {
       Log.error(
@@ -131,8 +146,8 @@ export default class TimeTravel {
       );
     }
 
-    Log.debug('Time travel', 'Formatted logs', JSON.stringify(prepared));
+    Log.debug('Time travel', 'Formatted logs', JSON.stringify(filteredPrepared));
 
-    return prepared as [string, INotFormattedLogEntry][];
+    return filteredPrepared as [string, INotFormattedLogEntry][];
   }
 }

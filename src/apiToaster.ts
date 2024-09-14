@@ -1,4 +1,4 @@
-import FileReader from './module/fileReader.js';
+import FileReader from './module/fileReader/index.js';
 import defaultConfig from './tools/config.js';
 import Log from './tools/logger.js';
 import State from './tools/state.js';
@@ -32,15 +32,14 @@ class Toaster {
   async init(req: express.Request, config?: IToasterConfig): Promise<void> {
     Log.log('Main action', 'Initing');
 
-    return new Promise((resolve) => {
-      this.initPath(config);
-      const shouldSave = this.shouldSave(req);
-      if (shouldSave) this.fileReader.save(req);
+    this.initPath(config); // No need to await if initPath is synchronous
 
-      resolve();
-    });
+    const shouldSave = this.shouldSave(req);
+
+    if (shouldSave) {
+      await this.fileReader.save(req);
+    }
   }
-
   /**
    * Initialize path.
    * @description Prepare application and initialize its path.
@@ -86,7 +85,7 @@ class Toaster {
  * @param config Config used for logging middleware.
  * @default
  */
-export default function (
+export default function(
   req: express.Request,
   _res: express.Response,
   next: express.NextFunction,
