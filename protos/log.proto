@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package apitoaster;
+
+message LogEntry {
+  string method = 1;
+  string body = 2;
+  string query_params = 3;
+  string headers = 4;
+  string ip = 5;
+  string occured = 6;
+}
