@@ -3,9 +3,10 @@ import { IncomingHttpHeaders } from 'http';
 export interface ILogEntry {
   method?: string;
   body: string;
-  queryParams?: Record<string, string>;
-  headers?: IncomingHttpHeaders;
+  queryParams?:string
+  headers?:string
   ip?: string;
+  occured:string;
 }
 
 export interface INotFormattedLogEntry {
@@ -14,20 +15,28 @@ export interface INotFormattedLogEntry {
   queryParams?: Record<string, string>;
   headers?: IncomingHttpHeaders;
   ip?: string;
+  occured:number;
+}
+
+export interface ILogProto {
+  [key: string]: string;
 }
 
 export interface ILog {
   [key: string]: ILogEntry;
 }
 
+export interface ILogsProto {
+  logs: ILogProto;
+}
 export interface ILogs {
-  logs: ILog
+  logs: ILog;
 }
 
 export interface IIndexEntry {
-  [key: string]: string
+  [key: string]: string;
 }
 
 export interface IIndex {
-  indexes: IIndexEntry
+  indexes: IIndexEntry;
 }
