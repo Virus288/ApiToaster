@@ -43,7 +43,8 @@
     "test:unit": "cross-env NODE_ENV=test jest --config __tests__/jest.config.unit.ts"
   },
   "dependencies": {
-    "chalk": "4.1.2"
+    "chalk": "4.1.2",
+    "protobufjs": "^7.4.0"
   },
   "devDependencies": {
     "@eslint/compat": "^1.1.1",
