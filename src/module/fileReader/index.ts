@@ -1,14 +1,16 @@
-import { CannotCreateFile } from '../errors/index.js';
-import Log from '../tools/logger.js';
-import State from '../tools/state.js';
-import type { IIndex, ILog, ILogEntry, ILogs, INotFormattedLogEntry } from '../../types';
+import { CannotCreateFile } from '../../errors/index.js';
+import Log from '../../tools/logger.js';
+import State from '../../tools/state.js';
+import Proto from '../protobuf/index.js';
+import TimeTravel from '../timeTravel/index.js';
+import type { IIndex, ILog, ILogProto, ILogsProto, INotFormattedLogEntry } from '../../../types/index.js';
 import type express from 'express';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
 export default class FileReader {
-  private _logs: ILogs;
+  private _logs: ILogsProto;
   private _index: IIndex;
 
   constructor() {
@@ -16,11 +18,11 @@ export default class FileReader {
     this._index = { indexes: {} };
   }
 
-  private get logs(): ILogs {
+  private get logs(): ILogsProto {
     return this._logs;
   }
 
-  private set logs(value: ILogs) {
+  private set logs(value: ILogsProto) {
     this._logs = value;
   }
 
@@ -38,13 +40,13 @@ export default class FileReader {
    * @param req {express.Request} Request received from user.
    * @returns {void} Void.
    */
-  save(req: express.Request): void {
+  async save(req: express.Request): Promise<void> {
     this.pre();
 
     this.prepareLogfile();
     this.prepraeIndexFile();
 
-    this.prepareLog(req);
+    await this.prepareLog(req);
     this.saveFiles();
   }
 
@@ -53,7 +55,7 @@ export default class FileReader {
    * @description Read log files and return them for usage.
    * @returns {ILogs} Saved logs.
    */
-  read(): ILogs {
+  read(): ILogsProto {
     this.pre();
 
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));
@@ -95,30 +97,41 @@ export default class FileReader {
   }
 
   /**
-   * Preapre new log.
+   * Prepare new log.
    * @description Preapre new log and index it.
    * @param req {express.Request} Request received from user.
    * @returns {void} Void.
    * @private
    */
-  private prepareLog(req: express.Request): void {
+  private async prepareLog(req: express.Request): Promise<void> {
     const uuid = randomUUID() as string;
+    const proto = new Proto();
 
     const body: INotFormattedLogEntry = {
       method: State.config.method ? req.method : undefined,
       body: State.config.body ? ((req.body ?? {}) as Record<string, unknown>) : {},
-      queryParams: State.config.queryParams ? (req.query as Record<string, string>) : undefined,
-      headers: State.config.headers ? req.headers : undefined,
+      queryParams: State.config.queryParams ? (req.query as Record<string, string>) : {},
+      headers: State.config.headers ? req.headers : {},
       ip: State.config.ip ? req.ip : undefined,
+      occured: Date.now(),
     };
 
     this.obfuscate(body);
 
-    const log: ILog = {
-      [uuid]: { ...body, body: JSON.stringify(body.body) },
+    const logBody: ILog['body'] = {
+      ...body,
+      body: JSON.stringify(body.body),
+      occured: new Date(body.occured).toISOString(),
+      queryParams: JSON.stringify(body.queryParams),
+      headers: JSON.stringify(body.headers),
+    };
+    const logProto: ILogProto = {
+      [uuid]: await proto.encodeLog(logBody),
     };
 
-    this.logs.logs = { ...this.logs.logs, ...log };
+    this.logs.logs = { ...this.logs.logs, ...logProto };
+    const time = new TimeTravel();
+    await time.prepareLogs(this.logs.logs);
     this.index.indexes[uuid] = path.resolve(State.config.path, 'index.json');
   }
 
@@ -190,7 +203,7 @@ export default class FileReader {
     try {
       const location = path.resolve(State.config.path, 'logs.json');
       const data = fs.readFileSync(location).toString();
-      const file = JSON.parse(data) as ILogs;
+      const file = JSON.parse(data) as ILogsProto;
 
       if (file?.logs) {
         this.logs = file;
@@ -212,8 +225,10 @@ export default class FileReader {
    * @private
    */
   private obfuscate(log: INotFormattedLogEntry): void {
-    State.config.obfuscate.forEach((e) => {
-      if (log[e as keyof ILogEntry]) log.body[e as keyof ILogEntry] = '***';
-    });
+    State.config.obfuscate
+      .filter((field) => field !== 'occured')
+      .forEach((e) => {
+        if (log.body[e]) log.body[e] = '***';
+      });
   }
 }
