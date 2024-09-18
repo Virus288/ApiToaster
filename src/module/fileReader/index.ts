@@ -49,6 +49,7 @@ export default class FileReader {
 
     let max = Math.max(...logNumbers);
 
+    // check if curr size + size of to be saved log are
     const size = this.checkFileSize(path.resolve(State.config.path, `logs_${max}.json`));
     if (size >= 350) {
       max++;
