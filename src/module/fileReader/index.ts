@@ -34,6 +34,28 @@ export default class FileReader {
     this._index = value;
   }
 
+  private getCurrentLogFile(): string {
+    const files = fs.readdirSync(State.config.path).filter((f) => f.includes('logs'));
+
+    const logNumbers = files
+      .map((file) => {
+        const match = file.match(/\d+/u);
+        return match ? parseInt(match[0], 10) : null;
+      })
+      .filter((num): num is number => num !== null);
+
+    if (logNumbers.length === 0) {
+      return 'logs_0.json';
+    }
+
+    let max = Math.max(...logNumbers);
+
+    const size = this.checkFileSize(path.resolve(State.config.path, `logs_${max}.json`));
+    if (size >= 350) {
+      max++;
+    }
+    return `logs_${max}.json`;
+  }
   /**
    * Save new log.
    * @description Preapre and save new log.
@@ -42,7 +64,6 @@ export default class FileReader {
    */
   async save(req: express.Request): Promise<void> {
     this.pre();
-
     this.prepareLogfile();
     this.prepraeIndexFile();
 
@@ -59,7 +80,7 @@ export default class FileReader {
     this.pre();
 
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));
-    this.validateFile('logs.json', JSON.stringify({ logs: {} }));
+    this.validateFile(this.getCurrentLogFile(), JSON.stringify({ logs: {} }));
 
     this.prepareLogfile();
     return this.logs;
@@ -73,7 +94,7 @@ export default class FileReader {
   private pre(): void {
     this.initDirectories();
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));
-    this.validateFile('logs.json', JSON.stringify({ logs: {} }));
+    this.validateFile(this.getCurrentLogFile(), JSON.stringify({ logs: {} }));
   }
 
   /**
@@ -107,15 +128,18 @@ export default class FileReader {
     const uuid = randomUUID() as string;
     const proto = new Proto();
 
+    const filteredHeaders = { ...req.headers };
+
+    delete filteredHeaders['content-length'];
+
     const body: INotFormattedLogEntry = {
       method: State.config.method ? req.method : undefined,
       body: State.config.body ? ((req.body ?? {}) as Record<string, unknown>) : {},
       queryParams: State.config.queryParams ? (req.query as Record<string, string>) : {},
-      headers: State.config.headers ? req.headers : {},
+      headers: State.config.headers ? filteredHeaders : {},
       ip: State.config.ip ? req.ip : undefined,
       occured: Date.now(),
     };
-
     this.obfuscate(body);
 
     const logBody: ILog['body'] = {
@@ -165,7 +189,7 @@ export default class FileReader {
    */
   private saveFiles(): void {
     const indexLocation = path.resolve(State.config.path, 'index.json');
-    const logsLocation = path.resolve(State.config.path, 'logs.json');
+    const logsLocation = path.resolve(State.config.path, this.getCurrentLogFile());
 
     try {
       fs.writeFileSync(logsLocation, JSON.stringify(this.logs, null, 2));
@@ -201,8 +225,8 @@ export default class FileReader {
    */
   private prepareLogfile(): void {
     try {
-      const location = path.resolve(State.config.path, 'logs.json');
-      const data = fs.readFileSync(location).toString();
+      const log = path.resolve(State.config.path, this.getCurrentLogFile());
+      const data = fs.readFileSync(log).toString();
       const file = JSON.parse(data) as ILogsProto;
 
       if (file?.logs) {
@@ -230,5 +254,9 @@ export default class FileReader {
       .forEach((e) => {
         if (log.body[e]) log.body[e] = '***';
       });
+  }
+
+  private checkFileSize(logPath: string): number {
+    return fs.statSync(logPath).size;
   }
 }

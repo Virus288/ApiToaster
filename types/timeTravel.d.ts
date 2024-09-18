@@ -1,16 +1,20 @@
 export interface IToasterTimeTravel {
-  port: number
-  path?: string
+  port: number;
+  path?: string;
 }
 
 export interface ITimeTravelStats {
   failed: {
     amount: number;
-    ids: string[]
+    ids: string[];
   };
   succeeded: {
     amount: number;
-    ids: string[]
-  }
+    ids: string[];
+  };
 }
-
+export interface ITimeTravelReq {
+  method: string;
+  body?:string
+  headers?: Record<string, string>;
+}

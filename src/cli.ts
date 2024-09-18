@@ -40,6 +40,9 @@ class App {
       case ECliOptions.TimeTravel:
         await this.initTimeTravel();
         break;
+      case ECliOptions.Decode:
+        await this.decode();
+        break;
       case ECliOptions.Help:
         this.help();
         break;
@@ -61,6 +64,11 @@ class App {
     Log.log('Cli', 'Starting');
     const config = this.readToasterConfig();
     await this.timeTravel.init(config);
+  }
+  private async decode(): Promise<void> {
+    Log.log('Cli', 'Starting');
+    const config = this.readToasterConfig();
+    await this.timeTravel.decode(config);
   }
 
   private readToasterConfig(): IToasterTimeTravel {

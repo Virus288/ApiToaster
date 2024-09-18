@@ -2,7 +2,7 @@ import Log from '../../tools/logger.js';
 import FileReader from '../fileReader/index.js';
 import Proto from '../protobuf/index.js';
 import type { ILogProto, ILogsProto, INotFormattedLogEntry } from '../../../types/logs.js';
-import type { ITimeTravelStats, IToasterTimeTravel } from '../../../types/timeTravel.js';
+import type { ITimeTravelReq, ITimeTravelStats, IToasterTimeTravel } from '../../../types/timeTravel.js';
 
 export default class TimeTravel {
   private readonly _fileReader: FileReader;
@@ -42,6 +42,14 @@ export default class TimeTravel {
     this.presentData();
   }
 
+  async decode(config: IToasterTimeTravel): Promise<void> {
+    Log.debug('Time travel', 'decoding');
+
+    const logs = this.readLogs();
+    this.config = config;
+    const preparedLogs = await this.prepareLogs(logs.logs);
+    Log.log('Logs', preparedLogs);
+  }
   private readLogs(): ILogsProto {
     return this.fileReader.read();
   }
@@ -65,14 +73,20 @@ export default class TimeTravel {
       'Content-Type': 'application/json',
     };
 
-    const res = await fetch(`http://localhost:${this.config.port}`, {
-      method: 'POST',
+    const method = log[1].method ?? 'GET';
+    const fetchReq: ITimeTravelReq = {
+      method,
       headers: {
         ...headers,
         'X-Toaster': 'true',
       },
       body: JSON.stringify(log[1].body) ?? '',
-    });
+    };
+    if (method === 'GET') {
+      delete fetchReq.body;
+    }
+
+    const res = await fetch(`http://localhost:${this.config.port}`, fetchReq);
 
     if (res.ok) {
       this.total.succeeded.ids.push(log[0]);
