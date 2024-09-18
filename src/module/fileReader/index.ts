@@ -2,7 +2,6 @@ import { CannotCreateFile } from '../../errors/index.js';
 import Log from '../../tools/logger.js';
 import State from '../../tools/state.js';
 import Proto from '../protobuf/index.js';
-import TimeTravel from '../timeTravel/index.js';
 import type { IIndex, ILog, ILogProto, ILogsProto, INotFormattedLogEntry } from '../../../types/index.js';
 import type express from 'express';
 import { randomUUID } from 'crypto';
@@ -154,8 +153,6 @@ export default class FileReader {
     };
 
     this.logs.logs = { ...this.logs.logs, ...logProto };
-    const time = new TimeTravel();
-    await time.prepareLogs(this.logs.logs);
     this.index.indexes[uuid] = path.resolve(State.config.path, 'index.json');
   }
 
