@@ -50,6 +50,7 @@ export default class TimeTravel {
     const preparedLogs = await this.prepareLogs(logs.logs);
     Log.log('Logs', preparedLogs);
   }
+
   private readLogs(): ILogsProto {
     return this.fileReader.read();
   }
