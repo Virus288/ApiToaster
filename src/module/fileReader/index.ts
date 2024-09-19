@@ -93,10 +93,11 @@ export default class FileReader {
 
   /**
    * Read logs files.
-   * @description Read log files and return them for usage.
+   * @description Get current log file, read and return it for usage.
    * @returns {ILogs} Saved logs.
    */
   read(): ILogsProto {
+    this.getCurrentLogFile();
     this.pre();
 
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));

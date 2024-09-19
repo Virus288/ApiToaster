@@ -6,19 +6,19 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 export default class Proto {
-  private _modulePath: string;
+  // private _modulePath: string;
 
-  constructor() {
-    this._modulePath = path.dirname(fileURLToPath(import.meta.url));
-  }
+  // constructor() {
+    // this._modulePath = path.dirname(fileURLToPath(import.meta.url));
+  // }
 
-  public get modulePath(): string {
-    return this._modulePath;
-  }
-
-  public set modulePath(value: string) {
-    this._modulePath = value;
-  }
+  // public get modulePath(): string {
+  //   return this._modulePath;
+  // }
+  //
+  // public set modulePath(value: string) {
+  //   this._modulePath = value;
+  // }
 
   /**
    * Get path to protobuf files.
