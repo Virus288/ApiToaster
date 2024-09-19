@@ -1,19 +1,21 @@
 #!/usr/bin/env node
-import { ECliOptions } from './enums/cli.js';
-import TimeTravel from './module/timeTravel/index.js';
-import defaultConfig from './tools/config.js';
-import Log from './tools/logger.js';
-import State from './tools/state.js';
-import Validation from './tools/validator.js';
-import type { IToasterTimeTravel } from '../types/index.js';
+import { ECliOptions } from '../enums/cli.js';
+import TimeTravel from '../module/timeTravel/index.js';
+import defaultConfig from '../tools/config.js';
+import Log from '../tools/logger.js';
+import State from '../tools/state.js';
+import Validation from '../tools/validator.js';
+import type { IToasterTimeTravel } from '../../types/index.js';
 import fs from 'fs';
 import path from 'path';
 
 class App {
   private readonly _timeTravel: TimeTravel;
-
+  public helpText: string;
   constructor() {
     this._timeTravel = new TimeTravel();
+    this.helpText =
+      '\nApiToaster - application middleware for registring, storing and analizing incoming request\n\tUsage: npx api-toaster [param] \n\tParams:\n\t\ttime-travel: resends stored request\n\t\tdecode: logs stored requests\n\n\tNote: if no argument is provided, functions look only at last log_[i].json file';
   }
 
   private get timeTravel(): TimeTravel {
@@ -57,7 +59,7 @@ class App {
   }
 
   private help(): void {
-    Log.log('Cli', 'Help manu');
+    Log.log('Cli', this.helpText);
   }
 
   private async initTimeTravel(): Promise<void> {
