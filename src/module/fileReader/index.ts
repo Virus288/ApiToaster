@@ -85,7 +85,6 @@ export default class FileReader {
     this.getCurrentLogFile();
     this.prepareLogfile();
     this.prepraeIndexFile();
-    // check for size and increment logFileNumber
 
     await this.prepareLog(req);
     this.checkFileSize(this.currLogFile);
@@ -286,7 +285,7 @@ export default class FileReader {
   private checkFileSize(logNumber: number): void {
     const logPath = path.resolve(State.config.path, `logs_${logNumber}.json`);
     const size = fs.statSync(logPath).size + this.currLogSize;
-    if (size > 260) {
+    if (size > 500) {
       this.currLogFile++;
       this.cleanLogs();
     }
