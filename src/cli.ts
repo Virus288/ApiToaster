@@ -36,15 +36,17 @@ class App {
       return;
     }
 
-    switch (args[0]) {
+    const [command, flag] = args;
+
+    switch (command) {
       case ECliOptions.TimeTravel:
-        if (args[1] === '-p') {
+        if (flag === ECliOptions.PathFlag) {
           if (!args[2]) {
             Log.error('Cli', 'Please provide a log file name.');
           } else {
             await this.initTimeTravel(args[2]);
           }
-        } else if (!args[1]) {
+        } else if (!flag) {
           await this.initTimeTravel();
         } else {
           Log.error('Cli', 'Unknown parameter.');
@@ -55,13 +57,13 @@ class App {
         }
         break;
       case ECliOptions.Decode:
-        if (args[1] === '-p') {
+        if (flag === ECliOptions.PathFlag) {
           if (!args[2]) {
             Log.error('Cli', 'Please provide a file to decode.');
           } else {
             await this.decode(args[2]);
           }
-        } else if (!args[1]) {
+        } else if (!flag) {
           await this.decode();
         } else {
           Log.error('Cli', 'Unknown parameter.');
