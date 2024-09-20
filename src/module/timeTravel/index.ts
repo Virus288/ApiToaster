@@ -30,10 +30,10 @@ export default class TimeTravel {
     return this._total;
   }
 
-  async init(config: IToasterTimeTravel): Promise<void> {
+  async init(config: IToasterTimeTravel, fileName?: string): Promise<void> {
     Log.debug('Time travel', 'Initiing');
 
-    const logs = this.readLogs();
+    const logs = this.readLogs(fileName);
     this.config = config;
     const preparedLogs = await this.prepareLogs(logs.logs);
     await this.sendRequests(preparedLogs);
@@ -42,17 +42,17 @@ export default class TimeTravel {
     this.presentData();
   }
 
-  async decode(config: IToasterTimeTravel): Promise<void> {
+  async decode(config: IToasterTimeTravel, fileName?: string): Promise<void> {
     Log.debug('Time travel', 'decoding');
 
-    const logs = this.readLogs();
+    const logs = this.readLogs(fileName);
     this.config = config;
     const preparedLogs = await this.prepareLogs(logs.logs);
     Log.log('Logs', preparedLogs);
   }
 
-  private readLogs(): ILogsProto {
-    return this.fileReader.read();
+  private readLogs(fileName?: string): ILogsProto {
+    return this.fileReader.read(fileName);
   }
 
   private async sendRequests(logs: [string, INotFormattedLogEntry][]): Promise<void> {
