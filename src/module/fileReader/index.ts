@@ -12,7 +12,7 @@ export default class FileReader {
   private _logs: ILogsProto;
   private _index: IIndex;
   private _currLogSize: number = 0;
-  private _currLogFile: number = 0;
+  private _currLogFile: string = 'logs_0.json';
 
   constructor() {
     this._logs = { logs: {} };
@@ -43,20 +43,25 @@ export default class FileReader {
     this._currLogSize = value;
   }
 
-  public get currLogFile(): number {
+  public get currLogFile(): string {
     return this._currLogFile;
   }
 
-  public set currLogFile(value: number) {
+  public set currLogFile(value: string) {
     this._currLogFile = value;
   }
 
   /**
    * Get current number of a log file.
-   * @description Get the highest number as a current log file numeration.
+   * @description Get the current log file as a highest numeration or passed filename.
+   * @param fileName Name of a file to be read.
    * @returns {void} Void.
    */
-  getCurrentLogFile(): void {
+  getCurrentLogFile(fileName?: string): void {
+    if (fileName) {
+      this.currLogFile = fileName;
+      return;
+    }
     const files = fs.readdirSync(State.config.path).filter((f) => f.includes('logs'));
 
     const logNumbers = files
@@ -72,7 +77,7 @@ export default class FileReader {
 
     const max = Math.max(...logNumbers);
 
-    this.currLogFile = max;
+    this.currLogFile = `logs_${max}.json`;
   }
   /**
    * Save new log.
@@ -93,15 +98,16 @@ export default class FileReader {
 
   /**
    * Read logs files.
-   * @description Get current log file, read and return it for usage.
+   * @description Get current or specified log file, read and return it for usage.
+   * @param fileName Name of a file to be read.
    * @returns {ILogs} Saved logs.
    */
-  read(): ILogsProto {
-    this.getCurrentLogFile();
+  read(fileName?: string): ILogsProto {
+    this.getCurrentLogFile(fileName);
     this.pre();
 
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));
-    this.validateFile(`logs_${this.currLogFile}.json`, JSON.stringify({ logs: {} }));
+    this.validateFile(this.currLogFile, JSON.stringify({ logs: {} }));
 
     this.prepareLogfile();
     return this.logs;
@@ -115,7 +121,7 @@ export default class FileReader {
   private pre(): void {
     this.initDirectories();
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));
-    this.validateFile(`logs_${this.currLogFile}.json`, JSON.stringify({ logs: {} }));
+    this.validateFile(this.currLogFile, JSON.stringify({ logs: {} }));
   }
 
   /**
@@ -209,7 +215,7 @@ export default class FileReader {
    */
   private saveFiles(): void {
     const indexLocation = path.resolve(State.config.path, 'index.json');
-    const logsLocation = path.resolve(State.config.path, `logs_${this.currLogFile}.json`);
+    const logsLocation = path.resolve(State.config.path, this.currLogFile);
 
     try {
       fs.writeFileSync(logsLocation, JSON.stringify(this.logs, null, 2));
@@ -245,7 +251,7 @@ export default class FileReader {
    */
   private prepareLogfile(): void {
     try {
-      const log = path.resolve(State.config.path, `logs_${this.currLogFile}.json`);
+      const log = path.resolve(State.config.path, this.currLogFile);
       const data = fs.readFileSync(log).toString();
       const file = JSON.parse(data) as ILogsProto;
 
@@ -279,15 +285,15 @@ export default class FileReader {
   /**
    * Check for a file size.
    * @description Method to check for combined current file and element to be saved size.
-   * @param logNumber Log file numeration.
+   * @param logName Log file path name.
    * @returns {void} Void.
    * @private
    */
-  private checkFileSize(logNumber: number): void {
-    const logPath = path.resolve(State.config.path, `logs_${logNumber}.json`);
+  private checkFileSize(logName: string): void {
+    const logPath = path.resolve(State.config.path, logName);
     const size = fs.statSync(logPath).size + this.currLogSize;
     if (size > 500) {
-      this.currLogFile++;
+      this.incrementLogFile(logName);
       this.cleanLogs();
     }
   }
@@ -301,5 +307,23 @@ export default class FileReader {
   private cleanLogs(): void {
     const lastLog = Object.entries(this.logs.logs).slice(-1);
     this.logs.logs = { ...Object.fromEntries(lastLog) };
+  }
+
+  /**
+   * Increments log numeration.
+   * @description Method to increment log file numeration.
+   * @param logName Log file path name.
+   * @returns {void} Void.
+   * @private
+   */
+  private incrementLogFile(logName: string): void {
+    const match = logName.match(/(\d+)/u);
+
+    if (!match || match.length === 0) {
+      Log.error('FileReader', 'Malformed file name.');
+    }
+
+    const number = parseInt(match![0], 10) + 1;
+    this.currLogFile = logName.replace(/\d+/u, number.toString());
   }
 }

@@ -37,10 +37,35 @@ class App {
 
     switch (args[0]) {
       case ECliOptions.TimeTravel:
-        await this.initTimeTravel();
+        if (args[1] === '-p') {
+          if (!args[2]) {
+            Log.error('Cli', 'Please provide a log file name.');
+          } else {
+            await this.initTimeTravel(args[2]);
+          }
+        } else if (!args[1]) {
+          await this.initTimeTravel();
+        } else {
+          Log.error('Cli', 'Unknown parameter.');
+          Log.log(
+            'Cli',
+            '\nAvailable parameters for time-travel:\n\t-p filename : provide filename to run command on.',
+          );
+        }
         break;
       case ECliOptions.Decode:
-        await this.decode();
+        if (args[1] === '-p') {
+          if (!args[2]) {
+            Log.error('Cli', 'Please provide a file to decode.');
+          } else {
+            await this.decode(args[2]);
+          }
+        } else if (!args[1]) {
+          await this.decode();
+        } else {
+          Log.error('Cli', 'Unknown parameter.');
+          Log.log('Cli', '\nAvailable parameters for decode:\n\t-p filename : provide filename to decode.');
+        }
         break;
       case ECliOptions.Help:
         this.help();
@@ -62,15 +87,15 @@ class App {
     );
   }
 
-  private async initTimeTravel(): Promise<void> {
+  private async initTimeTravel(fileName?: string): Promise<void> {
     Log.log('Cli', 'Starting');
     const config = this.readToasterConfig();
-    await this.timeTravel.init(config);
+    await this.timeTravel.init(config, fileName);
   }
-  private async decode(): Promise<void> {
+  private async decode(fileName?: string): Promise<void> {
     Log.log('Cli', 'Starting');
     const config = this.readToasterConfig();
-    await this.timeTravel.decode(config);
+    await this.timeTravel.decode(config, fileName);
   }
 
   private readToasterConfig(): IToasterTimeTravel {
