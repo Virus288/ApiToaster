@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { ECliFlags } from 'enums/flag.js';
 import { ECliOptions } from './enums/cli.js';
 import TimeTravel from './module/timeTravel/index.js';
 import defaultConfig from './tools/config.js';
@@ -40,7 +41,7 @@ class App {
 
     switch (command) {
       case ECliOptions.TimeTravel:
-        if (flag === ECliOptions.PathFlag) {
+        if (flag === ECliFlags.PathFlag) {
           if (!args[2]) {
             Log.error('Cli', 'Please provide a log file name.');
           } else {
@@ -57,7 +58,7 @@ class App {
         }
         break;
       case ECliOptions.Decode:
-        if (flag === ECliOptions.PathFlag) {
+        if (flag === ECliFlags.PathFlag) {
           if (!args[2]) {
             Log.error('Cli', 'Please provide a file to decode.');
           } else {
