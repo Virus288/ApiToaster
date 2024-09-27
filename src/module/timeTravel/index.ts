@@ -1,8 +1,15 @@
 import Log from '../../tools/logger.js';
 import FileReader from '../fileReader/index.js';
 import Proto from '../protobuf/index.js';
-import type { ILogProto, ILogsProto, INotFormattedLogEntry } from '../../../types/logs.js';
-import type { ITimeTravelReq, ITimeTravelStats, IToasterTimeTravel } from '../../../types/timeTravel.js';
+import type {
+  ILogProto,
+  ILogsProto,
+  INotFormattedLogEntry,
+  IFindParams,
+  ITimeTravelReq,
+  ITimeTravelStats,
+  IToasterTimeTravel,
+} from '../../../types/index.js';
 
 export default class TimeTravel {
   private readonly _fileReader: FileReader;
@@ -51,47 +58,61 @@ export default class TimeTravel {
     Log.log('Logs', preparedLogs);
   }
 
-  async find(
-    config: IToasterTimeTravel,
-    fileName?: string,
-    key?: string,
-    value?: string,
-    ip?: string,
-    json?: string,
-  ): Promise<void> {
-    Log.debug('Time travel', 'finding');
-    Log.log('cli', `key: ${key}`, `ip: ${ip}`, `path: ${fileName}`, json);
-    const logs = this.readLogs(fileName);
+  async find(config: IToasterTimeTravel, params: IFindParams): Promise<void> {
+    Log.log('Time travel', 'Searching for files');
+    Log.debug(
+      'Time travel',
+      'Searching',
+      `key: ${params.keys.toString()}`,
+      `ips: ${params.ips.toString()}`,
+      `files: ${params.files.toString()}`,
+      `json: ${JSON.stringify(params.json)}`,
+    );
+
+    // Data is limited to only first value on the list. Make sure to include all params
+
+    const logs = this.readLogs(params.files[0]);
     this.config = config;
     const preparedLogs = await this.prepareLogs(logs.logs);
     const filteredLogs = preparedLogs.filter((log) => {
       let result = true;
-      if (ip) {
-        if (!log[1].headers || !log[1].headers.host || log[1].headers.host !== ip) {
+
+      if (params.ips[0]) {
+        if (!log[1].headers || !log[1].headers.host || log[1].headers.host !== params.ips[0]) {
           result = false; // it filters by host's address not ip, due to client's ip not being stored. Has to be changed later on
         }
       }
-      if (json) {
+
+      if (params.json) {
         if (log[1].headers?.['content-type'] !== 'application/json') {
+          // If I undefined correctly, data that came here is validated if its json or not. If its not, do not run next steps
           result = false;
         }
-        if (!JSON.stringify(log[1].body).includes(json)) {
+
+        // This is bad. We should parse all data and make sure that key and value does exist in each other. Also we are not looking for nested keys
+        if (!JSON.stringify(log[1].body).includes(JSON.stringify(params.json))) {
           result = false;
         }
       }
-      if (key) {
-        if (!log[1].body[`${key}`]) {
+
+      // This is bad. We are not looking for nested keys
+      if (params.keys[0]) {
+        if (!log[1].body[`${params.keys[0]}`]) {
           result = false;
         }
       }
-      if (value) {
-        if (!Object.values(log[1].body).includes(value)) {
+
+      // This is bad.We are not looking for nested values
+      if (params.values[0]) {
+        if (!Object.values(log[1].body).includes(params.values[0])) {
           result = false;
         }
       }
 
       return result;
     });
+
+    // If not req found, create different response. Response shold be stringified json, but in readable format ( with proper spaces )
     Log.log('Found requests', filteredLogs);
   }
 

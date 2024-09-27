@@ -62,6 +62,7 @@ export default class FileReader {
       this.currLogFile = fileName;
       return;
     }
+    Log.warn('File reader', 'File target was not provided, selecting latest available file');
     const files = fs.readdirSync(State.config.path).filter((f) => f.includes('logs'));
 
     const logNumbers = files

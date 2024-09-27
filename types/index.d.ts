@@ -1,4 +1,5 @@
 export * from './config'
+export * from './cli'
 export * from './timeTravel'
 export * from './state'
 export * from './logs'

@@ -1,0 +1,97 @@
+import * as enums from '../enums/index.js';
+import Log from '../tools/logger.js';
+import type { IFindParams, ICliArgs } from '../../types/index.js';
+
+export default class QueryBuilder {
+  constructor(args: ICliArgs) {
+    this.args = args;
+  }
+
+  private accessor lastCommmand: enums.ECliFlags | undefined = undefined;
+
+  private accessor args: ICliArgs;
+
+  private accessor params: IFindParams = {
+    files: [],
+    keys: [],
+    values: [],
+    ips: [],
+    json: {},
+  };
+
+  init(): IFindParams {
+    if (this.args.length === 0) return this.params;
+
+    const target = this.args[0];
+
+    switch (target) {
+      case enums.ECliFlags.ShortPath:
+      case enums.ECliFlags.Path:
+      case enums.ECliFlags.Value:
+      case enums.ECliFlags.ShortValue:
+      case enums.ECliFlags.Keys:
+      case enums.ECliFlags.ShortKeys:
+      case enums.ECliFlags.Ip:
+      case enums.ECliFlags.ShortIp:
+      case enums.ECliFlags.ShortJson:
+      case enums.ECliFlags.Json:
+        this.lastCommmand = target;
+        break;
+      default:
+        this.addParam(target as string);
+        break;
+    }
+
+    this.args = this.args.slice(1);
+    return this.init();
+  }
+
+  private addParam(target: string): void {
+    if (!this.lastCommmand) return Log.error('QueryBuilder', 'Tried to add param without providing flag for its type.');
+
+    switch (this.lastCommmand) {
+      case enums.ECliFlags.ShortPath:
+      case enums.ECliFlags.Path:
+        this.params.files.push(target);
+        break;
+      case enums.ECliFlags.Value:
+      case enums.ECliFlags.ShortValue:
+        this.params.values.push(target);
+        break;
+      case enums.ECliFlags.Keys:
+      case enums.ECliFlags.ShortKeys:
+        this.params.keys.push(target);
+        break;
+      case enums.ECliFlags.Ip:
+      case enums.ECliFlags.ShortIp:
+        this.params.ips.push(target);
+        break;
+      case enums.ECliFlags.Json:
+      case enums.ECliFlags.ShortJson:
+        try {
+          this.params.json = JSON.parse(target) as Record<string, unknown>;
+        } catch (err) {
+          Log.debug('QueryBuilder', 'Got error while formatting json', (err as Error).message);
+          Log.error(
+            'QueryBuilder',
+            'Malformed json value. If you think that this is en error, more information can be found in debug mode',
+          );
+        }
+        break;
+      default:
+        Log.error('QueryBuilder', 'About to add param for unsupported commannd.');
+    }
+
+    return undefined;
+  }
+
+  isEmpty(): boolean {
+    return (
+      this.params.ips.length === 0 &&
+      Object.keys(this.params.json).length === 0 &&
+      this.params.values.length === 0 &&
+      this.params.keys.length === 0 &&
+      this.params.files.length === 0
+    );
+  }
+}
