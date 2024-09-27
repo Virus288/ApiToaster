@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { ECliFlags } from 'enums/flag.js';
 import { ECliOptions } from './enums/cli.js';
 import TimeTravel from './module/timeTravel/index.js';
 import defaultConfig from './tools/config.js';
@@ -36,9 +37,39 @@ class App {
       return;
     }
 
-    switch (args[0]) {
+    const [command, flag] = args;
+
+    switch (command) {
       case ECliOptions.TimeTravel:
-        await this.initTimeTravel();
+        if (flag === ECliFlags.PathFlag) {
+          if (!args[2]) {
+            Log.error('Cli', 'Please provide a log file name.');
+          } else {
+            await this.initTimeTravel(args[2]);
+          }
+        } else if (!flag) {
+          await this.initTimeTravel();
+        } else {
+          Log.error('Cli', 'Unknown parameter.');
+          Log.log(
+            'Cli',
+            '\nAvailable parameters for time-travel:\n\t-p filename : provide filename to run command on.',
+          );
+        }
+        break;
+      case ECliOptions.Decode:
+        if (flag === ECliFlags.PathFlag) {
+          if (!args[2]) {
+            Log.error('Cli', 'Please provide a file to decode.');
+          } else {
+            await this.decode(args[2]);
+          }
+        } else if (!flag) {
+          await this.decode();
+        } else {
+          Log.error('Cli', 'Unknown parameter.');
+          Log.log('Cli', '\nAvailable parameters for decode:\n\t-p filename : provide filename to decode.');
+        }
         break;
       case ECliOptions.Help:
         this.help();
@@ -57,10 +88,15 @@ class App {
     Log.log('Cli', 'Help manu');
   }
 
-  private async initTimeTravel(): Promise<void> {
+  private async initTimeTravel(fileName?: string): Promise<void> {
     Log.log('Cli', 'Starting');
     const config = this.readToasterConfig();
-    await this.timeTravel.init(config);
+    await this.timeTravel.init(config, fileName);
+  }
+  private async decode(fileName?: string): Promise<void> {
+    Log.log('Cli', 'Starting');
+    const config = this.readToasterConfig();
+    await this.timeTravel.decode(config, fileName);
   }
 
   private readToasterConfig(): IToasterTimeTravel {

@@ -2,7 +2,7 @@ import Log from '../../tools/logger.js';
 import FileReader from '../fileReader/index.js';
 import Proto from '../protobuf/index.js';
 import type { ILogProto, ILogsProto, INotFormattedLogEntry } from '../../../types/logs.js';
-import type { ITimeTravelStats, IToasterTimeTravel } from '../../../types/timeTravel.js';
+import type { ITimeTravelReq, ITimeTravelStats, IToasterTimeTravel } from '../../../types/timeTravel.js';
 
 export default class TimeTravel {
   private readonly _fileReader: FileReader;
@@ -30,10 +30,10 @@ export default class TimeTravel {
     return this._total;
   }
 
-  async init(config: IToasterTimeTravel): Promise<void> {
+  async init(config: IToasterTimeTravel, fileName?: string): Promise<void> {
     Log.debug('Time travel', 'Initiing');
 
-    const logs = this.readLogs();
+    const logs = this.readLogs(fileName);
     this.config = config;
     const preparedLogs = await this.prepareLogs(logs.logs);
     await this.sendRequests(preparedLogs);
@@ -42,8 +42,17 @@ export default class TimeTravel {
     this.presentData();
   }
 
-  private readLogs(): ILogsProto {
-    return this.fileReader.read();
+  async decode(config: IToasterTimeTravel, fileName?: string): Promise<void> {
+    Log.debug('Time travel', 'decoding');
+
+    const logs = this.readLogs(fileName);
+    this.config = config;
+    const preparedLogs = await this.prepareLogs(logs.logs);
+    Log.log('Logs', preparedLogs);
+  }
+
+  private readLogs(fileName?: string): ILogsProto {
+    return this.fileReader.read(fileName);
   }
 
   private async sendRequests(logs: [string, INotFormattedLogEntry][]): Promise<void> {
@@ -61,18 +70,25 @@ export default class TimeTravel {
     Log.log('Time travel', `Sending req with id ${log[0]}`);
     Log.debug('Time travel', 'Sending req with body', log[1].body);
 
-    const headers = (log[1].headers as Record<string, string>) ?? {
-      'Content-Type': 'application/json',
-    };
+    const headers =
+      log[1].headers && Object.keys(log[1].headers).length > 0
+        ? (log[1].headers as Record<string, string>)
+        : { 'Content-Type': 'application/json' };
 
-    const res = await fetch(`http://localhost:${this.config.port}`, {
-      method: 'POST',
+    const method = log[1].method ?? 'GET';
+    const fetchReq: ITimeTravelReq = {
+      method,
       headers: {
         ...headers,
         'X-Toaster': 'true',
       },
       body: JSON.stringify(log[1].body) ?? '',
-    });
+    };
+    if (method === 'GET') {
+      delete fetchReq.body;
+    }
+
+    const res = await fetch(`http://localhost:${this.config.port}`, fetchReq);
 
     if (res.ok) {
       this.total.succeeded.ids.push(log[0]);
