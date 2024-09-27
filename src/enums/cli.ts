@@ -3,4 +3,5 @@ export enum ECliOptions {
   TimeTravel = 'time-travel',
   Help = '--help',
   Decode = 'decode',
+  Find = 'find',
 }

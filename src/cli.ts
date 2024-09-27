@@ -12,11 +12,9 @@ import path from 'path';
 
 class App {
   private readonly _timeTravel: TimeTravel;
-
   constructor() {
     this._timeTravel = new TimeTravel();
   }
-
   private get timeTravel(): TimeTravel {
     return this._timeTravel;
   }
@@ -71,6 +69,9 @@ class App {
           Log.log('Cli', '\nAvailable parameters for decode:\n\t-p filename : provide filename to decode.');
         }
         break;
+      case ECliOptions.Find:
+        await this.find(args);
+        break;
       case ECliOptions.Help:
         this.help();
         break;
@@ -85,9 +86,50 @@ class App {
   }
 
   private help(): void {
-    Log.log('Cli', 'Help manu');
+    Log.log(
+      'Cli-help',
+      '\nApiToaster - application middleware for registring, storing and analizing incoming request\n\tUsage: npx api-toaster [param] \n\tParams:\n\t\ttime-travel: resends stored request\n\t\tdecode: logs stored requests\n\n\tNote: if no argument is provided, functions look only at last log_[i].json file',
+    );
   }
 
+  private async find(args: ECliOptions | string[]): Promise<void> {
+    Log.log('Cli', 'Staring');
+    const config = this.readToasterConfig();
+    let fileName: string | undefined;
+    let json: string | undefined;
+    let key: string | undefined;
+    let value: string | undefined;
+    let ip: string | undefined;
+    if (args.includes('-h')) {
+      Log.log(
+        'Cli-help',
+        '\nFind is a function used fo search for and filter stored requset\n\tUsage: npx api-toaster find [params...]\n\tAvailable params:\n\t\t-p: filename, specify file to be searched\n\t\t-ip: specify cilents ip\n\t\t-j: json, set key:value pair to be searched for. Input has to be singlequted and in format {"[key]":"[value]"}. Used value can be a sting, object or a number\n\t\t-k: provide a key to look for\n\t\t-v: provide a value to look for',
+      );
+    } else {
+      for (let i = 0; i < args.length - 1; i++) {
+        switch (args[i]) {
+          case '-p':
+            fileName = args[i + 1];
+            break;
+          case '-j':
+            json = args[i + 1];
+            break;
+          case '-k':
+            key = args[i + 1];
+            break;
+          case '-v':
+            value = args[i + 1];
+            break;
+          case '-ip':
+            ip = args[i + 1];
+            break;
+          default:
+            break;
+        }
+      }
+      await this._timeTravel.find(config, fileName, key, value, ip, json);
+    }
+  }
   private async initTimeTravel(fileName?: string): Promise<void> {
     Log.log('Cli', 'Starting');
     const config = this.readToasterConfig();

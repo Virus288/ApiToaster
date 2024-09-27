@@ -51,6 +51,50 @@ export default class TimeTravel {
     Log.log('Logs', preparedLogs);
   }
 
+  async find(
+    config: IToasterTimeTravel,
+    fileName?: string,
+    key?: string,
+    value?: string,
+    ip?: string,
+    json?: string,
+  ): Promise<void> {
+    Log.debug('Time travel', 'finding');
+    Log.log('cli', `key: ${key}`, `ip: ${ip}`, `path: ${fileName}`, json);
+    const logs = this.readLogs(fileName);
+    this.config = config;
+    const preparedLogs = await this.prepareLogs(logs.logs);
+    const filteredLogs = preparedLogs.filter((log) => {
+      let result = true;
+      if (ip) {
+        if (!log[1].headers || !log[1].headers.host || log[1].headers.host !== ip) {
+          result = false; // it filters by host's address not ip, due to client's ip not being stored. Has to be changed later on
+        }
+      }
+      if (json) {
+        if (log[1].headers?.['content-type'] !== 'application/json') {
+          result = false;
+        }
+        if (!JSON.stringify(log[1].body).includes(json)) {
+          result = false;
+        }
+      }
+      if (key) {
+        if (!log[1].body[`${key}`]) {
+          result = false;
+        }
+      }
+      if (value) {
+        if (!Object.values(log[1].body).includes(value)) {
+          result = false;
+        }
+      }
+
+      return result;
+    });
+    Log.log('Found requests', filteredLogs);
+  }
+
   private readLogs(fileName?: string): ILogsProto {
     return this.fileReader.read(fileName);
   }
