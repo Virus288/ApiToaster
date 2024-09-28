@@ -1,11 +1,10 @@
 import Log from '../../tools/logger.js';
-import FileReader from '../fileReader/index.js';
+import FileReader from '../files/reader.js';
 import Proto from '../protobuf/index.js';
 import type {
   ILogProto,
   ILogsProto,
   INotFormattedLogEntry,
-  IFindParams,
   ITimeTravelReq,
   ITimeTravelStats,
   IToasterTimeTravel,
@@ -50,7 +49,7 @@ export default class TimeTravel {
   }
 
   async decode(config: IToasterTimeTravel, fileName?: string): Promise<void> {
-    Log.debug('Time travel', 'decoding');
+    Log.debug('Time travel', 'Decoding');
 
     const logs = this.readLogs(fileName);
     this.config = config;
@@ -58,62 +57,11 @@ export default class TimeTravel {
     Log.log('Logs', preparedLogs);
   }
 
-  async find(config: IToasterTimeTravel, params: IFindParams): Promise<void> {
-    Log.log('Time travel', 'Searching for files');
-    Log.debug(
-      'Time travel',
-      'Searching',
-      `key: ${params.keys.toString()}`,
-      `ips: ${params.ips.toString()}`,
-      `files: ${params.files.toString()}`,
-      `json: ${JSON.stringify(params.json)}`,
-    );
+  async preLoadLogs(fileName?: string): Promise<[string, INotFormattedLogEntry][]> {
+    Log.debug('Time travel', 'Preloading logs');
 
-    // Data is limited to only first value on the list. Make sure to include all params
-
-    const logs = this.readLogs(params.files[0]);
-    this.config = config;
-    const preparedLogs = await this.prepareLogs(logs.logs);
-    const filteredLogs = preparedLogs.filter((log) => {
-      let result = true;
-
-      if (params.ips[0]) {
-        if (!log[1].headers || !log[1].headers.host || log[1].headers.host !== params.ips[0]) {
-          result = false; // it filters by host's address not ip, due to client's ip not being stored. Has to be changed later on
-        }
-      }
-
-      if (params.json) {
-        if (log[1].headers?.['content-type'] !== 'application/json') {
-          // If I undefined correctly, data that came here is validated if its json or not. If its not, do not run next steps
-          result = false;
-        }
-
-        // This is bad. We should parse all data and make sure that key and value does exist in each other. Also we are not looking for nested keys
-        if (!JSON.stringify(log[1].body).includes(JSON.stringify(params.json))) {
-          result = false;
-        }
-      }
-
-      // This is bad. We are not looking for nested keys
-      if (params.keys[0]) {
-        if (!log[1].body[`${params.keys[0]}`]) {
-          result = false;
-        }
-      }
-
-      // This is bad.We are not looking for nested values
-      if (params.values[0]) {
-        if (!Object.values(log[1].body).includes(params.values[0])) {
-          result = false;
-        }
-      }
-
-      return result;
-    });
-
-    // If not req found, create different response. Response shold be stringified json, but in readable format ( with proper spaces )
-    Log.log('Found requests', filteredLogs);
+    const logs = this.readLogs(fileName);
+    return this.prepareLogs(logs.logs);
   }
 
   private readLogs(fileName?: string): ILogsProto {
@@ -181,7 +129,7 @@ export default class TimeTravel {
     }
   }
 
-  async prepareLogs(logs: ILogProto): Promise<[string, INotFormattedLogEntry][]> {
+  private async prepareLogs(logs: ILogProto): Promise<[string, INotFormattedLogEntry][]> {
     const proto = new Proto();
     const malformed: string[] = [];
 

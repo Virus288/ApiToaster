@@ -1,5 +1,6 @@
 import QueryBuilder from './queryBuilder.js';
 import * as enums from '../enums/index.js';
+import FileFinder from '../module/files/finder.js';
 import TimeTravel from '../module/timeTravel/index.js';
 import defaultConfig from '../tools/config.js';
 import Log from '../tools/logger.js';
@@ -44,18 +45,6 @@ export default class Cli {
       default:
         return Log.error('Cli', 'Provided unknown params. Use --help');
     }
-  }
-
-  private async handleFind(args: ICliArgs): Promise<void> {
-    Log.debug('Cli', 'Handeling find');
-
-    const builder = new QueryBuilder(args);
-    const params = builder.init();
-
-    if (builder.isEmpty()) return Log.error('Cli', 'Malformed params');
-
-    const config = this.readToasterConfig();
-    return this._timeTravel.find(config, params);
   }
 
   private async handleDecode(args: ICliArgs): Promise<void> {
@@ -108,21 +97,32 @@ export default class Cli {
     }
   }
 
+  private async handleFind(args: ICliArgs): Promise<void> {
+    Log.debug('Cli', 'Handeling find');
+
+    const builder = new QueryBuilder(args);
+    const params = builder.init();
+
+    if (builder.isEmpty()) return Log.error('Cli', 'Malformed params');
+
+    return new FileFinder().find(params);
+  }
+
   private async initTimeTravel(fileName?: string): Promise<void> {
     Log.debug('Cli', 'Starting time travel');
 
-    const config = this.readToasterConfig();
+    const config = this.readConfig();
     await this.timeTravel.init(config, fileName);
   }
 
   private async decode(fileName?: string): Promise<void> {
     Log.debug('Cli', 'Decodding');
 
-    const config = this.readToasterConfig();
+    const config = this.readConfig();
     await this.timeTravel.decode(config, fileName);
   }
 
-  private readToasterConfig(): IToasterTimeTravel {
+  private readConfig(): IToasterTimeTravel {
     Log.debug('Cli', 'Reading config');
 
     if (!fs.existsSync(path.join(process.cwd(), 'toaster.json'))) {

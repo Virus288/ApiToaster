@@ -3,21 +3,45 @@ import Log from '../tools/logger.js';
 import type { IFindParams, ICliArgs } from '../../types/index.js';
 
 export default class QueryBuilder {
-  constructor(args: ICliArgs) {
-    this.args = args;
-  }
+  private _lastCommmand: enums.ECliFlags | undefined = undefined;
 
-  private accessor lastCommmand: enums.ECliFlags | undefined = undefined;
+  private _args: ICliArgs;
 
-  private accessor args: ICliArgs;
-
-  private accessor params: IFindParams = {
+  private _params: IFindParams = {
     files: [],
     keys: [],
     values: [],
     ips: [],
     json: {},
   };
+
+  constructor(args: ICliArgs) {
+    this._args = args;
+  }
+
+  private get lastCommmand(): enums.ECliFlags | undefined {
+    return this._lastCommmand;
+  }
+
+  private set lastCommmand(val: enums.ECliFlags | undefined) {
+    this._lastCommmand = val;
+  }
+
+  private get args(): ICliArgs {
+    return this._args;
+  }
+
+  private set args(val: ICliArgs) {
+    this._args = val;
+  }
+
+  private get params(): IFindParams {
+    return this._params;
+  }
+
+  private set params(val: IFindParams) {
+    this._params = val;
+  }
 
   init(): IFindParams {
     if (this.args.length === 0) return this.params;

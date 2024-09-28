@@ -23,32 +23,32 @@ export default class FileReader {
     return this._logs;
   }
 
-  private set logs(value: ILogsProto) {
-    this._logs = value;
+  private set logs(val: ILogsProto) {
+    this._logs = val;
   }
 
   private get index(): IIndex {
     return this._index;
   }
 
-  private set index(value: IIndex) {
-    this._index = value;
+  private set index(val: IIndex) {
+    this._index = val;
   }
 
-  public get currLogSize(): number {
+  private get currLogSize(): number {
     return this._currLogSize;
   }
 
-  public set currLogSize(value: number) {
-    this._currLogSize = value;
+  private set currLogSize(val: number) {
+    this._currLogSize = val;
   }
 
-  public get currLogFile(): string {
+  private get currLogFile(): string {
     return this._currLogFile;
   }
 
-  public set currLogFile(value: string) {
-    this._currLogFile = value;
+  private set currLogFile(val: string) {
+    this._currLogFile = val;
   }
 
   /**
@@ -56,8 +56,9 @@ export default class FileReader {
    * @description Get the current log file as a highest numeration or passed filename.
    * @param fileName Name of a file to be read.
    * @returns {void} Void.
+   * @private
    */
-  getCurrentLogFile(fileName?: string): void {
+  private fetchCurrentLogFile(fileName?: string): void {
     if (fileName) {
       this.currLogFile = fileName;
       return;
@@ -88,7 +89,7 @@ export default class FileReader {
    */
   async save(req: express.Request): Promise<void> {
     this.pre();
-    this.getCurrentLogFile();
+    this.fetchCurrentLogFile();
     this.prepareLogfile();
     this.prepraeIndexFile();
 
@@ -96,7 +97,6 @@ export default class FileReader {
     this.checkFileSize(this.currLogFile);
     this.saveFiles();
   }
-
   /**
    * Read logs files.
    * @description Get current or specified log file, read and return it for usage.
@@ -104,7 +104,7 @@ export default class FileReader {
    * @returns {ILogs} Saved logs.
    */
   read(fileName?: string): ILogsProto {
-    this.getCurrentLogFile(fileName);
+    this.fetchCurrentLogFile(fileName);
     this.pre();
 
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));
@@ -113,7 +113,6 @@ export default class FileReader {
     this.prepareLogfile();
     return this.logs;
   }
-
   /**
    * Init basic files.
    * @description Initialize basic directories and files.
@@ -124,7 +123,6 @@ export default class FileReader {
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));
     this.validateFile(this.currLogFile, JSON.stringify({ logs: {} }));
   }
-
   /**
    * Initialize location.
    * @description  Initialize directories and files on given path.
@@ -144,7 +142,6 @@ export default class FileReader {
       }
     }
   }
-
   /**
    * Prepare new log.
    * @description Preapre new log and index it.
@@ -185,7 +182,6 @@ export default class FileReader {
     this.logs.logs = { ...this.logs.logs, ...logProto };
     this.index.indexes[uuid] = path.resolve(State.config.path, 'index.json');
   }
-
   /**
    * Validate and create files.
    * @description Validate and create files with base validates if they do not exist.
@@ -207,7 +203,6 @@ export default class FileReader {
       throw new CannotCreateFile(target);
     }
   }
-
   /**
    * Save data.
    * @description Save prepared data to files.
@@ -225,7 +220,6 @@ export default class FileReader {
       Log.error('Save File', error);
     }
   }
-
   /**
    * Preapre index files.
    * @description Read, validate and prepare index files.
@@ -243,7 +237,6 @@ export default class FileReader {
       this.index = { indexes: {} };
     }
   }
-
   /**
    * Preapre log files.
    * @description Read, validate and prepare log files.
@@ -267,7 +260,6 @@ export default class FileReader {
       this.logs = { logs: {} };
     }
   }
-
   /**
    * Obfuscate parameters from requests.
    * @description Method to obfuscate provided in config fields.
@@ -282,7 +274,6 @@ export default class FileReader {
         if (log.body[e]) log.body[e] = '***';
       });
   }
-
   /**
    * Check for a file size.
    * @description Method to check for combined current file and element to be saved size.
@@ -298,7 +289,6 @@ export default class FileReader {
       this.cleanLogs();
     }
   }
-
   /**
    * Clean logs object.
    * @description Method to clean previous logs and keep last one.
@@ -309,7 +299,6 @@ export default class FileReader {
     const lastLog = Object.entries(this.logs.logs).slice(-1);
     this.logs.logs = { ...Object.fromEntries(lastLog) };
   }
-
   /**
    * Increments log numeration.
    * @description Method to increment log file numeration.
