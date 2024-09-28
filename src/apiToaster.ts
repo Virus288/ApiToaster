@@ -1,4 +1,4 @@
-import FileReader from './module/fileReader/index.js';
+import FileReader from './module/files/reader.js';
 import defaultConfig from './tools/config.js';
 import Log from './tools/logger.js';
 import State from './tools/state.js';

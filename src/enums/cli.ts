@@ -1,7 +1,20 @@
-// eslint-disable-next-line import/prefer-default-export
 export enum ECliOptions {
   TimeTravel = 'time-travel',
-  Help = '--help',
   Decode = 'decode',
   Find = 'find',
+}
+
+export enum ECliFlags {
+  Help = '--help',
+  ShortHelp = '-h',
+  Path = '--path',
+  ShortPath = '-p',
+  Value = '--value',
+  ShortValue = '-v',
+  Keys = '--keys',
+  ShortKeys = '-k',
+  Ip = '--ip',
+  ShortIp = '-ip',
+  Json = '--json',
+  ShortJson = '-j',
 }
