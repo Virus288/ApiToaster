@@ -36,6 +36,14 @@ export default class TimeTravel {
     return this._total;
   }
 
+  /**
+   * Initialize time travel.
+   * @description Initialize time travel and send all requests.
+   * @param config User's config.
+   * @param fileName Target file.
+   * @returns {void} Void.
+   * @async
+   */
   async init(config: IToasterTimeTravel, fileName?: string): Promise<void> {
     Log.debug('Time travel', 'Initiing');
 
@@ -48,6 +56,14 @@ export default class TimeTravel {
     this.presentData();
   }
 
+  /**
+   * Decode file.
+   * @description Decode targeted file.
+   * @param config User's config.
+   * @param fileName Target file.
+   * @returns {void} Void.
+   * @async
+   */
   async decode(config: IToasterTimeTravel, fileName?: string): Promise<void> {
     Log.debug('Time travel', 'Decoding');
 
@@ -57,6 +73,13 @@ export default class TimeTravel {
     Log.log('Logs', preparedLogs);
   }
 
+  /**
+   * Preload load.
+   * @description Preload log file.
+   * @param fileName Target file.
+   * @returns {[string, INotFormattedLogEntry][]} Logs files.
+   * @async
+   */
   async preLoadLogs(fileName?: string): Promise<[string, INotFormattedLogEntry][]> {
     Log.debug('Time travel', 'Preloading logs');
 
@@ -64,10 +87,26 @@ export default class TimeTravel {
     return this.prepareLogs(logs.logs);
   }
 
+  /**
+   * Read logs file.
+   * @description Read logs file.
+   * @param fileName Target file.
+   * @returns {ILogsProto} Log files.
+   * @async
+   * @private
+   */
   private readLogs(fileName?: string): ILogsProto {
     return this.fileReader.init(fileName);
   }
 
+  /**
+   * Send requests created from logs.
+   * @description Send requests read from log files.
+   * @param logs Saved requests.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
   private async sendRequests(logs: [string, INotFormattedLogEntry][]): Promise<void> {
     if (logs.length === 0) {
       Log.log('Time travel', 'No requests to send');
@@ -79,6 +118,14 @@ export default class TimeTravel {
     return undefined;
   }
 
+  /**
+   * Send request using fetch.
+   * @description Send request using fetch.
+   * @param log Single request.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
   private async sendReq(log: [string, INotFormattedLogEntry]): Promise<void> {
     Log.log('Time travel', `Sending req with id ${log[0]}`);
     Log.debug('Time travel', 'Sending req with body', log[1].body);
@@ -112,10 +159,22 @@ export default class TimeTravel {
     }
   }
 
+  /**
+   * Remove all cached data.
+   * @description Remove all cached data.
+   * @returns {void} Void.
+   * @private
+   */
   private cleanUp(): void {
     Log.debug('Time travel', 'Cleaning up');
   }
 
+  /**
+   * Submit data for user.
+   * @description Submit data for user.
+   * @returns {void} Void.
+   * @private
+   */
   private presentData(): void {
     if (this.total.failed.amount === 0 && this.total.succeeded.amount === 0) return;
     Log.log(
@@ -129,6 +188,14 @@ export default class TimeTravel {
     }
   }
 
+  /**
+   * Submit data for user.
+   * @description Submit data for user.
+   * @param logs Read logs from file.
+   * @returns {[string, INotFormattedLogEntry][]} Prepared logs.
+   * @async
+   * @private
+   */
   private async prepareLogs(logs: ILogProto): Promise<[string, INotFormattedLogEntry][]> {
     const proto = new Proto();
     const malformed: string[] = [];

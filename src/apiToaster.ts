@@ -40,6 +40,7 @@ class Toaster {
       await this.fileWriter.init(req);
     }
   }
+
   /**
    * Initialize path.
    * @description Prepare application and initialize its path.
