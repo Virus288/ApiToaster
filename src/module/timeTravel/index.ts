@@ -65,7 +65,7 @@ export default class TimeTravel {
   }
 
   private readLogs(fileName?: string): ILogsProto {
-    return this.fileReader.read(fileName);
+    return this.fileReader.init(fileName);
   }
 
   private async sendRequests(logs: [string, INotFormattedLogEntry][]): Promise<void> {

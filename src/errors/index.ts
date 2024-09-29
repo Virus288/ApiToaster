@@ -29,3 +29,30 @@ export class IncorrectArgTypeError extends FullError {
     this.code = '003';
   }
 }
+
+export class MissingCoreStructureError extends FullError {
+  constructor() {
+    super('MissingCoreStructureError');
+    this.message = 'Missing core folder structure. Possibly it was removed, or misplaced ?';
+    this.name = 'MissingCoreStructureError';
+    this.code = '004';
+  }
+}
+
+export class NoSavedLogsError extends FullError {
+  constructor() {
+    super('NoSavedLogsError');
+    this.message = 'Looks like you have no saved requests.';
+    this.name = 'NoSavedLogsError';
+    this.code = '005';
+  }
+}
+
+export class MalformedLogFilesError extends FullError {
+  constructor(fileName: string) {
+    super('MalformedLogFilesError');
+    this.message = `Log file ${fileName} seems to be malformed`;
+    this.name = 'MalformedLogFilesError';
+    this.code = '006';
+  }
+}
