@@ -2,7 +2,15 @@ import { CannotCreateFile } from '../../errors/index.js';
 import Log from '../../tools/logger.js';
 import State from '../../tools/state.js';
 import Proto from '../protobuf/index.js';
-import type { IIndex, ILog, ILogProto, ILogsProto, INotFormattedLogEntry } from '../../../types/index.js';
+import type {
+  IConfigLog,
+  IIndex,
+  ILog,
+  ILogProto,
+  ILogs,
+  ILogsProto,
+  INotFormattedLogEntry,
+} from '../../../types/index.js';
 import type express from 'express';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
@@ -10,13 +18,17 @@ import path from 'path';
 
 export default class FileReader {
   private _logs: ILogsProto;
+  private _logsJson: ILogs;
   private _index: IIndex;
+  private _config: IConfigLog;
   private _currLogSize: number = 0;
   private _currLogFile: string = 'logs_0.json';
 
   constructor() {
     this._logs = { logs: {} };
+    this._logsJson = { logs: {} };
     this._index = { indexes: {} };
+    this._config = { disableProto: false };
   }
 
   private get logs(): ILogsProto {
@@ -27,12 +39,28 @@ export default class FileReader {
     this._logs = val;
   }
 
+  public get logsJson(): ILogs {
+    return this._logsJson;
+  }
+
+  public set logsJson(value: ILogs) {
+    this._logsJson = value;
+  }
+
   private get index(): IIndex {
     return this._index;
   }
 
   private set index(val: IIndex) {
     this._index = val;
+  }
+
+  public get config(): IConfigLog {
+    return this._config;
+  }
+
+  public set config(value: IConfigLog) {
+    this._config = value;
   }
 
   private get currLogSize(): number {
@@ -91,9 +119,29 @@ export default class FileReader {
     this.pre();
     this.fetchCurrentLogFile();
     this.prepareLogfile();
-    this.prepraeIndexFile();
+    this.prepareIndexFile();
+    this.prepareConfigFile();
 
     await this.prepareLog(req);
+    this.prepareConfig();
+    this.checkFileSize(this.currLogFile);
+    this.saveFiles();
+  }
+  /**
+   * Save new log in json.
+   * @description Preapre and save new log.
+   * @param req {express.Request} Request received from user.
+   * @returns {void} Void.
+   */
+  saveJson(req: express.Request): void {
+    this.pre();
+    this.fetchCurrentLogFile();
+    this.prepareLogJsonFile();
+    this.prepareIndexFile();
+    this.prepareConfigFile();
+
+    this.prepareJsonLog(req);
+    this.prepareConfig();
     this.checkFileSize(this.currLogFile);
     this.saveFiles();
   }
@@ -122,7 +170,9 @@ export default class FileReader {
     this.initDirectories();
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));
     this.validateFile(this.currLogFile, JSON.stringify({ logs: {} }));
+    this.validateFile('config.json', JSON.stringify({ disableProto: false }));
   }
+
   /**
    * Initialize location.
    * @description  Initialize directories and files on given path.
@@ -183,6 +233,49 @@ export default class FileReader {
     this.index.indexes[uuid] = path.resolve(State.config.path, 'index.json');
   }
   /**
+   * Prepare new log json.
+   * @description Preapre new json log and index it.
+   * @param req {express.Request} Request received from user.
+   * @returns {void} Void.
+   * @private
+   */
+  private prepareJsonLog(req: express.Request): void {
+    const uuid = randomUUID() as string;
+
+    const filteredHeaders = { ...req.headers };
+
+    delete filteredHeaders['content-length'];
+
+    const body: INotFormattedLogEntry = {
+      method: State.config.method ? req.method : undefined,
+      body: State.config.body ? ((req.body ?? {}) as Record<string, unknown>) : {},
+      queryParams: State.config.queryParams ? (req.query as Record<string, string>) : {},
+      headers: State.config.headers ? filteredHeaders : {},
+      ip: State.config.ip ? req.ip : undefined,
+      occured: Date.now(),
+    };
+    this.obfuscate(body);
+
+    const logBody: ILog['body'] = {
+      ...body,
+      body: JSON.stringify(body.body),
+      occured: new Date(body.occured).toISOString(),
+      queryParams: JSON.stringify(body.queryParams),
+      headers: JSON.stringify(body.headers),
+    };
+    const logProto: ILog = {
+      [uuid]: logBody,
+    };
+
+    this.currLogSize = Buffer.byteLength(JSON.stringify(logProto));
+    this.logsJson.logs = { ...this.logsJson.logs, ...logProto };
+    this.index.indexes[uuid] = path.resolve(State.config.path, 'index.json');
+  }
+
+  private prepareConfig(): void {
+    this.config.disableProto = State.config.disableProto;
+  }
+  /**
    * Validate and create files.
    * @description Validate and create files with base validates if they do not exist.
    * @param target File to validate.
@@ -212,10 +305,16 @@ export default class FileReader {
   private saveFiles(): void {
     const indexLocation = path.resolve(State.config.path, 'index.json');
     const logsLocation = path.resolve(State.config.path, this.currLogFile);
+    const configLocation = path.resolve(State.config.path, 'config.json');
 
     try {
-      fs.writeFileSync(logsLocation, JSON.stringify(this.logs, null, 2));
+      if (State.config.disableProto) {
+        fs.writeFileSync(logsLocation, JSON.stringify(this.logsJson, null, 2));
+      } else {
+        fs.writeFileSync(logsLocation, JSON.stringify(this.logs, null, 2));
+      }
       fs.writeFileSync(indexLocation, JSON.stringify(this.index, null, 2));
+      fs.writeFileSync(configLocation, JSON.stringify(this.config, null, 2));
     } catch (error) {
       Log.error('Save File', error);
     }
@@ -226,7 +325,7 @@ export default class FileReader {
    * @returns {void} Void.
    * @private
    */
-  private prepraeIndexFile(): void {
+  private prepareIndexFile(): void {
     const location = path.resolve(State.config.path, 'index.json');
 
     try {
@@ -237,6 +336,24 @@ export default class FileReader {
       this.index = { indexes: {} };
     }
   }
+  /**
+   * Preapre config file.
+   * @description Read, validate and prepare config file.
+   * @returns {void} Void.
+   * @private
+   */
+  private prepareConfigFile(): void {
+    const location = path.resolve(State.config.path, 'config.json');
+
+    try {
+      const data = fs.readFileSync(location).toString();
+      this.config = JSON.parse(data) as IConfigLog;
+    } catch (error) {
+      Log.error('File reader', 'Got error while parsing config', (error as Error).message);
+      this.config = { disableProto: false };
+    }
+  }
+
   /**
    * Preapre log files.
    * @description Read, validate and prepare log files.
@@ -258,6 +375,30 @@ export default class FileReader {
     } catch (error) {
       Log.warn('File reader', 'Got error while parsing data', (error as Error).message);
       this.logs = { logs: {} };
+    }
+  }
+
+  /**
+   * Prepare log json files.
+   * @description Read, validate and prepare log files.
+   * @returns {void} Void.
+   * @private
+   */
+  private prepareLogJsonFile(): void {
+    try {
+      const log = path.resolve(State.config.path, this.currLogFile);
+      const data = fs.readFileSync(log).toString();
+      const file = JSON.parse(data) as ILogs;
+
+      if (file?.logs) {
+        this.logsJson = file;
+      } else {
+        Log.warn('File reader', 'Log file seems to be malformatted. Will replace it on next save');
+        this.logsJson = file ?? { logs: {} };
+      }
+    } catch (error) {
+      Log.warn('File reader', 'Got error while parsing data', (error as Error).message);
+      this.logsJson = { logs: {} };
     }
   }
   /**
@@ -284,7 +425,7 @@ export default class FileReader {
   private checkFileSize(logName: string): void {
     const logPath = path.resolve(State.config.path, logName);
     const size = fs.statSync(logPath).size + this.currLogSize;
-    if (size > 50000000000) {
+    if (size > 5000) {
       this.incrementLogFile(logName);
       this.cleanLogs();
     }

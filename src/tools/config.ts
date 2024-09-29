@@ -15,5 +15,6 @@ export default function (): IConfig {
     headers: false,
     ip: false,
     obfuscate: ['password'],
+    disableProto: false,
   };
 }

@@ -37,7 +37,11 @@ class Toaster {
     const shouldSave = this.shouldSave(req);
 
     if (shouldSave) {
-      await this.fileReader.save(req);
+      if (config?.disableProto) {
+        this.fileReader.saveJson(req);
+      } else {
+        await this.fileReader.save(req);
+      }
     }
   }
   /**
@@ -64,6 +68,7 @@ class Toaster {
       } else {
         State.config = { ...defaultConfig(), ...config };
       }
+      console.log("CONFIG INITPATH",config)
     } else {
       Log.log('Main action', 'User did not provide config');
 
@@ -85,7 +90,7 @@ class Toaster {
  * @param config Config used for logging middleware.
  * @default
  */
-export default function (
+export default function(
   req: express.Request,
   _res: express.Response,
   next: express.NextFunction,

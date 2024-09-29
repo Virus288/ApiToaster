@@ -1,7 +1,10 @@
 import Log from '../../tools/logger.js';
 import FileReader from '../files/reader.js';
 import Proto from '../protobuf/index.js';
+import State from '../../tools/state.js';
 import type {
+  ILog,
+  ILogEntry,
   ILogProto,
   ILogsProto,
   INotFormattedLogEntry,
@@ -48,11 +51,10 @@ export default class TimeTravel {
     this.presentData();
   }
 
-  async decode(config: IToasterTimeTravel, fileName?: string): Promise<void> {
+  async decode(fileName?: string): Promise<void> {
     Log.debug('Time travel', 'Decoding');
 
     const logs = this.readLogs(fileName);
-    this.config = config;
     const preparedLogs = await this.prepareLogs(logs.logs);
     Log.log('Logs', preparedLogs);
   }
@@ -129,13 +131,17 @@ export default class TimeTravel {
     }
   }
 
-  private async prepareLogs(logs: ILogProto): Promise<[string, INotFormattedLogEntry][]> {
+  private async prepareLogs(logs: ILogProto | ILog): Promise<[string, INotFormattedLogEntry][]> {
     const proto = new Proto();
     const malformed: string[] = [];
-
     const prepared = await Promise.all(
       Object.entries(logs).map(async ([k, v]) => {
-        const decodedLog = await proto.decodeLogEntry(v);
+        let decodedLog;
+        if (State.config.disableProto) {
+          decodedLog = v as ILogEntry;
+        } else {
+          decodedLog = await proto.decodeLogEntry(v as string);
+        }
         try {
           return [
             k,

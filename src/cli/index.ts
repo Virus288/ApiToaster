@@ -56,7 +56,7 @@ export default class Cli {
     switch (flag) {
       case enums.ECliFlags.Path:
       case enums.ECliFlags.ShortPath:
-        target ? Log.error('Cli', 'Please provide file to decode.') : await this.decode(target);
+        !target ? Log.error('Cli', 'Please provide file to decode.') : await this.decode(target);
         break;
       case enums.ECliFlags.Help:
       case enums.ECliFlags.ShortHelp:
@@ -81,7 +81,7 @@ export default class Cli {
     switch (flag) {
       case enums.ECliFlags.Path:
       case enums.ECliFlags.ShortPath:
-        target ? Log.error('Cli', 'Please provide a log file name.') : await this.initTimeTravel(target);
+        !target ? Log.error('Cli', 'Please provide a log file name.') : await this.initTimeTravel(target);
         break;
       case enums.ECliFlags.Help:
       case enums.ECliFlags.ShortHelp:
@@ -118,8 +118,8 @@ export default class Cli {
   private async decode(fileName?: string): Promise<void> {
     Log.debug('Cli', 'Decodding');
 
-    const config = this.readConfig();
-    await this.timeTravel.decode(config, fileName);
+    this.readConfig();
+    await this.timeTravel.decode(fileName);
   }
 
   private readConfig(): IToasterTimeTravel {

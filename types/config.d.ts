@@ -6,7 +6,9 @@ export interface IConfig {
   headers: boolean;
   ip: boolean;
   obfuscate: string[];
+  disableProto: boolean;
 }
 
-export type IToasterConfig = Partial<IConfig>
+export type IToasterConfig = Partial<IConfig>;
 
+export type IConfigLog = Pick<IConfig, 'disableProto'>;
