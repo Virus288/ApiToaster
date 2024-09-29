@@ -52,7 +52,7 @@
       "preserveConstEnums": true,
       "removeComments": true,
       "resolveJsonModule": true,
-      "rootDir": ".",
+      "rootDir": "./src",
       "skipLibCheck": false,
       "suppressExcessPropertyErrors": false,
       "suppressImplicitAnyIndexErrors": false,

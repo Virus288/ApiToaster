@@ -7,18 +7,18 @@
   "license": "Apache-2.0",
   "private": false,
   "type": "module",
-  "main": "lib/src/index.js",
-  "types": "lib/src/index.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "exports": {
-    "import": "./lib/src/index.js",
-    "require": "./lib/src/commonIndex.cjs"
+    "import": "./lib/index.js",
+    "require": "./lib/commonIndex.cjs"
   },
   "files": [
     "/lib",
     "/types"
   ],
   "bin": {
-    "apiToaster": "./lib/src/cli.js"
+    "apiToaster": "./lib/cli.js"
   },
   "repository": {
     "type": "git",

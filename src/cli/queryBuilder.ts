@@ -43,6 +43,11 @@ export default class QueryBuilder {
     this._params = val;
   }
 
+  /**
+   * Start query builder.
+   * @description Start query builder and generate all queries..
+   * @returns {IFindParams} Parameters found in config.
+   */
   init(): IFindParams {
     if (this.args.length === 0) return this.params;
 
@@ -70,6 +75,23 @@ export default class QueryBuilder {
     return this.init();
   }
 
+  isEmpty(): boolean {
+    return (
+      this.params.ips.length === 0 &&
+      Object.keys(this.params.json).length === 0 &&
+      this.params.values.length === 0 &&
+      this.params.keys.length === 0 &&
+      this.params.files.length === 0
+    );
+  }
+
+  /**
+   * Init query builder.
+   * @description Start query builder and generate all queries.
+   * @param target User's argument.
+   * @returns {void} Void.
+   * @private
+   */
   private addParam(target: string): void {
     if (!this.lastCommmand) return Log.error('QueryBuilder', 'Tried to add param without providing flag for its type.');
 
@@ -107,15 +129,5 @@ export default class QueryBuilder {
     }
 
     return undefined;
-  }
-
-  isEmpty(): boolean {
-    return (
-      this.params.ips.length === 0 &&
-      Object.keys(this.params.json).length === 0 &&
-      this.params.values.length === 0 &&
-      this.params.keys.length === 0 &&
-      this.params.files.length === 0
-    );
   }
 }

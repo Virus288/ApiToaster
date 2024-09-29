@@ -21,6 +21,12 @@ export default class Cli {
     return this._timeTravel;
   }
 
+  /**
+   * Start cli.
+   * @description Start cli and validate user's input.
+   * @returns {void} Void.
+   * @async
+   */
   async handleInit(): Promise<void> {
     Log.debug('Cli', 'Initting');
     Log.logAll();
@@ -47,6 +53,14 @@ export default class Cli {
     }
   }
 
+  /**
+   * Start decodding.
+   * @description Start decodding files.
+   * @param args User's params.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
   private async handleDecode(args: ICliArgs): Promise<void> {
     Log.debug('Cli', 'Handeling decode');
 
@@ -72,6 +86,14 @@ export default class Cli {
     }
   }
 
+  /**
+   * Start time travel.
+   * @description Start time travel session.
+   * @param args User's params.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
   private async handleTimeTravel(args: ICliArgs): Promise<void> {
     Log.debug('Cli', 'Handeling time travel');
 
@@ -97,6 +119,14 @@ export default class Cli {
     }
   }
 
+  /**
+   * Start finding files.
+   * @description Search for selected files.
+   * @param args User's params.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
   private async handleFind(args: ICliArgs): Promise<void> {
     Log.debug('Cli', 'Handeling find');
 
@@ -109,6 +139,14 @@ export default class Cli {
     return undefined;
   }
 
+  /**
+   * Start time traver.
+   * @description Start time travel session.
+   * @param fileName Target to use.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
   private async initTimeTravel(fileName?: string): Promise<void> {
     Log.debug('Cli', 'Starting time travel');
 
@@ -116,6 +154,14 @@ export default class Cli {
     await this.timeTravel.init(config, fileName);
   }
 
+  /**
+   * Start decoding files.
+   * @description Start decoding selected files.
+   * @param fileName Target to use.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
   private async decode(fileName?: string): Promise<void> {
     Log.debug('Cli', 'Decodding');
 
@@ -123,6 +169,14 @@ export default class Cli {
     await this.timeTravel.decode(fileName);
   }
 
+  /**
+   * Read application config.
+   * @description Read time-travel config.
+   * @returns {void} Void.
+   * @async
+   * @throws {Error} Throw new error whenever config is malformed.
+   * @private
+   */
   private readConfig(): IToasterTimeTravel {
     Log.debug('Cli', 'Reading config');
 
@@ -144,6 +198,14 @@ export default class Cli {
     }
   }
 
+  /**
+   * Vallidate config.
+   * @description Validate time-travel config.
+   * @param config User's config.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
   private validateConfig(config: IToasterTimeTravel): void {
     Log.debug('Cli', 'Validating config');
 
