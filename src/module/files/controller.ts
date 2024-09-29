@@ -85,45 +85,18 @@ export default class FileController {
    * @returns {ILogsProto} Logs.
    * @throws {NoSavedLogsError} Throw error if req comes from reader.
    */
-  prepareLogfile(fileName: string, shouldThrow: boolean = false): ILogsProto {
+  prepareLogfile(fileName: string, shouldThrow: boolean = false): ILogsProto | ILogs {
     Log.debug('File reader', 'Preparing log file');
 
     try {
       const log = path.resolve(State.config.path, fileName);
       const data = fs.readFileSync(log).toString();
-      const file = JSON.parse(data) as ILogsProto;
+      const file = JSON.parse(data) as ILogsProto | ILogs;
 
       if (file?.logs) {
         return file;
       }
 
-      Log.warn('File reader', 'Log file seems to be malformatted. Will replace it on next save');
-      return file ?? { logs: {} };
-    } catch (error) {
-      Log.warn('File reader', 'Got error while parsing data', (error as Error).message);
-
-      if (shouldThrow) throw new MalformedLogFilesError(fileName);
-      return { logs: {} };
-    }
-  }
-  /**
-   * Prepare json log files.
-   * @description Read, validate and prepare log files.
-   * @param shouldThrow {boolean} Flag if catch should throw error or just ignore it.
-   * @param fileName Target file name.
-   * @returns {ILogs} Logs.
-   * @throws {NoSavedLogsError} Throw error if req comes from reader.
-   */
-  prepareLogJsonFile(fileName: string, shouldThrow: boolean = false): ILogs {
-    Log.debug('File reader', 'Preparing log file');
-    try {
-      const log = path.resolve(State.config.path, fileName);
-      const data = fs.readFileSync(log).toString();
-      const file = JSON.parse(data) as ILogs;
-
-      if (file?.logs) {
-        return file;
-      }
       Log.warn('File reader', 'Log file seems to be malformatted. Will replace it on next save');
       return file ?? { logs: {} };
     } catch (error) {

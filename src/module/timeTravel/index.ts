@@ -1,5 +1,4 @@
 import Log from '../../tools/logger.js';
-import State from '../../tools/state.js';
 import FileReader from '../files/reader.js';
 import Proto from '../protobuf/index.js';
 import type {
@@ -138,7 +137,7 @@ export default class TimeTravel {
     const prepared = await Promise.all(
       Object.entries(logs).map(async ([k, v]) => {
         let decodedLog;
-        if (State.config.disableProto) {
+        if (typeof v === 'object') {
           decodedLog = v as ILogEntry;
         } else {
           decodedLog = await proto.decodeLogEntry(v as string);

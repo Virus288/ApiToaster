@@ -1,5 +1,4 @@
 import FileController from './controller.js';
-import State from '../../tools/state.js';
 import type { ILogs, ILogsProto } from '../../../types/index.js';
 
 export default class FileReader {
@@ -24,13 +23,7 @@ export default class FileReader {
 
     const file = this.controller.fetchCurrentLogFile(fileName);
 
-    let logs;
-    if (State.config.disableProto) {
-      logs = this.controller.prepareLogJsonFile(file, true);
-    } else {
-      logs = this.controller.prepareLogfile(file, true);
-    }
-    return logs;
+    return this.controller.prepareLogfile(file, true);
   }
 
   /**
