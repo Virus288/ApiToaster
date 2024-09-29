@@ -128,6 +128,7 @@ export default class TimeTravel {
    */
   private async sendReq(log: [string, INotFormattedLogEntry]): Promise<void> {
     Log.log('Time travel', `Sending req with id ${log[0]}`);
+    if (this.config.countTime) Log.time(log[0]);
     Log.debug('Time travel', 'Sending req with body', log[1].body);
 
     const headers =
@@ -149,6 +150,7 @@ export default class TimeTravel {
     }
 
     const res = await fetch(`http://localhost:${this.config.port}`, fetchReq);
+    if (this.config.countTime) Log.endTime(log[0]);
 
     if (res.ok) {
       this.total.succeeded.ids.push(log[0]);

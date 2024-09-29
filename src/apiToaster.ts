@@ -4,6 +4,7 @@ import Log from './tools/logger.js';
 import State from './tools/state.js';
 import type { IToasterConfig } from '../types';
 import type express from 'express';
+import { randomUUID } from 'crypto';
 import path from 'path';
 
 class Toaster {
@@ -29,16 +30,24 @@ class Toaster {
    * @returns {void} Void.
    * @async
    */
-  async init(req: express.Request, config?: IToasterConfig): Promise<void> {
+  async init(req: express.Request): Promise<void> {
     Log.log('Main action', 'Initing');
-
-    this.initPath(config);
 
     const shouldSave = this.shouldSave(req);
 
     if (shouldSave) {
       await this.fileWriter.init(req);
     }
+  }
+
+  /**
+   * Pre initialize application.
+   * @description Pre initialize application by generating all configs. This is seperated from default init, because I want to initialize configs before running main app.
+   * @param config {IToasterConfig} Application config.
+   * @returns {void} Void.
+   */
+  preInit(config?: IToasterConfig): void {
+    this.initPath(config);
   }
 
   /**
@@ -81,18 +90,30 @@ class Toaster {
  * Main function to handle logging.
  * @description Default function used to handle req logging and much more.
  * @param req Express request.
- * @param _res Express response.
+ * @param res Express response.
  * @param next Express next.
  * @param config Config used for logging middleware.
  * @default
  */
 export default function (
   req: express.Request,
-  _res: express.Response,
+  res: express.Response,
   next: express.NextFunction,
   config?: IToasterConfig,
 ): void {
-  new Toaster().init(req, config).catch((err) => {
+  const reqUuid = randomUUID();
+
+  const toaster = new Toaster();
+  toaster.preInit(config);
+
+  if (State.config.countTime) {
+    Log.time(reqUuid, 'Counting time for req');
+    res.once('finish', () => {
+      Log.endTime(reqUuid, 'Request finished');
+    });
+  }
+
+  toaster.init(req).catch((err) => {
     Log.error('Main action', 'Got error', (err as Error).message);
   });
   next();

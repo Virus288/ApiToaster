@@ -6,6 +6,7 @@ export interface IConfig {
   headers: boolean;
   ip: boolean;
   obfuscate: string[];
+  countTime: boolean
 }
 
 export type IToasterConfig = Partial<IConfig>
