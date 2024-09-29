@@ -1,11 +1,12 @@
 import Log from '../../tools/logger.js';
+import State from '../../tools/state.js';
 import FileReader from '../files/reader.js';
 import Proto from '../protobuf/index.js';
-import State from '../../tools/state.js';
 import type {
   ILog,
   ILogEntry,
   ILogProto,
+  ILogs,
   ILogsProto,
   INotFormattedLogEntry,
   ITimeTravelReq,
@@ -66,8 +67,8 @@ export default class TimeTravel {
     return this.prepareLogs(logs.logs);
   }
 
-  private readLogs(fileName?: string): ILogsProto {
-    return this.fileReader.read(fileName);
+  private readLogs(fileName?: string): ILogsProto | ILogs {
+    return this.fileReader.init(fileName);
   }
 
   private async sendRequests(logs: [string, INotFormattedLogEntry][]): Promise<void> {

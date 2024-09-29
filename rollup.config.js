@@ -2,9 +2,9 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 
 export default {
-  input: 'lib/index.js',
+  input: 'lib/src/index.js',
   output: {
-    file: 'lib/commonIndex.cjs',
+    file: 'lib/src/commonIndex.cjs',
     format: 'cjs'
   },
   plugins: [

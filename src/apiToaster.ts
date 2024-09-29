@@ -1,4 +1,4 @@
-import FileReader from './module/files/reader.js';
+import FileWriter from './module/files/writer.js';
 import defaultConfig from './tools/config.js';
 import Log from './tools/logger.js';
 import State from './tools/state.js';
@@ -7,18 +7,18 @@ import type express from 'express';
 import path from 'path';
 
 class Toaster {
-  private _fileReader: FileReader;
+  private _fileWriter: FileWriter;
 
   constructor() {
-    this._fileReader = new FileReader();
+    this._fileWriter = new FileWriter();
   }
 
-  public get fileReader(): FileReader {
-    return this._fileReader;
+  public get fileWriter(): FileWriter {
+    return this._fileWriter;
   }
 
-  public set fileReader(value: FileReader) {
-    this._fileReader = value;
+  public set fileWriter(value: FileWriter) {
+    this._fileWriter = value;
   }
 
   /**
@@ -37,11 +37,7 @@ class Toaster {
     const shouldSave = this.shouldSave(req);
 
     if (shouldSave) {
-      if (config?.disableProto) {
-        this.fileReader.saveJson(req);
-      } else {
-        await this.fileReader.save(req);
-      }
+      await this.fileWriter.init(req);
     }
   }
   /**
@@ -68,7 +64,6 @@ class Toaster {
       } else {
         State.config = { ...defaultConfig(), ...config };
       }
-      console.log("CONFIG INITPATH",config)
     } else {
       Log.log('Main action', 'User did not provide config');
 
@@ -90,7 +85,7 @@ class Toaster {
  * @param config Config used for logging middleware.
  * @default
  */
-export default function(
+export default function (
   req: express.Request,
   _res: express.Response,
   next: express.NextFunction,
