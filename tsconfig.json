@@ -52,7 +52,7 @@
       "preserveConstEnums": true,
       "removeComments": true,
       "resolveJsonModule": true,
-      "rootDir": "./src",
+      "rootDir": ".",
       "skipLibCheck": false,
       "suppressExcessPropertyErrors": false,
       "suppressImplicitAnyIndexErrors": false,
@@ -71,9 +71,6 @@
       "useDefineForClassFields": true,
       "useUnknownInCatchVariables": true,
       "verbatimModuleSyntax": false
-    },
-    "ts-node": {
-      "swc": true
     },
     "exclude": ["node_modules", "build", "eslint.config.mjs"],
     "include": [ "src/**/*.ts"]

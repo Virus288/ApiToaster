@@ -7,18 +7,18 @@
   "license": "Apache-2.0",
   "private": false,
   "type": "module",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "lib/src/index.js",
+  "types": "lib/src/index.d.ts",
   "exports": {
-    "import": "./lib/index.js",
-    "require": "./lib/commonIndex.cjs"
+    "import": "./lib/src/index.js",
+    "require": "./lib/src/commonIndex.cjs"
   },
   "files": [
     "/lib",
     "/types"
   ],
   "bin": {
-    "apiToaster": "./lib/cli.js"
+    "apiToaster": "./lib/src/cli.js"
   },
   "repository": {
     "type": "git",
@@ -39,8 +39,8 @@
     "listErrors": "node_modules/.bin/tsc --skipLibCheck",
     "lintStaged": "npx lint-staged",
     "test": "echo 'If you want to run all the tests, please use makefile'",
-    "test:e2e": "cross-env NODE_ENV=test jest --runInBand --config __tests__/jest.config.e2e.ts",
-    "test:unit": "cross-env NODE_ENV=test jest --config __tests__/jest.config.unit.ts"
+    "test:e2e": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --config  __tests__/jest.config.e2e.ts",
+    "test:unit": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --config __tests__/jest.config.unit.ts"
   },
   "dependencies": {
     "chalk": "4.1.2",

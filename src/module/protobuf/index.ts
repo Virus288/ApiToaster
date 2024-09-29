@@ -1,6 +1,6 @@
 import protobuf from 'protobufjs';
 import Log from '../../tools/logger.js';
-import type { ILogEntry } from '../../../types';
+import type { ILogEntry } from '../../../types/index.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

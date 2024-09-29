@@ -105,7 +105,8 @@ export default class Cli {
 
     if (builder.isEmpty()) return Log.error('Cli', 'Malformed params');
 
-    return new FileFinder().find(params);
+    await new FileFinder().find(params);
+    return undefined;
   }
 
   private async initTimeTravel(fileName?: string): Promise<void> {

@@ -3,6 +3,7 @@ import Log from '../../src/tools/logger.js'
 import express from 'express'
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
+import apiToaster from '../../src/apiToaster.js'
 
 export default class Middleware {
   static setNoCache(_req: express.Request, res: express.Response, next: express.NextFunction): void {
@@ -21,6 +22,12 @@ export default class Middleware {
       res.header('Access-Control-Allow-Credentials', 'true');
       res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
       next();
+    });
+
+    app.use((req, res, next) => {
+      apiToaster(req, res, next, {
+        headers: true,
+      });
     });
   }
 
