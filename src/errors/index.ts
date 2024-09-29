@@ -56,3 +56,13 @@ export class MalformedLogFilesError extends FullError {
     this.code = '006';
   }
 }
+
+export class MissingProtoConfigError extends FullError {
+  constructor() {
+    super('MissingProtoConfigError');
+    this.message =
+      'Cannot find protobuff config. If you see this error while using cli / middleware and not working on this package, reinstall it. If problem still persists, report an issue';
+    this.name = 'MissingProtoConfigError';
+    this.code = '007';
+  }
+}
