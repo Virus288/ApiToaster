@@ -1,4 +1,5 @@
 import protobuf from 'protobufjs';
+import { MissingProtoConfigError } from '../../errors/index.js';
 import Log from '../../tools/logger.js';
 import type { ILogEntry } from '../../../types/index.js';
 import fs from 'fs';
@@ -7,48 +8,11 @@ import { fileURLToPath } from 'url';
 
 export default class Proto {
   /**
-   * Get path to protobuf files.
-   * @description It gets correct path to proto files for esm or commonjs.
-   * @returns {string|undefined} Path to protobuf file.
-   */
-
-  private getModulePath(): string | undefined {
-    const pathJson = path.resolve(process.cwd(), 'package.json');
-    let mPath: string;
-    try {
-      const packageData = fs.readFileSync(pathJson, 'utf8');
-      const packageJson = JSON.parse(packageData) as Record<string, string>;
-      if (packageJson.type === 'module') {
-        const modulePath = path.dirname(fileURLToPath(import.meta.url));
-        mPath = path.resolve(modulePath, '..', '..', '..', 'protos/log.proto');
-      } else {
-        mPath = path.resolve(process.cwd(), 'node_modules', 'api-toaster', 'protos/log.proto');
-      }
-      return mPath;
-    } catch (error) {
-      Log.error('FileReader', 'Error getting module path:', error);
-      return undefined;
-    }
-  }
-  /**
-   * Load protobuf file.
-   * @description It sets protobuf root from file.
-   * @returns {protobuf.Root} Reference to protobuf file root.
-   */
-  async loadProto(): Promise<protobuf.Root> {
-    this.getModulePath();
-    const protoPath = this.getModulePath();
-    if (!protoPath) {
-      Log.error('FileReader', 'Error geting path to proto file');
-    }
-    return protobuf.load(protoPath!);
-  }
-
-  /**
    * Encoding single log.
    * @description Encoding single log to base64 string.
    * @param logEntry Single string version of log entry.
    * @returns {string} String representation of buffer.
+   * @async
    */
   async encodeLog(logEntry: ILogEntry): Promise<string> {
     const root = await this.loadProto();
@@ -81,6 +45,7 @@ export default class Proto {
    * @description Decoding single log from base64 string to log entry.
    * @param logEntry Single value of Buffer as a base64 string from log file.
    * @returns {ILogEntry} String version of log entry.
+   * @async
    */
   async decodeLogEntry(logEntry: string): Promise<ILogEntry> {
     const root = await this.loadProto();
@@ -95,5 +60,48 @@ export default class Proto {
       Log.error('Protobuf', `Error verifying log entry: ${error}`);
     }
     return decoded;
+  }
+
+  /**
+   * Load protobuf file.
+   * @description It sets protobuf root from file.
+   * @returns {protobuf.Root} Reference to protobuf file root.
+   * @async
+   * @private
+   */
+  private async loadProto(): Promise<protobuf.Root> {
+    this.fetchModulePath();
+    const protoPath = this.fetchModulePath();
+    if (!protoPath) {
+      Log.error('FileReader', 'Error geting path to proto file');
+      throw new MissingProtoConfigError();
+    }
+
+    return protobuf.load(protoPath);
+  }
+
+  /**
+   * Get path to protobuf files.
+   * @description It gets correct path to proto files for esm or commonjs.
+   * @returns {string|undefined} Path to protobuf file.
+   * @private
+   */
+  private fetchModulePath(): string | undefined {
+    const pathJson = path.resolve(process.cwd(), 'package.json');
+    let mPath: string;
+    try {
+      const packageData = fs.readFileSync(pathJson, 'utf8');
+      const packageJson = JSON.parse(packageData) as Record<string, string>;
+      if (packageJson.type === 'module') {
+        const modulePath = path.dirname(fileURLToPath(import.meta.url));
+        mPath = path.resolve(modulePath, '..', '..', '..', 'protos/log.proto');
+      } else {
+        mPath = path.resolve(process.cwd(), 'node_modules', 'api-toaster', 'protos/log.proto');
+      }
+      return mPath;
+    } catch (error) {
+      Log.error('FileReader', 'Error getting module path:', error);
+      return undefined;
+    }
   }
 }
