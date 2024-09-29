@@ -7,6 +7,7 @@ export interface IConfig {
   ip: boolean;
   obfuscate: string[];
   disableProto: boolean;
+  countTime: boolean
 }
 
 export type IToasterConfig = Partial<IConfig>;

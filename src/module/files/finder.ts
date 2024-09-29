@@ -13,6 +13,13 @@ export default class FileFinder {
     return this._timeTravel;
   }
 
+  /**
+   * Find data.
+   * @description Find data in files.
+   * @param params Find params provided by user.
+   * @returns {Promise<[string, INotFormattedLogEntry][]>} Void.
+   * @async
+   */
   async find(params: IFindParams): Promise<[string, INotFormattedLogEntry][]> {
     Log.log('File finder', 'Searching for files');
     Log.debug(
