@@ -26,7 +26,6 @@ class Toaster {
    * Initialize application.
    * @description Initialize application to save logs.
    * @param req {express.Request} Request received from user.
-   * @param config {IToasterConfig} Application config.
    * @returns {void} Void.
    * @async
    */

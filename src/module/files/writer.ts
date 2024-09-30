@@ -187,6 +187,7 @@ export default class FileWriter {
       occured: body.occured,
       queryParams: body.queryParams,
       headers: body.headers,
+      ip: body.ip,
     };
 
     return logBody;
@@ -202,9 +203,11 @@ export default class FileWriter {
   private prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
     const formated: ILog['body'] = {
       body: JSON.stringify(log.body),
+      method: log.method,
       occured: new Date(log.occured).toISOString(),
       queryParams: JSON.stringify(log.queryParams),
       headers: JSON.stringify(log.headers),
+      ip: log.ip,
     };
     return formated;
   }

@@ -35,7 +35,6 @@ export default class Proto {
     }
 
     const encodedLog = LogEntry.encode(LogEntry.create(log)).finish();
-
     return Buffer.from(encodedLog).toString('base64');
   }
 
