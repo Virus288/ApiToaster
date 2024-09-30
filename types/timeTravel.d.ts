@@ -1,6 +1,7 @@
 export interface IToasterTimeTravel {
   port: number;
   path?: string;
+  countTime?: boolean
 }
 
 export interface ITimeTravelStats {
@@ -15,6 +16,6 @@ export interface ITimeTravelStats {
 }
 export interface ITimeTravelReq {
   method: string;
-  body?:string
+  body?: string
   headers?: Record<string, string>;
 }
