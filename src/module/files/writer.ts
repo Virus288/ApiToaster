@@ -125,7 +125,7 @@ export default class FileWriter {
 
     this.currLogSize = Buffer.byteLength(JSON.stringify(logProto));
     this.logs.logs = { ...this.logs.logs, ...logProto };
-    this.index.indexes[uuid] = path.resolve(State.config.path, 'index.json');
+    this.index.indexes[uuid] = path.resolve(State.config.path, this.currLogFile);
   }
 
   /**
