@@ -19,7 +19,7 @@ describe('File writer', () => {
       })
     })
   }
-  
+
   const defaultReq: Partial<express.Request> = {
     method: 'POST',
     headers: {
@@ -67,7 +67,7 @@ describe('File writer', () => {
 
     it(`Write file - buffed, default config - save 2 entries to 2 different files and test index location`, async () => {
       let error: IFullError | undefined = undefined
-      let callback: ILogsProto | undefined = undefined
+      let callback: ILogsProto | ILogs | undefined = undefined
 
       try {
         await fileWriter.init(defaultReq as express.Request)

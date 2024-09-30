@@ -29,6 +29,7 @@ export default class FileFinder {
       `ips: ${params.ips.toString()}`,
       `files: ${params.files.toString()}`,
       `json: ${JSON.stringify(params.json)}`,
+      `methods: ${params.methods.toString()}`,
     );
 
     // Data is limited to only first value on the list. Make sure to include all params
@@ -70,6 +71,13 @@ export default class FileFinder {
       // This is bad. We are not looking for nested keys
       // Replace this for Object.keys(log.body).includes() and filter one by one
       if (params.keys.length > 0 && params.keys[0] && !log[1].body[`${params.keys[0]}`]) {
+        Log.debug('File finder', 'Filtered log does not include provided keys');
+        result = false;
+      }
+
+      // This is bad. We are not looking for nested keys
+      // Replace this for Object.keys(log.body).includes() and filter one by one
+      if (params.methods.length > 0 && params.methods[0] && log[1].method! !== params.methods[0]) {
         Log.debug('File finder', 'Filtered log does not include provided keys');
         result = false;
       }

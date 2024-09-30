@@ -8,4 +8,5 @@ export interface IFindParams {
   values: string[],
   ips: string[],
   json: Record<string, unknown>
+  methods: string[]
 }
