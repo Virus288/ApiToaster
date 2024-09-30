@@ -1,4 +1,6 @@
 export interface IToasterTimeTravel {
+  waitUntillNextReq?: number;
+  inputBeforeNextReq?: boolean;
   port: number;
   path?: string;
   countTime?: boolean

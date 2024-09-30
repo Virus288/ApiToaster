@@ -33,6 +33,13 @@ export default class Validation {
     return this;
   }
 
+  isBoolean(): this {
+    const { v, name } = this;
+    if (typeof v !== 'boolean') throw new errors.IncorrectArgTypeError(`${name} should be boolean`);
+
+    return this;
+  }
+
   isNumber(): this {
     const { v, name } = this;
     if (typeof v !== 'number') throw new errors.IncorrectArgTypeError(`${name} should be number`);
