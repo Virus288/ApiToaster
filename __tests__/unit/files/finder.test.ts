@@ -39,7 +39,8 @@ describe('File finder', () => {
     keys: [],
     values: [],
     ips: [],
-    json: {}
+    json: {},
+    methods: []
   }
 
   const fileWriter = new FileWriter()
@@ -168,6 +169,37 @@ describe('File finder', () => {
     //  expect(error).toBeUndefined()
     //  expect(callback.length).toEqual(1)
     //});
+
+    it(`Find files - different method - no data`, async () => {
+      let error: IFullError | undefined = undefined
+      let callback: [string, INotFormattedLogEntry][] = []
+
+      try {
+        await fileWriter.init(defaultReq as express.Request)
+        callback = await fileFinder.find({ ...defaultFindParams, methods: ['GET'] })
+      } catch (err) {
+        error = err as IFullError
+      }
+
+      expect(error).toBeUndefined()
+      expect(callback.length).toEqual(0)
+    });
+
+    it(`Find files - different method - data exists`, async () => {
+      let error: IFullError | undefined = undefined
+      let callback: [string, INotFormattedLogEntry][] = []
+
+      try {
+        await fileWriter.init({ ...defaultReq, method: "GET" } as express.Request)
+        callback = await fileFinder.find({ ...defaultFindParams, methods: ["GET"] })
+      } catch (err) {
+        error = err as IFullError
+      }
+
+      expect(error).toBeUndefined()
+      expect(callback.length).toEqual(1)
+    });
+
   });
 });
 

@@ -17,4 +17,6 @@ export enum ECliFlags {
   ShortIp = '-ip',
   Json = '--json',
   ShortJson = '-j',
+  Method = '--method',
+  ShortMethod = '-m',
 }

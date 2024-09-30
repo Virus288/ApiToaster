@@ -13,6 +13,7 @@ export default class QueryBuilder {
     values: [],
     ips: [],
     json: {},
+    methods: [],
   };
 
   constructor(args: ICliArgs) {
@@ -64,6 +65,8 @@ export default class QueryBuilder {
       case enums.ECliFlags.ShortIp:
       case enums.ECliFlags.ShortJson:
       case enums.ECliFlags.Json:
+      case enums.ECliFlags.Method:
+      case enums.ECliFlags.ShortMethod:
         this.lastCommmand = target;
         break;
       default:
@@ -111,6 +114,10 @@ export default class QueryBuilder {
       case enums.ECliFlags.Ip:
       case enums.ECliFlags.ShortIp:
         this.params.ips.push(target);
+        break;
+      case enums.ECliFlags.ShortMethod:
+      case enums.ECliFlags.Method:
+        this.params.methods.push(target);
         break;
       case enums.ECliFlags.Json:
       case enums.ECliFlags.ShortJson:
