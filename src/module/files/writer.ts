@@ -3,7 +3,16 @@ import { CannotCreateFile } from '../../errors/index.js';
 import Log from '../../tools/logger.js';
 import State from '../../tools/state.js';
 import Proto from '../protobuf/index.js';
-import type { IIndex, ILog, ILogProto, ILogsProto, INotFormattedLogEntry } from '../../../types/index.js';
+import type {
+  IPreviousSettings,
+  IIndex,
+  ILog,
+  ILogEntry,
+  ILogProto,
+  ILogs,
+  ILogsProto,
+  INotFormattedLogEntry,
+} from '../../../types/index.js';
 import type express from 'express';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
@@ -11,8 +20,9 @@ import path from 'path';
 
 export default class FileWriter {
   private _controller: FileController;
-  private _logs: ILogsProto;
+  private _logs: ILogsProto | ILogs;
   private _index: IIndex;
+  private _config: IPreviousSettings;
   private _currLogSize: number = 0;
   private _currLogFile: string = 'logs_0.json';
 
@@ -20,13 +30,14 @@ export default class FileWriter {
     this._controller = new FileController();
     this._logs = { logs: {} };
     this._index = { indexes: {} };
+    this._config = { disableProto: false };
   }
 
-  private get logs(): ILogsProto {
+  private get logs(): ILogsProto | ILogs {
     return this._logs;
   }
 
-  private set logs(val: ILogsProto) {
+  private set logs(val: ILogsProto | ILogs) {
     this._logs = val;
   }
 
@@ -36,6 +47,14 @@ export default class FileWriter {
 
   private set index(val: IIndex) {
     this._index = val;
+  }
+
+  public get config(): IPreviousSettings {
+    return this._config;
+  }
+
+  public set config(value: IPreviousSettings) {
+    this._config = value;
   }
 
   private get currLogSize(): number {
@@ -67,10 +86,18 @@ export default class FileWriter {
   async init(req: express.Request): Promise<void> {
     this.pre();
     this.currLogFile = this.controller.fetchCurrentLogFile();
-    this.logs = this.controller.prepareLogfile(this.currLogFile);
-    this.prepareIndexFile();
 
-    await this.prepareLog(req);
+    this.logs = this.controller.prepareLogfile(this.currLogFile);
+
+    this.prepareIndexFile();
+    this.prepareConfigFile();
+
+    this.prepareConfig();
+    if (State.config.disableProto) {
+      this.prepareJsonLog(req);
+    } else {
+      await this.prepareBufLog(req);
+    }
     this.checkFileSize(this.currLogFile);
     this.saveFiles();
   }
@@ -84,6 +111,7 @@ export default class FileWriter {
     this.controller.initDirectories();
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));
     this.validateFile(this.currLogFile, JSON.stringify({ logs: {} }));
+    this.validateFile('config.json', JSON.stringify({ disableProto: false }));
   }
 
   /**
@@ -93,13 +121,54 @@ export default class FileWriter {
    * @returns {void} Void.
    * @private
    */
-  private async prepareLog(req: express.Request): Promise<void> {
+  private async prepareBufLog(req: express.Request): Promise<void> {
     const uuid = randomUUID() as string;
     const proto = new Proto();
 
+    const logBody = this.prepareLog(req);
+
+    const buffedLog = this.prepareBuffedLog(logBody);
+
+    const logProto: ILogProto = {
+      [uuid]: await proto.encodeLog(buffedLog),
+    };
+
+    this.currLogSize = Buffer.byteLength(JSON.stringify(logProto));
+    this.logs.logs = { ...(this.logs.logs as ILogProto), ...logProto };
+    this.index.indexes[uuid] = path.resolve(State.config.path, 'index.json');
+  }
+
+  /**
+   * Prepare new log json.
+   * @description Preapre new json log and index it.
+   * @param req {express.Request} Request received from user.
+   * @returns {void} Void.
+   * @private
+   */
+  private prepareJsonLog(req: express.Request): void {
+    const uuid = randomUUID() as string;
+
+    const logBody = this.prepareLog(req);
+
+    const logProto: ILogProto = {
+      [uuid]: JSON.stringify(logBody),
+    };
+
+    this.currLogSize = Buffer.byteLength(JSON.stringify(logProto));
+    this.logs.logs = { ...(this.logs.logs as ILogProto), ...logProto };
+    this.index.indexes[uuid] = path.resolve(State.config.path, 'index.json');
+  }
+
+  /**
+   * Prepare new generic log body.
+   * @description Preapre new generic log body.
+   * @param req {express.Request} Request received from user.
+   * @returns {void} Void.
+   * @private
+   */
+  private prepareLog(req: express.Request): INotFormattedLogEntry {
     const filteredHeaders = { ...req.headers };
 
-    // Ignore content header instead of replacing
     delete filteredHeaders['content-length'];
 
     const body: INotFormattedLogEntry = {
@@ -112,20 +181,45 @@ export default class FileWriter {
     };
     this.obfuscate(body);
 
-    const logBody: ILog['body'] = {
+    const logBody: INotFormattedLogEntry = {
       ...body,
-      body: JSON.stringify(body.body),
-      occured: new Date(body.occured).toISOString(),
-      queryParams: JSON.stringify(body.queryParams),
-      headers: JSON.stringify(body.headers),
-    };
-    const logProto: ILogProto = {
-      [uuid]: await proto.encodeLog(logBody),
+      body: body.body,
+      occured: body.occured,
+      queryParams: body.queryParams,
+      headers: body.headers,
+      ip: body.ip,
     };
 
-    this.currLogSize = Buffer.byteLength(JSON.stringify(logProto));
-    this.logs.logs = { ...this.logs.logs, ...logProto };
-    this.index.indexes[uuid] = path.resolve(State.config.path, this.currLogFile);
+    return logBody;
+  }
+
+  /**
+   * Prepare new buffed log body.
+   * @description Preapre new generic buffed log body.
+   * @param log {INotFormattedLogEntry} Not formated log.
+   * @returns {ILogEntry} Log.
+   * @private
+   */
+  private prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
+    const formated: ILog['body'] = {
+      body: JSON.stringify(log.body),
+      method: log.method,
+      occured: new Date(log.occured).toISOString(),
+      queryParams: JSON.stringify(log.queryParams),
+      headers: JSON.stringify(log.headers),
+      ip: log.ip,
+    };
+    return formated;
+  }
+
+  /**
+   * Prepare and update conig state.
+   * @description Updates field disableProto in state.
+   * @returns {void} Void.
+   * @private
+   */
+  private prepareConfig(): void {
+    this.config.disableProto = State.config.disableProto;
   }
 
   /**
@@ -159,10 +253,12 @@ export default class FileWriter {
   private saveFiles(): void {
     const indexLocation = path.resolve(State.config.path, 'index.json');
     const logsLocation = path.resolve(State.config.path, this.currLogFile);
+    const configLocation = path.resolve(State.config.path, 'config.json');
 
     try {
       fs.writeFileSync(logsLocation, JSON.stringify(this.logs, null, 2));
       fs.writeFileSync(indexLocation, JSON.stringify(this.index, null, 2));
+      fs.writeFileSync(configLocation, JSON.stringify(this.config, null, 2));
     } catch (error) {
       Log.error('Save File', error);
     }
@@ -183,6 +279,23 @@ export default class FileWriter {
     } catch (error) {
       Log.error('File reader', 'Got error while parsing indexes', (error as Error).message);
       this.index = { indexes: {} };
+    }
+  }
+  /**
+   * Preapre config file.
+   * @description Read, validate and prepare config file.
+   * @returns {void} Void.
+   * @private
+   */
+  private prepareConfigFile(): void {
+    const location = path.resolve(State.config.path, 'config.json');
+
+    try {
+      const data = fs.readFileSync(location).toString();
+      this.config = JSON.parse(data) as IPreviousSettings;
+    } catch (error) {
+      Log.error('File reader', 'Got error while parsing config', (error as Error).message);
+      this.config = { disableProto: false };
     }
   }
 

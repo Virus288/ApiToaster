@@ -6,8 +6,12 @@ export interface IConfig {
   headers: boolean;
   ip: boolean;
   obfuscate: string[];
+  disableProto: boolean;
   countTime: boolean
 }
 
-export type IToasterConfig = Partial<IConfig>
+export type IToasterConfig = Partial<IConfig>;
 
+export interface IPreviousSettings{
+  disableProto: boolean;
+}

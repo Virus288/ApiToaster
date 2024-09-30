@@ -1,4 +1,4 @@
-import type { IConfig } from '../../types';
+import type { IConfig } from '../../types/index.js';
 import path from 'path';
 
 /**
@@ -15,6 +15,7 @@ export default function (): IConfig {
     headers: true,
     ip: false,
     obfuscate: ['password'],
+    disableProto: false,
     countTime: false,
   };
 }

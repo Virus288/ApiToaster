@@ -1,7 +1,7 @@
 import { MissingCoreStructureError, NoSavedLogsError, MalformedLogFilesError } from '../../errors/index.js';
 import Log from '../../tools/logger.js';
 import State from '../../tools/state.js';
-import type { ILogsProto } from '../../../types/logs.js';
+import type { ILogs, ILogsProto } from '../../../types/logs.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -78,20 +78,20 @@ export default class FileController {
   }
 
   /**
-   * Prepare log files.
+   * Prepare protobuf log files.
    * @description Read, validate and prepare log files.
    * @param shouldThrow {boolean} Flag if catch should throw error or just ignore it.
    * @param fileName Target file name.
    * @returns {ILogsProto} Logs.
    * @throws {NoSavedLogsError} Throw error if req comes from reader.
    */
-  prepareLogfile(fileName: string, shouldThrow: boolean = false): ILogsProto {
+  prepareLogfile(fileName: string, shouldThrow: boolean = false): ILogsProto | ILogs {
     Log.debug('File reader', 'Preparing log file');
 
     try {
       const log = path.resolve(State.config.path, fileName);
       const data = fs.readFileSync(log).toString();
-      const file = JSON.parse(data) as ILogsProto;
+      const file = JSON.parse(data) as ILogsProto | ILogs;
 
       if (file?.logs) {
         return file;

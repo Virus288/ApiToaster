@@ -34,6 +34,7 @@ export default class FileFinder {
     // Data is limited to only first value on the list. Make sure to include all params
 
     const logs = await this.timeTravel.preLoadLogs(params.files[0]);
+
     Log.debug('File finder', 'Raw data', logs);
 
     if (params.ips.length > 0 && !logs[0]?.[1]?.ip) {

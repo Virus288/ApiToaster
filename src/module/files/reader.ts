@@ -1,5 +1,5 @@
 import FileController from './controller.js';
-import type { ILogsProto } from '../../../types/index.js';
+import type { ILogs, ILogsProto } from '../../../types/index.js';
 
 export default class FileReader {
   private _controller: FileController;
@@ -18,13 +18,12 @@ export default class FileReader {
    * @param fileName Name of a file to be read.
    * @returns {ILogs} Saved logs.
    */
-  init(fileName?: string): ILogsProto {
+  init(fileName?: string): ILogsProto | ILogs {
     this.preRead();
 
     const file = this.controller.fetchCurrentLogFile(fileName);
 
-    const logs = this.controller.prepareLogfile(file, true);
-    return logs;
+    return this.controller.prepareLogfile(file, true);
   }
 
   /**

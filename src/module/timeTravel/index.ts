@@ -3,7 +3,10 @@ import { sleep } from '../../utils/index.js';
 import FileReader from '../files/reader.js';
 import Proto from '../protobuf/index.js';
 import type {
+  ILog,
+  ILogEntry,
   ILogProto,
+  ILogs,
   ILogsProto,
   INotFormattedLogEntry,
   ITimeTravelReq,
@@ -61,16 +64,14 @@ export default class TimeTravel {
   /**
    * Decode file.
    * @description Decode targeted file.
-   * @param config User's config.
    * @param fileName Target file.
    * @returns {void} Void.
    * @async
    */
-  async decode(config: IToasterTimeTravel, fileName?: string): Promise<void> {
+  async decode(fileName?: string): Promise<void> {
     Log.debug('Time travel', 'Decoding');
 
     const logs = this.readLogs(fileName);
-    this.config = config;
     const preparedLogs = await this.prepareLogs(logs.logs);
     Log.log('Logs', preparedLogs);
   }
@@ -97,7 +98,7 @@ export default class TimeTravel {
    * @async
    * @private
    */
-  private readLogs(fileName?: string): ILogsProto {
+  private readLogs(fileName?: string): ILogsProto | ILogs {
     return this.fileReader.init(fileName);
   }
 
@@ -213,13 +214,17 @@ export default class TimeTravel {
    * @async
    * @private
    */
-  private async prepareLogs(logs: ILogProto): Promise<[string, INotFormattedLogEntry][]> {
+  private async prepareLogs(logs: ILogProto | ILog): Promise<[string, INotFormattedLogEntry][]> {
     const proto = new Proto();
     const malformed: string[] = [];
-
     const prepared = await Promise.all(
       Object.entries(logs).map(async ([k, v]) => {
-        const decodedLog = await proto.decodeLogEntry(v);
+        let decodedLog;
+        if (typeof v === 'object') {
+          decodedLog = v as ILogEntry;
+        } else {
+          decodedLog = await proto.decodeLogEntry(v as string);
+        }
         try {
           return [
             k,
