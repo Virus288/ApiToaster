@@ -1,4 +1,5 @@
 import Log from '../../tools/logger.js';
+import { sleep } from '../../utils/index.js';
 import FileReader from '../files/reader.js';
 import Proto from '../protobuf/index.js';
 import type {
@@ -9,6 +10,7 @@ import type {
   ITimeTravelStats,
   IToasterTimeTravel,
 } from '../../../types/index.js';
+import readline from 'readline';
 
 export default class TimeTravel {
   private readonly _fileReader: FileReader;
@@ -128,6 +130,19 @@ export default class TimeTravel {
    */
   private async sendReq(log: [string, INotFormattedLogEntry]): Promise<void> {
     Log.log('Time travel', `Sending req with id ${log[0]}`);
+    if ((this.config.waitUntillNextReq ?? 0) > 0) {
+      await sleep(this.config.waitUntillNextReq);
+    }
+
+    if (this.config.inputBeforeNextReq) {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+
+      rl.question('Press any button to continue', () => rl.close());
+    }
+
     if (this.config.countTime) Log.time(log[0]);
     Log.debug('Time travel', 'Sending req with body', log[1].body);
 
