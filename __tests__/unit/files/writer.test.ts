@@ -15,10 +15,11 @@ describe('File writer', () => {
   const clear = async (target?: string): Promise<void> => {
     return new Promise<void>((resolve) => {
       fs.rmdir(target ?? 'Toaster', { recursive: true }, (_err) => {
-        resolve(undefined);
-      });
-    });
-  };
+        resolve(undefined)
+      })
+    })
+  }
+  
   const defaultReq: Partial<express.Request> = {
     method: 'POST',
     headers: {
@@ -62,6 +63,22 @@ describe('File writer', () => {
 
       expect(Object.keys(callback?.logs ?? {}).length).toEqual(1);
       expect(error).toBeUndefined();
+    });
+
+    it(`Write file - buffed, default config - save 2 entries to 2 different files and test index location`, async () => {
+      let error: IFullError | undefined = undefined
+      let callback: ILogsProto | undefined = undefined
+
+      try {
+        await fileWriter.init(defaultReq as express.Request)
+        await fileWriter.init(defaultReq as express.Request)
+        callback = fileReader.init()
+      } catch (err) {
+        error = err as IFullError
+      }
+
+      expect(Object.keys(callback?.logs ?? {}).length).toEqual(2)
+      expect(error).toBeUndefined()
     });
 
     it(`Write file - buffed, different path in config`, async () => {

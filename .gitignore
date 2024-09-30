@@ -28,3 +28,6 @@ yarn-error.log*
 
 # Tsconfig cache
 tsconfig.tsbuildinfo
+
+# Toaster output - if left by some1 while testins
+Toaster
