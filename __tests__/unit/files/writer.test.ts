@@ -1,13 +1,13 @@
-import { beforeEach, afterEach, describe, expect, it } from '@jest/globals';
-import path from 'path'
+import { beforeEach, describe, afterEach, expect, it } from '@jest/globals';
+import fs from 'fs'
 import express from 'express'
 import FileReader from '../../../src/module/files/reader.js'
+import path from 'path'
 import FileWriter from '../../../src/module/files/writer.js'
 import State from '../../../src/tools/state.js'
 import defaultConfig from '../../../src/tools/config.js'
 import { ILogsProto } from '../../../types/logs.js';
 import { IFullError } from '../../../types/error.js';
-import fs from 'fs'
 
 // Small note
 // #TODO Those tests should run mocked fs modules. Due to jest not beeing able to mock built-in modules in esm mode, its impossible to do this ( or I just do not know how ). Fix it asap
@@ -20,6 +20,7 @@ describe('File writer', () => {
       })
     })
   }
+
   const defaultReq: Partial<express.Request> = {
     method: 'POST',
     headers: {
@@ -37,7 +38,7 @@ describe('File writer', () => {
 
   beforeEach(async () => {
     State.config = defaultConfig()
-    await clear()
+    //await clear()
   })
 
   afterEach(async () => {
@@ -63,6 +64,22 @@ describe('File writer', () => {
       }
 
       expect(Object.keys(callback?.logs ?? {}).length).toEqual(1)
+      expect(error).toBeUndefined()
+    });
+
+    it(`Write file - buffed, default config - save 2 entries to 2 different files and test index location`, async () => {
+      let error: IFullError | undefined = undefined
+      let callback: ILogsProto | undefined = undefined
+
+      try {
+        await fileWriter.init(defaultReq as express.Request)
+        await fileWriter.init(defaultReq as express.Request)
+        callback = fileReader.init()
+      } catch (err) {
+        error = err as IFullError
+      }
+
+      expect(Object.keys(callback?.logs ?? {}).length).toEqual(2)
       expect(error).toBeUndefined()
     });
 
