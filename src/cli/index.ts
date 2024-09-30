@@ -191,7 +191,6 @@ export default class Cli {
 
       State.config = { ...defaultConfig() };
       if (config.path) State.config.path = config.path;
-      if (config.countTime) State.config.countTime = config.countTime;
 
       return config;
     } catch (_err) {
@@ -214,5 +213,9 @@ export default class Cli {
     new Validation(config.port, 'config.port').isDefined().isNumber();
     if (config.countTime) new Validation(config.countTime, 'config.countTime').isDefined().isNumber();
     if (config.path) new Validation(config.path, 'config.path').isDefined().isString();
+    if (config.waitUntillNextReq)
+      new Validation(config.waitUntillNextReq, 'config.waitUntillNextReq').isDefined().isNumber();
+    if (config.inputBeforeNextReq)
+      new Validation(config.inputBeforeNextReq, 'config.inputBeforeNextReq').isDefined().isBoolean();
   }
 }
