@@ -11,4 +11,6 @@ export interface IConfig {
 
 export type IToasterConfig = Partial<IConfig>;
 
-export type IConfigLog = Pick<IConfig, 'disableProto'>;
+export interface IPreviousSettings{
+  disableProto: boolean;
+}

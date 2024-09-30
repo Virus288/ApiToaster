@@ -16,7 +16,6 @@ export default class Proto {
    */
   async encodeLog(logEntry: ILogEntry): Promise<string> {
     const root = await this.loadProto();
-
     const LogEntry = root.lookupType('apitoaster.LogEntry');
 
     const defaultLog: ILogEntry = {
@@ -56,9 +55,11 @@ export default class Proto {
     const decoded = LogEntry.decode(buf) as unknown as ILogEntry;
 
     const error = LogEntry.verify(decoded);
+
     if (error) {
       Log.error('Protobuf', `Error verifying log entry: ${error}`);
     }
+
     return decoded;
   }
 
