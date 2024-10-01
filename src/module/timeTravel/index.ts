@@ -1,6 +1,7 @@
 import Log from '../../tools/logger.js';
 import { sleep } from '../../utils/index.js';
 import FileReader from '../files/reader.js';
+import FileWriter from '../files/writer.js';
 import Proto from '../protobuf/index.js';
 import type {
   ILog,
@@ -17,11 +18,13 @@ import readline from 'readline';
 
 export default class TimeTravel {
   private readonly _fileReader: FileReader;
+  private readonly _fileWriter: FileWriter;
   private _config: IToasterTimeTravel | null = null;
   private _total: ITimeTravelStats;
 
   constructor() {
     this._fileReader = new FileReader();
+    this._fileWriter = new FileWriter();
     this._total = { succeeded: { amount: 0, ids: [] }, failed: { amount: 0, ids: [] } };
   }
 
@@ -35,6 +38,10 @@ export default class TimeTravel {
 
   private get fileReader(): FileReader {
     return this._fileReader;
+  }
+
+  public get fileWriter(): FileWriter {
+    return this._fileWriter;
   }
 
   private get total(): ITimeTravelStats {
@@ -68,14 +75,27 @@ export default class TimeTravel {
    * @returns {void} Void.
    * @async
    */
-  async decode(fileName?: string): Promise<void> {
+  async decode(fileName?: string): Promise<[string, INotFormattedLogEntry][]> {
     Log.debug('Time travel', 'Decoding');
 
     const logs = this.readLogs(fileName);
-    const preparedLogs = await this.prepareLogs(logs.logs);
-    Log.log('Logs', preparedLogs);
+
+    return this.prepareLogs(logs.logs);
   }
 
+  /**
+   * Decode file.
+   * @description Decode targeted file.
+   * @param fileName Target file.
+   * @returns {void} Void.
+   * @async
+   */
+  async saveDecoded(fileName?: string): Promise<void> {
+    Log.debug('Time travel', 'Saving');
+
+    const logs = await this.decode(fileName);
+    this.fileWriter.save(`decoded_${fileName}`, logs);
+  }
   /**
    * Preload load.
    * @description Preload log file.

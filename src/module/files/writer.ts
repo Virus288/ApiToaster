@@ -245,23 +245,31 @@ export default class FileWriter {
   }
 
   /**
+   * Save generic data.
+   * @description Save generic data to files.
+   * @param fileName Name of the file to be saved.
+   * @param content Content to be saved.
+   * @returns {void} Void.
+   */
+  save(fileName: string, content: unknown): void {
+    const location = path.resolve(State.config.path, fileName);
+
+    try {
+      fs.writeFileSync(location, JSON.stringify(content, null, 2));
+    } catch (error) {
+      Log.error('Save File', error);
+    }
+  }
+  /**
    * Save data.
    * @description Save prepared data to files.
    * @returns {void} Void.
    * @private
    */
   private saveFiles(): void {
-    const indexLocation = path.resolve(State.config.path, 'index.json');
-    const logsLocation = path.resolve(State.config.path, this.currLogFile);
-    const configLocation = path.resolve(State.config.path, 'config.json');
-
-    try {
-      fs.writeFileSync(logsLocation, JSON.stringify(this.logs, null, 2));
-      fs.writeFileSync(indexLocation, JSON.stringify(this.index, null, 2));
-      fs.writeFileSync(configLocation, JSON.stringify(this.config, null, 2));
-    } catch (error) {
-      Log.error('Save File', error);
-    }
+    this.save('index.json', this.index);
+    this.save(this.currLogFile, this.logs);
+    this.save('config.json', this.config);
   }
 
   /**
