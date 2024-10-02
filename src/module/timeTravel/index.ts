@@ -1,5 +1,5 @@
 import Log from '../../tools/logger.js';
-import { sleep } from '../../utils/index.js';
+import { checkIfObject, sleep } from '../../utils/index.js';
 import FileReader from '../files/reader.js';
 import FileWriter from '../files/writer.js';
 import Proto from '../protobuf/index.js';
@@ -239,9 +239,10 @@ export default class TimeTravel {
     const malformed: string[] = [];
     const prepared = await Promise.all(
       Object.entries(logs).map(async ([k, v]) => {
-        let decodedLog;
-        if (typeof v === 'object') {
-          decodedLog = v as ILogEntry;
+        let decodedLog: ILogEntry | INotFormattedLogEntry;
+        const isObject = checkIfObject(v as string);
+        if (isObject) {
+          decodedLog = JSON.parse(v as string) as ILogEntry;
         } else {
           decodedLog = await proto.decodeLogEntry(v as string);
         }
@@ -250,12 +251,19 @@ export default class TimeTravel {
             k,
             {
               ...decodedLog,
-              body: JSON.parse(decodedLog.body) as Record<string, unknown>,
+              body:
+                typeof decodedLog.body === 'string'
+                  ? (JSON.parse(decodedLog.body) as Record<string, unknown>)
+                  : decodedLog.body,
               occured: new Date(decodedLog.occured).getTime(),
-              queryParams: decodedLog.queryParams
-                ? (JSON.parse(decodedLog.queryParams) as Record<string, unknown>)
-                : {},
-              headers: decodedLog.headers ? (JSON.parse(decodedLog.headers) as Record<string, unknown>) : {},
+              queryParams:
+                decodedLog.queryParams && typeof decodedLog.queryParams === 'string'
+                  ? (JSON.parse(decodedLog.queryParams) as Record<string, unknown>)
+                  : (decodedLog.queryParams ?? {}),
+              headers:
+                decodedLog.headers && typeof decodedLog.headers === 'string'
+                  ? (JSON.parse(decodedLog.headers) as Record<string, unknown>)
+                  : (decodedLog.headers ?? {}),
             } as INotFormattedLogEntry,
           ];
         } catch (_err) {
@@ -286,6 +294,7 @@ export default class TimeTravel {
 
     Log.debug('Time travel', 'Formatted logs', JSON.stringify(filteredPrepared));
 
+    // console.log("PREPARED LOGS",filteredPrepared)
     return filteredPrepared as [string, INotFormattedLogEntry][];
   }
 }
