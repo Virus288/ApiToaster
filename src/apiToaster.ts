@@ -112,7 +112,8 @@ export default function (
     toaster.preInit(config);
 
     toaster.init(req, req.statusCode).catch((err) => {
-      Log.error('Main action', 'Got error', (err as Error).message);
+    Log.error('Main action', 'Got error', (err as Error).message);
+    Log.debug('Main action error', (err as Error).stack);
     });
   });
 

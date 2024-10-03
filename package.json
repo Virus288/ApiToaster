@@ -32,15 +32,14 @@
     "testing"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.release.json",
     "build:common": "rollup --config",
-    "build:watch": "tsc -w -p tsconfig.json",
+    "build:watch": "tsc -w -p tsconfig.release.json",
     "lint": "cross-env NODE_ENV=development eslint -c eslint.config.mjs . --fix",
-    "listErrors": "node_modules/.bin/tsc --skipLibCheck",
+    "listErrors": "node_modules/.bin/tsc --skipLibCheck -p tsconfig.release.json",
     "lintStaged": "npx lint-staged",
     "test": "echo 'If you want to run all the tests, please use makefile'",
-    "test:e2e": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand --config  __tests__/jest.config.e2e.ts",
-    "test:unit": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand --config __tests__/jest.config.unit.ts"
+    "test:unit": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --config __tests__/jest.config.unit.ts"
   },
   "dependencies": {
     "chalk": "4.1.2",

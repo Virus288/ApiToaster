@@ -111,6 +111,8 @@ export default class TimeTravel {
    * @private
    */
   private async sendRequests(logs: [string, INotFormattedLogEntry][]): Promise<void> {
+    Log.debug('Time travel', 'Sending req');
+
     if (logs.length === 0) {
       Log.log('Time travel', 'No requests to send');
       return undefined;
@@ -131,6 +133,7 @@ export default class TimeTravel {
    */
   private async sendReq(log: [string, INotFormattedLogEntry]): Promise<void> {
     Log.log('Time travel', `Sending req with id ${log[0]}`);
+
     if ((this.config.waitUntillNextReq ?? 0) > 0) {
       await sleep(this.config.waitUntillNextReq);
     }
@@ -215,6 +218,8 @@ export default class TimeTravel {
    * @private
    */
   private async prepareLogs(logs: ILogProto | ILog): Promise<[string, INotFormattedLogEntry][]> {
+    Log.debug('Time travel', 'Preparing logs');
+
     const proto = new Proto();
     const malformed: string[] = [];
     const prepared = await Promise.all(
