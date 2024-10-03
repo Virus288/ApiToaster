@@ -84,7 +84,8 @@ export default class QueryBuilder {
       Object.keys(this.params.json).length === 0 &&
       this.params.values.length === 0 &&
       this.params.keys.length === 0 &&
-      this.params.files.length === 0
+      this.params.files.length === 0 &&
+      this.params.methods.length === 0
     );
   }
 
