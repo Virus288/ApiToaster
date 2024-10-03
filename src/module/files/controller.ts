@@ -12,6 +12,7 @@ export default class FileController {
    * @returns {void} Void.
    */
   initDirectories(): void {
+    Log.debug('File reader', 'Initing directories');
     const dirPath = State.config.path;
 
     if (!fs.existsSync(dirPath)) {
@@ -33,6 +34,7 @@ export default class FileController {
    * @throws {MissingCoreStructureError} Eror whenever files or folder structure is missing.
    */
   fetchCurrentLogFile(fileName?: string): string {
+    Log.debug('File reader', 'Fetching log file');
     if (fileName) {
       try {
         fs.readFileSync(path.resolve(State.config.path, fileName));
