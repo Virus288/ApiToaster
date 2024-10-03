@@ -3,10 +3,11 @@ import { IncomingHttpHeaders } from 'http';
 export interface ILogEntry {
   method?: string;
   body: string;
-  queryParams?:string
-  headers?:string
+  queryParams?: string
+  headers?: string
   ip?: string;
-  occured:string;
+  statusCode?: number;
+  occured: string;
 }
 
 export interface INotFormattedLogEntry {
@@ -15,7 +16,8 @@ export interface INotFormattedLogEntry {
   queryParams?: Record<string, string>;
   headers?: IncomingHttpHeaders;
   ip?: string;
-  occured:number;
+  statusCode?: number;
+  occured: number;
 }
 
 export interface ILogProto {

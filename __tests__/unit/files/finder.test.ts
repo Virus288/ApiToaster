@@ -1,6 +1,5 @@
-import { beforeEach, afterEach, describe, expect, it, beforeAll } from '@jest/globals';
+import { jest, afterEach, afterAll, describe, expect, it, beforeAll } from '@jest/globals';
 import express from 'express'
-import fs from 'fs'
 import FileFinder from '../../../src/module/files/finder.js'
 import FileWriter from '../../../src/module/files/writer.js'
 import State from '../../../src/tools/state.js'
@@ -8,19 +7,10 @@ import defaultConfig from '../../../src/tools/config.js'
 import { IFullError } from '../../../types/error.js';
 import { IFindParams } from '../../../types/cli.js';
 import { INotFormattedLogEntry } from '../../../types/logs.js';
-
-// Small note
-// #TODO Those tests should run mocked fs modules. Due to jest not beeing able to mock built-in modules in esm mode, its impossible to do this ( or I just do not know how ). Fix it asap
+import * as mocks from '../../utils/mocks'
+import FakeFs from '../../utils/fakes/fs.js';
 
 describe('File finder', () => {
-  const clear = async (target?: string): Promise<void> => {
-    return new Promise<void>(resolve => {
-      fs.rmdir(target ?? 'Toaster', { recursive: true }, (_err) => {
-        resolve(undefined)
-      })
-    })
-  }
-
   const defaultReq: Partial<express.Request> = {
     method: 'POST',
     headers: {
@@ -48,14 +38,15 @@ describe('File finder', () => {
 
   beforeAll(() => {
     State.config = { ...defaultConfig(), ip: true }
+    mocks.mockFs()
   })
 
-  beforeEach(async () => {
-    await clear()
+  afterEach(() => {
+    FakeFs.clear()
   })
 
-  afterEach(async () => {
-    await clear()
+  afterAll(() => {
+    jest.clearAllMocks()
   })
 
   describe('Should throw', () => {
@@ -199,7 +190,6 @@ describe('File finder', () => {
       expect(error).toBeUndefined()
       expect(callback.length).toEqual(1)
     });
-
   });
 });
 
