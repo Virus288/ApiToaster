@@ -29,7 +29,7 @@ describe('File writer', () => {
     query: {
       key: 'value',
     },
-    body: { dipa: 'dskfjl' },
+    body: { test: 'asd' },
   };
 
   const fileWriter = new FileWriter();
@@ -211,7 +211,7 @@ describe('File writer', () => {
       expect(error).toBeUndefined();
     });
 
-    it(`Write file -debuffed, disabled proto`, async () => {
+    it(`Write file - debuffed, disabled proto`, async () => {
       let error: IFullError | undefined = undefined;
       State.config = { ...State.config, disableProto: true };
       let callback: INotFormattedLogEntry | undefined = undefined;
@@ -229,5 +229,25 @@ describe('File writer', () => {
       expect(callback?.queryParams).toEqual(defaultReq.query);
       expect(error).toBeUndefined();
     });
+
+    it(`Write file - debuffed, disabled statusCode`, async () => {
+      let error: IFullError | undefined = undefined;
+      State.config = { ...State.config, statusCode: false, disableProto: true };
+      let callback: INotFormattedLogEntry | undefined = undefined;
+
+      try {
+        await fileWriter.init(defaultReq as express.Request, 200);
+        callback = JSON.parse(Object.values((fileReader.init() as ILogsProto).logs)[0]!);
+      } catch (err) {
+        error = err as IFullError;
+      }
+
+        expect(callback?.body).toEqual(defaultReq.body);
+        expect(callback?.method).toEqual(defaultReq.method);
+        expect(callback?.headers).toEqual(defaultReq.headers);
+        expect(callback?.queryParams).toEqual(defaultReq.query);
+        expect(callback?.statusCode).toBeUndefined()
+        expect(error).toBeUndefined();
+      });
   });
 });

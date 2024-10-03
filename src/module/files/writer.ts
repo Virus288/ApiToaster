@@ -81,9 +81,10 @@ export default class FileWriter {
    * Save new log.
    * @description Prepare and save new log.
    * @param req {express.Request} Request received from user.
+   * @param statusCode Response status code.
    * @returns {void} Void.
    */
-  async init(req: express.Request): Promise<void> {
+  async init(req: express.Request, statusCode?: number): Promise<void> {
     this.pre();
     this.currLogFile = this.controller.fetchCurrentLogFile();
 
@@ -94,9 +95,9 @@ export default class FileWriter {
 
     this.prepareConfig();
     if (State.config.disableProto) {
-      this.prepareJsonLog(req);
+      this.prepareJsonLog(req, statusCode);
     } else {
-      await this.prepareBufLog(req);
+      await this.prepareBufLog(req, statusCode);
     }
     this.checkFileSize(this.currLogFile);
     this.saveFiles();
@@ -118,14 +119,15 @@ export default class FileWriter {
    * Prepare new log.
    * @description Prepare new log and index it.
    * @param req {express.Request} Request received from user.
+   * @param statusCode Response status code.
    * @returns {void} Void.
    * @private
    */
-  private async prepareBufLog(req: express.Request): Promise<void> {
+  private async prepareBufLog(req: express.Request, statusCode?: number): Promise<void> {
     const uuid = randomUUID() as string;
     const proto = new Proto();
 
-    const logBody = this.prepareLog(req);
+    const logBody = this.prepareLog(req, statusCode);
 
     const buffedLog = this.prepareBuffedLog(logBody);
 
@@ -142,13 +144,14 @@ export default class FileWriter {
    * Prepare new log json.
    * @description Preapre new json log and index it.
    * @param req {express.Request} Request received from user.
+   * @param statusCode Response status code.
    * @returns {void} Void.
    * @private
    */
-  private prepareJsonLog(req: express.Request): void {
+  private prepareJsonLog(req: express.Request, statusCode?: number): void {
     const uuid = randomUUID() as string;
 
-    const logBody = this.prepareLog(req);
+    const logBody = this.prepareLog(req, statusCode);
 
     const logProto: ILogProto = {
       [uuid]: JSON.stringify(logBody),
@@ -163,10 +166,11 @@ export default class FileWriter {
    * Prepare new generic log body.
    * @description Preapre new generic log body.
    * @param req {express.Request} Request received from user.
+   * @param statusCode Response status code.
    * @returns {void} Void.
    * @private
    */
-  private prepareLog(req: express.Request): INotFormattedLogEntry {
+  private prepareLog(req: express.Request, statusCode?: number): INotFormattedLogEntry {
     const filteredHeaders = { ...req.headers };
 
     delete filteredHeaders['content-length'];
@@ -177,17 +181,16 @@ export default class FileWriter {
       queryParams: State.config.queryParams ? (req.query as Record<string, string>) : {},
       headers: State.config.headers ? filteredHeaders : {},
       ip: State.config.ip ? req.ip : undefined,
+      statusCode: State.config.statusCode ? statusCode : undefined,
       occured: Date.now(),
     };
     this.obfuscate(body);
 
     const logBody: INotFormattedLogEntry = {
       ...body,
-      body: body.body,
       occured: body.occured,
       queryParams: body.queryParams,
       headers: body.headers,
-      ip: body.ip,
     };
 
     return logBody;
@@ -197,7 +200,7 @@ export default class FileWriter {
    * Prepare new buffed log body.
    * @description Preapre new generic buffed log body.
    * @param log {INotFormattedLogEntry} Not formated log.
-   * @returns {ILogEntry} Log.
+   * @returns {ILogEntry} Preapred log entry.
    * @private
    */
   private prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
