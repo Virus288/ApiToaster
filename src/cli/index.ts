@@ -130,6 +130,7 @@ export default class Cli {
   private async handleFind(args: ICliArgs): Promise<void> {
     Log.debug('Cli', 'Handeling find');
 
+    this.readConfig();
     const builder = new QueryBuilder(args);
     const params = builder.init();
 
