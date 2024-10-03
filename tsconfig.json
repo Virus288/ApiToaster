@@ -52,7 +52,6 @@
       "preserveConstEnums": true,
       "removeComments": true,
       "resolveJsonModule": true,
-      "rootDir": "./src",
       "skipLibCheck": false,
       "suppressExcessPropertyErrors": false,
       "suppressImplicitAnyIndexErrors": false,
@@ -72,6 +71,6 @@
       "useUnknownInCatchVariables": true,
       "verbatimModuleSyntax": false
     },
-    "exclude": ["node_modules", "build", "eslint.config.mjs"],
-    "include": [ "src/**/*.ts"]
+    "exclude": ["node_modules", "build", "eslint.config.mjs", "lib", "__tests_"],
+    "include": [ "src/**/*.ts" ]
 }
