@@ -7,11 +7,12 @@ export interface IConfig {
   ip: boolean;
   obfuscate: string[];
   disableProto: boolean;
-  countTime: boolean
+  statusCode: boolean;
+  countTime: boolean;
 }
 
 export type IToasterConfig = Partial<IConfig>;
 
-export interface IPreviousSettings{
+export interface IPreviousSettings {
   disableProto: boolean;
 }
