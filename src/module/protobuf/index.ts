@@ -35,6 +35,8 @@ export default class Proto {
     }
 
     const encodedLog = LogEntry.encode(LogEntry.create(log)).finish();
+    console.log('ENCODED', encodedLog);
+    console.log('ENCODED LOG', await  this.decodeLogEntry(Buffer.from(encodedLog).toString('base64')));
     return Buffer.from(encodedLog).toString('base64');
   }
 
@@ -44,6 +46,7 @@ export default class Proto {
    * @param logEntry Single value of Buffer as a base64 string from log file.
    * @returns {ILogEntry} String version of log entry.
    * @async
+   *
    */
   async decodeLogEntry(logEntry: string): Promise<ILogEntry> {
     const root = await this.loadProto();

@@ -84,6 +84,21 @@ export default class TimeTravel {
   }
 
   /**
+   * Migrate file.
+   * @description Migrate targeted file to target format.
+   * @param fileName Target file.
+   * @param logFormat Target format.
+   * @returns {void} Void.
+   * @async
+   */
+  async migrate(fileName?: string, logFormat?: string): Promise<void> {
+    Log.debug('Time travel', 'Migrating');
+
+    const logs = this.readLogs(fileName);
+    const prepared = await this.migrateLogs(logs.logs, logFormat!);
+    console.log('PREP', prepared);
+  }
+  /**
    * Decode file.
    * @description Decode targeted file.
    * @param fileName Target file.
@@ -296,5 +311,56 @@ export default class TimeTravel {
 
     // console.log("PREPARED LOGS",filteredPrepared)
     return filteredPrepared as [string, INotFormattedLogEntry][];
+  }
+
+  private async migrateLogs(
+    logs: ILogProto | ILog,
+    logFormat: string,
+  ): Promise<[string, INotFormattedLogEntry][] | ILogProto[]> {
+    const proto = new Proto();
+
+    const prepared = await Promise.all(
+      Object.entries(logs).map(async ([k, v]) => {
+        let decodedLog: string | INotFormattedLogEntry;
+        const isObject = checkIfObject(v as string);
+        if (logFormat === 'p') {
+          console.log('------', this.convertLog(v));
+          const buffed = this.fileWriter.prepareBuffedLog(this.convertLog(v));
+          decodedLog = isObject ? await proto.encodeLog(buffed) : (v as string);
+        } else if (logFormat === 'j') {
+          decodedLog = isObject
+            ? (JSON.parse(v as string) as INotFormattedLogEntry)
+            : this.convertLog(await proto.decodeLogEntry(v as string));
+        } else {
+          return null;
+        }
+
+        try {
+          return [k, decodedLog];
+        } catch (_err) {
+          Log.error('Migrate', 'Error migrating', _err);
+        }
+        return null;
+      }),
+    );
+    const filteredPrepared = prepared.filter((e) => e);
+
+    return filteredPrepared as [string, INotFormattedLogEntry][] | ILogProto[];
+  }
+  private convertLog(log: ILogEntry): INotFormattedLogEntry {
+    const l = {
+      method: log.method ?? '',
+      body: typeof log.body === 'string' ? (JSON.parse(log.body) as Record<string, unknown>) : log.body,
+      queryParams:
+        log.queryParams && typeof log.queryParams === 'string'
+          ? (JSON.parse(log.queryParams) as Record<string, unknown>)
+          : (log.queryParams ?? {}),
+      headers:
+        log.headers && typeof log.headers === 'string'
+          ? (JSON.parse(log.headers) as Record<string, unknown>)
+          : (log.headers ?? {}),
+      occured: new Date(log.occured).getTime(),
+    } as INotFormattedLogEntry;
+    return l;
   }
 }

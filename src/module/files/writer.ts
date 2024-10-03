@@ -200,7 +200,7 @@ export default class FileWriter {
    * @returns {ILogEntry} Log.
    * @private
    */
-  private prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
+   prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
     const formated: ILog['body'] = {
       body: JSON.stringify(log.body),
       method: log.method,

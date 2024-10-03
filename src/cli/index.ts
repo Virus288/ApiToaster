@@ -44,6 +44,8 @@ export default class Cli {
         return this.handleTimeTravel(args.slice(1));
       case enums.ECliOptions.Decode:
         return this.handleDecode(args.slice(1));
+      case enums.ECliOptions.Migrate:
+        return this.handleMigrate(args.slice(1));
       case enums.ECliOptions.Find:
         return this.handleFind(args.slice(1));
       case enums.ECliFlags.Help:
@@ -90,6 +92,38 @@ export default class Cli {
     }
   }
 
+  /**
+   * Start migrating.
+   * @description Migrate logs json/proto.
+   * @param args User's params.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
+  private async handleMigrate(args: ICliArgs): Promise<void> {
+    Log.debug('Cli', 'Handling migration');
+
+    const flag = args[0];
+    const target = args[1];
+    const logFormat = args[2];
+
+    switch (flag) {
+      case enums.ECliFlags.Path:
+      case enums.ECliFlags.ShortPath:
+        !target && !logFormat
+          ? Log.error('Cli', 'Please provide file to decode and target format.')
+          : await this.migrate(target, logFormat);
+        break;
+      case enums.ECliFlags.Help:
+      case enums.ECliFlags.ShortHelp:
+        Log.log('Cli', enums.ECliResponses.DecodeHelp);
+        break;
+      default:
+        // TODO: change response
+        Log.error('Cli', 'Unknown parameter.', enums.ECliResponses.TimeTravelUnknownCommand);
+        break;
+    }
+  }
   /**
    * Start time travel.
    * @description Start time travel session.
@@ -174,6 +208,22 @@ export default class Cli {
     Log.log('Logs', logs);
   }
 
+  /**
+   * Start decoding files.
+   * @description Start decoding selected files.
+   * @param fileName Target to use.
+   * @param logFormat Target log format.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
+  private async migrate(fileName?: string, logFormat?: string): Promise<void> {
+    Log.debug('Cli', 'Migrating');
+
+    this.readConfig();
+     await this.timeTravel.migrate(fileName,logFormat);
+    // Log.log('Logs', logs);
+  }
   /**
    * Start decoding files.
    * @description Start decoding selected files.
