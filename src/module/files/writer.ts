@@ -200,14 +200,14 @@ export default class FileWriter {
    * @returns {ILogEntry} Log.
    * @private
    */
-   prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
+  prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
     const formated: ILog['body'] = {
       body: JSON.stringify(log.body),
       method: log.method,
       occured: new Date(log.occured).toISOString(),
       queryParams: JSON.stringify(log.queryParams),
       headers: JSON.stringify(log.headers),
-      ip: log.ip,
+      ip: log.ip ?? '0.0.0.0',
     };
     return formated;
   }

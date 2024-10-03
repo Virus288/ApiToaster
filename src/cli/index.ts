@@ -221,7 +221,7 @@ export default class Cli {
     Log.debug('Cli', 'Migrating');
 
     this.readConfig();
-     await this.timeTravel.migrate(fileName,logFormat);
+    await this.timeTravel.migrate(fileName, logFormat);
     // Log.log('Logs', logs);
   }
   /**

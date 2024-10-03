@@ -1,7 +1,7 @@
 export enum ECliOptions {
   TimeTravel = 'time-travel',
   Decode = 'decode',
-  Migrate='migrate',
+  Migrate = 'migrate',
   Find = 'find',
 }
 

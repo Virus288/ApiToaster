@@ -190,7 +190,7 @@ describe('File writer', () => {
       } catch (err) {
         error = err as IFullError;
       }
-
+      console.log('CALLBACK')
       expect(Object.keys(callback?.logs ?? {}).length).toEqual(1);
       expect(error).toBeUndefined();
     });

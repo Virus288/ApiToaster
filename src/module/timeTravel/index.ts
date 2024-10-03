@@ -96,7 +96,7 @@ export default class TimeTravel {
 
     const logs = this.readLogs(fileName);
     const prepared = await this.migrateLogs(logs.logs, logFormat!);
-    console.log('PREP', prepared);
+    this.fileWriter.save('migrate.json', prepared);
   }
   /**
    * Decode file.
@@ -309,7 +309,6 @@ export default class TimeTravel {
 
     Log.debug('Time travel', 'Formatted logs', JSON.stringify(filteredPrepared));
 
-    // console.log("PREPARED LOGS",filteredPrepared)
     return filteredPrepared as [string, INotFormattedLogEntry][];
   }
 
@@ -323,9 +322,13 @@ export default class TimeTravel {
       Object.entries(logs).map(async ([k, v]) => {
         let decodedLog: string | INotFormattedLogEntry;
         const isObject = checkIfObject(v as string);
+        let buffed: ILogEntry;
         if (logFormat === 'p') {
-          console.log('------', this.convertLog(v));
-          const buffed = this.fileWriter.prepareBuffedLog(this.convertLog(v));
+          if (isObject) {
+            buffed = this.fileWriter.prepareBuffedLog(JSON.parse(v as string) as INotFormattedLogEntry);
+          } else {
+            buffed = v as ILogEntry;
+          }
           decodedLog = isObject ? await proto.encodeLog(buffed) : (v as string);
         } else if (logFormat === 'j') {
           decodedLog = isObject
@@ -360,6 +363,7 @@ export default class TimeTravel {
           ? (JSON.parse(log.headers) as Record<string, unknown>)
           : (log.headers ?? {}),
       occured: new Date(log.occured).getTime(),
+      ip: log.ip ?? '0.0.0.0',
     } as INotFormattedLogEntry;
     return l;
   }
