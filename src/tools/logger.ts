@@ -92,7 +92,7 @@ export default class Log {
     }
 
     messages.forEach((m) => {
-      Log.buildLog(() => chalk.bgRed(`Log.TIME: ${target}`), m);
+      Log.buildLog(() => chalk.bgBlue(`Log.TIME: ${target}`), m);
     });
   }
 
