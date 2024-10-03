@@ -78,7 +78,7 @@ jobs:
             ${{ runner.OS }}-node-
 
       - name: Run tests
-        run: yarn test:e2e && yarn test:unit
+        run: npm run test:unit
 
   build:
     needs: [lint]

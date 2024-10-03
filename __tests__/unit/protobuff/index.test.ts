@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeAll, afterEach, beforeEach } from '@jest/globals';
+import { describe, afterEach, expect, afterAll, jest, it, beforeAll, beforeEach } from '@jest/globals';
 import express from 'express'
 import State from '../../../src/tools/state.js'
 import defaultConfig from '../../../src/tools/config.js'
@@ -7,16 +7,10 @@ import Protobuff from '../../../src/module/protobuf/index.js'
 import FileWriter from '../../../src/module/files/writer.js'
 import FileReader from '../../../src/module/files/reader.js'
 import { ILogEntry } from '../../../types/logs.js';
-import fs from 'fs'
+import * as mocks from '../../utils/mocks'
+import FakeFs from '../../utils/fakes/fs.js';
 
 describe('Protobuff', () => {
-  const clear = async (target?: string): Promise<void> => {
-    return new Promise<void>(resolve => {
-      fs.rmdir(target ?? 'Toaster', { recursive: true }, (_err) => {
-        resolve(undefined)
-      })
-    })
-  }
   const buff = new Protobuff()
   const fileWriter = new FileWriter()
   const fileReader = new FileReader()
@@ -42,15 +36,19 @@ describe('Protobuff', () => {
 
   beforeAll(() => {
     State.config = { ...defaultConfig(), ip: true }
+    mocks.mockFs()
+  })
+
+  afterEach(() => {
+    FakeFs.clear()
+  })
+
+  afterAll(async () => {
+    jest.clearAllMocks()
   })
 
   beforeEach(async () => {
     State.config = defaultConfig()
-    await clear()
-  })
-
-  afterEach(async () => {
-    await clear()
   })
 
   describe('Should throw', () => {

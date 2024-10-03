@@ -114,6 +114,7 @@ export default function (
 
   toaster.init(req).catch((err) => {
     Log.error('Main action', 'Got error', (err as Error).message);
+    Log.debug('Main action error', (err as Error).stack);
   });
   next();
 }
