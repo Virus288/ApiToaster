@@ -21,7 +21,11 @@ export default class FileFinder {
     return array[0] ? array : undefined;
   }
   // Checks if all the keys are present. If they are, cheks if values for those keys are the same as in the given json
-  private checkForJSON(examine: Record<string, unknown>, json: Record<string, unknown>): boolean {
+  private checkForJSON(examine: Record<string, unknown>, json: Record<string, unknown> | string): boolean {
+    if (typeof json === 'string') {
+      Log.error('File finder', 'Provided param is not a json!');
+      throw new EvalError('Param is not a JSON!');
+    }
     return (
       Object.keys(json).every((key) => Object.hasOwn(examine, key)) &&
       Object.keys(json).every((key) => {
@@ -29,8 +33,6 @@ export default class FileFinder {
       })
     );
   }
-
-  // @TODO: smash those 3 methods into one
 
   // For description go to FindJSON
   private findValue(examine: Record<string, unknown>, value: string): boolean {
@@ -96,6 +98,7 @@ export default class FileFinder {
       `files: ${params.files.toString()}`,
       `json: ${JSON.stringify(params.json)}`,
       `methods: ${params.methods.toString()}`,
+      `codes: ${params.codes.toString()}`,
     );
     // Data is limited to only first value on the list. Make sure to include all params
     const logs = await this.timeTravel.preLoadLogs(params.files[0]);
@@ -153,7 +156,7 @@ export default class FileFinder {
 
       // Check method. Only first method in the array is considered
       if (params.methods.length > 0 && params.methods[0] && log[1].method !== params.methods[0]) {
-        Log.debug('File finder', 'Filtered log does not include provided keys');
+        Log.debug('File finder', 'Filtered log does not include provided method');
         result = false;
       }
 
@@ -169,6 +172,7 @@ export default class FileFinder {
 
       return result;
     });
+
     // If not req found, create different response. Response shold be stringified json, but in readable format ( with proper spaces )
     if (!filteredLogs[0]) {
       Log.warn('File finder', 'No logs has been found');
