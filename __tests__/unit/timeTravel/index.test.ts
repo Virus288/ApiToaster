@@ -1,4 +1,4 @@
-import { describe, afterEach, expect, it, beforeAll, afterAll, jest, beforeEach } from '@jest/globals';
+import { describe, afterEach, expect, it, beforeAll, jest, beforeEach } from '@jest/globals';
 //import express from 'express'
 import State from '../../../src/tools/state.js'
 import defaultConfig from '../../../src/tools/config.js'
@@ -25,19 +25,16 @@ describe('Time Travel', () => {
 
   beforeAll(() => {
     State.config = { ...defaultConfig(), ip: true }
-    mocks.mockFs()
   })
 
   afterEach(() => {
     FakeFs.clear()
+    jest.clearAllMocks()
   })
 
   beforeEach(async () => {
     State.config = defaultConfig()
-  })
-
-  afterAll(() => {
-    jest.clearAllMocks()
+    mocks.mockFs()
   })
 
   describe('Should throw', () => {

@@ -1,4 +1,4 @@
-import { beforeAll, afterEach, afterAll, jest, describe, expect, it } from '@jest/globals';
+import { beforeAll, afterEach, beforeEach, jest, describe, expect, it } from '@jest/globals';
 import fs from 'fs'
 import FileReader from '../../../src/module/files/reader.js'
 import State from '../../../src/tools/state.js'
@@ -14,14 +14,14 @@ describe('File reader', () => {
 
   beforeAll(async () => {
     State.config = defaultConfig()
-    mocks.mockFs()
   });
+
+  beforeEach(() => {
+    mocks.mockFs()
+  })
 
   afterEach(() => {
     FakeFs.clear()
-  })
-
-  afterAll(async () => {
     jest.clearAllMocks()
   })
 

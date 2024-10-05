@@ -1,4 +1,4 @@
-import { jest, afterEach, afterAll, describe, expect, it, beforeAll } from '@jest/globals';
+import { jest, afterEach, beforeEach, describe, expect, it, beforeAll } from '@jest/globals';
 import express from 'express'
 import FileFinder from '../../../src/module/files/finder.js'
 import FileWriter from '../../../src/module/files/writer.js'
@@ -38,14 +38,14 @@ describe('File finder', () => {
 
   beforeAll(() => {
     State.config = { ...defaultConfig(), ip: true }
+  })
+
+  beforeEach(() => {
     mocks.mockFs()
   })
 
   afterEach(() => {
     FakeFs.clear()
-  })
-
-  afterAll(() => {
     jest.clearAllMocks()
   })
 
