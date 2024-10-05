@@ -1,4 +1,5 @@
-import { jest, afterEach, afterAll, describe, expect, it, beforeAll } from '@jest/globals';
+import { beforeEach, describe, expect, it, beforeAll } from '@jest/globals';
+import fs from 'fs'
 import express from 'express'
 import FileFinder from '../../../src/module/files/finder.js'
 import FileWriter from '../../../src/module/files/writer.js'
@@ -7,10 +8,16 @@ import defaultConfig from '../../../src/tools/config.js'
 import { IFullError } from '../../../types/error.js';
 import { IFindParams } from '../../../types/cli.js';
 import { INotFormattedLogEntry } from '../../../types/logs.js';
-import * as mocks from '../../utils/mocks'
-import FakeFs from '../../utils/fakes/fs.js';
 
 describe('File finder', () => {
+  const clear = async (target?: string): Promise<void> => {
+    return new Promise<void>(resolve => {
+      fs.rmdir(target ?? 'Toaster', { recursive: true }, (_err) => {
+        resolve(undefined)
+      })
+    })
+  }
+
   const defaultReq: Partial<express.Request> = {
     method: 'POST',
     headers: {
@@ -38,15 +45,10 @@ describe('File finder', () => {
 
   beforeAll(() => {
     State.config = { ...defaultConfig(), ip: true }
-    mocks.mockFs()
   })
 
-  afterEach(() => {
-    FakeFs.clear()
-  })
-
-  afterAll(() => {
-    jest.clearAllMocks()
+  beforeEach(async () => {
+    await clear()
   })
 
   describe('Should throw', () => {
