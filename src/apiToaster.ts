@@ -59,6 +59,7 @@ class Toaster {
    */
   private initPath(config?: IToasterConfig): void {
     if (
+      !State.config &&
       config &&
       typeof config === 'object' &&
       !Array.isArray(config) &&
@@ -103,17 +104,17 @@ export default function (
 ): void {
   const reqUuid = randomUUID();
 
+  const toaster = new Toaster();
+  toaster.preInit(config);
+
   if (State.config.countTime) Log.time(reqUuid, 'Counting time for req');
 
   res.once('finish', () => {
     if (State.config.countTime) Log.endTime(reqUuid, 'Request finished');
 
-    const toaster = new Toaster();
-    toaster.preInit(config);
-
     toaster.init(req, req.statusCode).catch((err) => {
-    Log.error('Main action', 'Got error', (err as Error).message);
-    Log.debug('Main action error', (err as Error).stack);
+      Log.error('Main action', 'Got error', (err as Error).message);
+      Log.debug('Main action error', (err as Error).stack);
     });
   });
 
