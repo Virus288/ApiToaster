@@ -1,4 +1,4 @@
-import { beforeEach, afterEach, describe, expect, it, afterAll, jest, beforeAll } from '@jest/globals';
+import { beforeEach, afterEach, describe, expect, it } from '@jest/globals';
 import path from 'path';
 import express from 'express';
 import FileReader from '../../../src/module/files/reader.js';
@@ -8,12 +8,18 @@ import defaultConfig from '../../../src/tools/config.js';
 import { ILogs, ILogsProto, INotFormattedLogEntry } from '../../../types/logs.js';
 import { IFullError } from '../../../types/error.js';
 import fs from 'fs';
-import * as mocks from '../../utils/mocks'
-import FakeFs from '../../utils/fakes/fs.js';
 
 // Small note
-// #TODO Those tests should run mocked fs modules. Due to jest not beeing able to mock built-in modules in esm mode, its impossible to do this ( or I just do not know how ). Fix it asap
+// #TODO Those tests should run mocked fs modules. Due to jest Crashing with internal errors, this is like this.
 describe('File writer', () => {
+  const clear = async (target?: string): Promise<void> => {
+    return new Promise<void>((resolve) => {
+      fs.rmdir(target ?? 'Toaster', { recursive: true }, (_err) => {
+        resolve(undefined)
+      })
+    })
+  }
+
   const defaultReq: Partial<express.Request> = {
     method: 'POST',
     headers: {
@@ -29,21 +35,16 @@ describe('File writer', () => {
   const fileWriter = new FileWriter();
   const fileReader = new FileReader();
 
-  beforeAll(() => {
-    mocks.mockFs()
-  })
-
-  afterEach(() => {
-    FakeFs.clear()
-  })
-
-  afterAll(async () => {
-    jest.clearAllMocks()
-  })
-
   beforeEach(async () => {
     State.config = defaultConfig();
-  });
+    await clear()
+    await clear('AnotherToaster')
+  })
+
+  afterEach(async () => {
+    await clear()
+    await clear('AnotherToaster')
+  })
 
   describe('Should throw', () => {
     //describe('No data passed', () => {});
@@ -243,12 +244,12 @@ describe('File writer', () => {
         error = err as IFullError;
       }
 
-        expect(callback?.body).toEqual(defaultReq.body);
-        expect(callback?.method).toEqual(defaultReq.method);
-        expect(callback?.headers).toEqual(defaultReq.headers);
-        expect(callback?.queryParams).toEqual(defaultReq.query);
-        expect(callback?.statusCode).toBeUndefined()
-        expect(error).toBeUndefined();
-      });
+      expect(callback?.body).toEqual(defaultReq.body);
+      expect(callback?.method).toEqual(defaultReq.method);
+      expect(callback?.headers).toEqual(defaultReq.headers);
+      expect(callback?.queryParams).toEqual(defaultReq.query);
+      expect(callback?.statusCode).toBeUndefined()
+      expect(error).toBeUndefined();
+    });
   });
 });

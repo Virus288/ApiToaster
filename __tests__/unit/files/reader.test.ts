@@ -1,4 +1,4 @@
-import { beforeAll, afterEach, afterAll, jest, describe, expect, it } from '@jest/globals';
+import { beforeEach, beforeAll, afterEach, describe, expect, it } from '@jest/globals';
 import fs from 'fs'
 import FileReader from '../../../src/module/files/reader.js'
 import State from '../../../src/tools/state.js'
@@ -6,23 +6,29 @@ import defaultConfig from '../../../src/tools/config.js'
 import { IFullError } from '../../../types/error.js';
 import { MalformedLogFilesError, NoSavedLogsError } from '../../../src/errors/index.js';
 import path from 'path';
-import * as mocks from '../../utils/mocks'
-import FakeFs from '../../utils/fakes/fs.js';
 
 describe('File reader', () => {
+  const clear = async (): Promise<void> => {
+    return new Promise<void>(resolve => {
+      fs.rmdir('Toaster', { recursive: true }, () => {
+        resolve(undefined)
+      })
+    })
+  }
+
   const fileReader = new FileReader()
 
   beforeAll(async () => {
+    await clear()
     State.config = defaultConfig()
-    mocks.mockFs()
   });
 
-  afterEach(() => {
-    FakeFs.clear()
+  beforeEach(async () => {
+    await clear()
   })
 
-  afterAll(async () => {
-    jest.clearAllMocks()
+  afterEach(async () => {
+    await clear()
   })
 
   describe('Should throw', () => {
