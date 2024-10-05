@@ -97,10 +97,6 @@ describe('File writer', () => {
         error = err as IFullError;
       }
 
-
-      console.log("Dupa")
-      console.log(callback?.logs)
-
       expect(Object.keys(callback?.logs ?? {}).length).toEqual(1);
       expect(error).toBeUndefined();
     });
