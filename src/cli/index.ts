@@ -131,12 +131,16 @@ export default class Cli {
     Log.debug('Cli', 'Handeling find');
 
     this.readConfig();
-    const builder = new QueryBuilder(args);
-    const params = builder.init();
+    if (args[0] === enums.ECliFlags.Help || args[0] === enums.ECliFlags.ShortHelp) {
+      Log.log('Cli', enums.ECliResponses.FindHelp);
+    } else {
+      const builder = new QueryBuilder(args);
+      const params = builder.init();
 
-    if (builder.isEmpty()) return Log.error('Cli', 'Malformed params');
+      if (builder.isEmpty()) return Log.error('Cli', 'Malformed params');
 
-    await new FileFinder().find(params);
+      await new FileFinder().find(params);
+    }
     return undefined;
   }
 
