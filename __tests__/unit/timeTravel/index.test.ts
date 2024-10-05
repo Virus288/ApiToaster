@@ -1,13 +1,20 @@
-import { describe, afterEach, expect, it, beforeAll, afterAll, jest, beforeEach } from '@jest/globals';
+import { describe, afterEach, expect, it, beforeAll, beforeEach } from '@jest/globals';
 //import express from 'express'
 import State from '../../../src/tools/state.js'
+import fs from 'fs'
 import defaultConfig from '../../../src/tools/config.js'
 //import FileWriter from '../../../src/module/files/writer.js'
 //import TimeTravel from '../../../src/module/timeTravel/index.js'
-import * as mocks from '../../utils/mocks'
-import FakeFs from '../../utils/fakes/fs.js';
 
 describe('Time Travel', () => {
+  const clear = async (target?: string): Promise<void> => {
+    return new Promise<void>(resolve => {
+      fs.rmdir(target ?? 'Toaster', { recursive: true }, (_err) => {
+        resolve(undefined)
+      })
+    })
+  }
+
   //const timeTravel = new TimeTravel()
   //const fileWriter = new FileWriter()
 
@@ -25,19 +32,15 @@ describe('Time Travel', () => {
 
   beforeAll(() => {
     State.config = { ...defaultConfig(), ip: true }
-    mocks.mockFs()
   })
 
-  afterEach(() => {
-    FakeFs.clear()
+  afterEach(async () => {
+    await clear()
   })
 
   beforeEach(async () => {
+    await clear()
     State.config = defaultConfig()
-  })
-
-  afterAll(() => {
-    jest.clearAllMocks()
   })
 
   describe('Should throw', () => {
@@ -60,7 +63,7 @@ describe('Time Travel', () => {
       //  expect(error).toBeUndefined()
 
       expect(2 + 2).toEqual(4)
-      // Due to this function not returning any data, only loggin it. I am unable to write tests. Added tasks to change it
+      // Due to this function not returning any data, only logging it. I am unable to write tests. Added tasks to change it
     });
   });
 });
