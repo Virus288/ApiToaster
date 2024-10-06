@@ -81,9 +81,13 @@ export default class FileWriter {
    * Save new log.
    * @description Prepare and save new log.
    * @param req {express.Request} Request received from user.
+   * @param statusCode Response status code.
    * @returns {void} Void.
    */
-  async init(req: express.Request): Promise<void> {
+
+  async init(req: express.Request, statusCode?: number): Promise<void> {
+    Log.debug('File writer', 'Init');
+    
     this.pre();
     this.currLogFile = this.controller.fetchCurrentLogFile();
 
@@ -94,9 +98,9 @@ export default class FileWriter {
 
     this.prepareConfig();
     if (State.config.disableProto) {
-      this.prepareJsonLog(req);
+      this.prepareJsonLog(req, statusCode);
     } else {
-      await this.prepareBufLog(req);
+      await this.prepareBufLog(req, statusCode);
     }
     this.checkFileSize(this.currLogFile);
     this.saveFiles();
@@ -108,6 +112,7 @@ export default class FileWriter {
    * @returns {void} Void.
    */
   private pre(): void {
+    Log.debug('File writer', 'Pre');
     this.controller.initDirectories();
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));
     this.validateFile(this.currLogFile, JSON.stringify({ logs: {} }));
@@ -118,14 +123,17 @@ export default class FileWriter {
    * Prepare new log.
    * @description Prepare new log and index it.
    * @param req {express.Request} Request received from user.
+   * @param statusCode Response status code.
    * @returns {void} Void.
    * @private
    */
-  private async prepareBufLog(req: express.Request): Promise<void> {
+  private async prepareBufLog(req: express.Request, statusCode?: number): Promise<void> {
+    Log.debug('File writer', 'Prepare buf log');
+
     const uuid = randomUUID() as string;
     const proto = new Proto();
 
-    const logBody = this.prepareLog(req);
+    const logBody = this.prepareLog(req, statusCode);
 
     const buffedLog = this.prepareBuffedLog(logBody);
 
@@ -142,13 +150,16 @@ export default class FileWriter {
    * Prepare new log json.
    * @description Preapre new json log and index it.
    * @param req {express.Request} Request received from user.
+   * @param statusCode Response status code.
    * @returns {void} Void.
    * @private
    */
-  private prepareJsonLog(req: express.Request): void {
+  private prepareJsonLog(req: express.Request, statusCode?: number): void {
+    Log.debug('File writer', 'Prepare json log');
+
     const uuid = randomUUID() as string;
 
-    const logBody = this.prepareLog(req);
+    const logBody = this.prepareLog(req, statusCode);
 
     const logProto: ILogProto = {
       [uuid]: JSON.stringify(logBody),
@@ -163,10 +174,13 @@ export default class FileWriter {
    * Prepare new generic log body.
    * @description Preapre new generic log body.
    * @param req {express.Request} Request received from user.
+   * @param statusCode Response status code.
    * @returns {void} Void.
    * @private
    */
-  private prepareLog(req: express.Request): INotFormattedLogEntry {
+  private prepareLog(req: express.Request, statusCode?: number): INotFormattedLogEntry {
+    Log.debug('File writer', 'Prepare log');
+
     const filteredHeaders = { ...req.headers };
 
     delete filteredHeaders['content-length'];
@@ -177,17 +191,16 @@ export default class FileWriter {
       queryParams: State.config.queryParams ? (req.query as Record<string, string>) : {},
       headers: State.config.headers ? filteredHeaders : {},
       ip: State.config.ip ? req.ip : undefined,
+      statusCode: State.config.statusCode ? statusCode : undefined,
       occured: Date.now(),
     };
     this.obfuscate(body);
 
     const logBody: INotFormattedLogEntry = {
       ...body,
-      body: body.body,
       occured: body.occured,
       queryParams: body.queryParams,
       headers: body.headers,
-      ip: body.ip,
     };
 
     return logBody;
@@ -197,10 +210,11 @@ export default class FileWriter {
    * Prepare new buffed log body.
    * @description Preapre new generic buffed log body.
    * @param log {INotFormattedLogEntry} Not formated log.
-   * @returns {ILogEntry} Log.
+   * @returns {ILogEntry} Preapred log entry.
    * @private
    */
   private prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
+    Log.debug('File writer', 'Preapre buffed log');
     const formated: ILog['body'] = {
       body: JSON.stringify(log.body),
       method: log.method,
@@ -219,6 +233,7 @@ export default class FileWriter {
    * @private
    */
   private prepareConfig(): void {
+    Log.debug('File writer', 'Preapre config');
     this.config.disableProto = State.config.disableProto;
   }
 
@@ -232,6 +247,7 @@ export default class FileWriter {
    * @private
    */
   private validateFile(target: string, baseBody: string): void {
+    Log.debug('File writer', 'Validate file');
     const location = path.resolve(State.config.path, target);
 
     try {
@@ -245,23 +261,32 @@ export default class FileWriter {
   }
 
   /**
+   * Save generic data.
+   * @description Save generic data to files.
+   * @param fileName Name of the file to be saved.
+   * @param content Content to be saved.
+   * @returns {void} Void.
+   */
+  save(fileName: string, content: unknown): void {
+    const location = path.resolve(State.config.path, fileName);
+
+    try {
+      fs.writeFileSync(location, JSON.stringify(content, null, 2));
+    } catch (error) {
+      Log.error('File writer', 'Save File', error);
+    }
+  }
+  
+  /**
    * Save data.
    * @description Save prepared data to files.
    * @returns {void} Void.
    * @private
    */
   private saveFiles(): void {
-    const indexLocation = path.resolve(State.config.path, 'index.json');
-    const logsLocation = path.resolve(State.config.path, this.currLogFile);
-    const configLocation = path.resolve(State.config.path, 'config.json');
-
-    try {
-      fs.writeFileSync(logsLocation, JSON.stringify(this.logs, null, 2));
-      fs.writeFileSync(indexLocation, JSON.stringify(this.index, null, 2));
-      fs.writeFileSync(configLocation, JSON.stringify(this.config, null, 2));
-    } catch (error) {
-      Log.error('Save File', error);
-    }
+    this.save('index.json', this.index);
+    this.save(this.currLogFile, this.logs);
+    this.save('config.json', this.config);
   }
 
   /**
@@ -271,13 +296,14 @@ export default class FileWriter {
    * @private
    */
   private prepareIndexFile(): void {
+    Log.debug('File writer', 'Preparing index');
     const location = path.resolve(State.config.path, 'index.json');
 
     try {
       const data = fs.readFileSync(location).toString();
       this.index = JSON.parse(data) as IIndex;
     } catch (error) {
-      Log.error('File reader', 'Got error while parsing indexes', (error as Error).message);
+      Log.error('File writer', 'Got error while parsing indexes', (error as Error).message);
       this.index = { indexes: {} };
     }
   }
@@ -288,6 +314,7 @@ export default class FileWriter {
    * @private
    */
   private prepareConfigFile(): void {
+    Log.debug('File writer', 'Preapring config');
     const location = path.resolve(State.config.path, 'config.json');
 
     try {
@@ -307,6 +334,7 @@ export default class FileWriter {
    * @private
    */
   private obfuscate(log: INotFormattedLogEntry): void {
+    Log.debug('File writer', 'Obfuscating');
     State.config.obfuscate
       .filter((field) => field !== 'occured')
       .forEach((e) => {
@@ -322,6 +350,8 @@ export default class FileWriter {
    * @private
    */
   private checkFileSize(logName: string): void {
+    Log.debug('File writer', 'Checking file size');
+
     const logPath = path.resolve(State.config.path, logName);
     const size = fs.statSync(logPath).size + this.currLogSize;
     if (size > 50000000000) {
@@ -337,6 +367,8 @@ export default class FileWriter {
    * @private
    */
   private cleanLogs(): void {
+    Log.debug('File writer', 'Cleaning logs');
+
     const lastLog = Object.entries(this.logs.logs).slice(-1);
     this.logs.logs = { ...Object.fromEntries(lastLog) };
   }
@@ -349,6 +381,8 @@ export default class FileWriter {
    * @private
    */
   private incrementLogFile(logName: string): void {
+    Log.debug('File writer', 'Incrementing log file');
+
     const match = logName.match(/(\d+)/u);
 
     if (!match || match.length === 0) {

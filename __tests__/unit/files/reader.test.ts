@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, afterEach, describe, expect, it } from '@jest/globals';
+import { beforeEach, beforeAll, afterEach, describe, expect, it } from '@jest/globals';
 import fs from 'fs'
 import FileReader from '../../../src/module/files/reader.js'
 import State from '../../../src/tools/state.js'
@@ -6,9 +6,6 @@ import defaultConfig from '../../../src/tools/config.js'
 import { IFullError } from '../../../types/error.js';
 import { MalformedLogFilesError, NoSavedLogsError } from '../../../src/errors/index.js';
 import path from 'path';
-
-// Small note
-// #TODO Those tests should run mocked fs modules. Due to jest not beeing able to mock built-in modules in esm mode, its impossible to do this ( or I just do not know how ). Fix it asap
 
 describe('File reader', () => {
   const clear = async (): Promise<void> => {
@@ -22,8 +19,8 @@ describe('File reader', () => {
   const fileReader = new FileReader()
 
   beforeAll(async () => {
-    State.config = defaultConfig()
     await clear()
+    State.config = defaultConfig()
   });
 
   beforeEach(async () => {

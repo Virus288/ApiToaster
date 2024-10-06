@@ -15,7 +15,7 @@ export enum ECliResponses {
   TimeTravelHelp = `
   Time-Travel is command, which allows your server to receive saved requests again. This command will read saved logs and send them in synchronous queue
   This command requires your server to be running. Make sure that toaster config file exists or flag with server's port is provided.
-  Example usage: 'npx apiToaster time-travel'. This command will load latest file with logs. Files are rotatet based on hardcodded amout of requests.
+  Example usage: 'npx apiToaster time-travel'. This command will load latest file with logs. Files are rotated based on hardcoded amount of requests.
   You can also specify, what file should be used in testing: 'npx apiToaster time-travel -p logs_1.json'
   Or if you need specific data, you can filter by:
    - json: 'npx apiToaster time-travel -j {"name": "jakob"}'. This will search for requests, which include those elements in body
@@ -39,5 +39,8 @@ export enum ECliResponses {
   Decode is command, which is used to decode log files into readable format.
   Example usage: 'npx api-toaster decode [params....]'.
   By default, decode will decode only latest log file. You can change this behaviour, by providing files:
-  npx api-toaster decode -p log_1.json`,
+  npx api-toaster decode -p log_1.json
+  You can also decode and save output to a file "decoded_name_of_log.json" by providing -s or --save flag :
+  npx api-toaster decode -s log_1.json
+  `,
 }

@@ -1,13 +1,13 @@
-import { describe, expect, it, beforeAll, afterEach, beforeEach } from '@jest/globals';
+import { describe, afterEach, expect, it, beforeAll, beforeEach } from '@jest/globals';
 import express from 'express'
 import State from '../../../src/tools/state.js'
 import defaultConfig from '../../../src/tools/config.js'
 import { IFullError } from '../../../types/error.js';
 import Protobuff from '../../../src/module/protobuf/index.js'
+import fs from 'fs'
 import FileWriter from '../../../src/module/files/writer.js'
 import FileReader from '../../../src/module/files/reader.js'
 import { ILogEntry } from '../../../types/logs.js';
-import fs from 'fs'
 
 describe('Protobuff', () => {
   const clear = async (target?: string): Promise<void> => {
@@ -17,6 +17,7 @@ describe('Protobuff', () => {
       })
     })
   }
+
   const buff = new Protobuff()
   const fileWriter = new FileWriter()
   const fileReader = new FileReader()
@@ -44,13 +45,13 @@ describe('Protobuff', () => {
     State.config = { ...defaultConfig(), ip: true }
   })
 
-  beforeEach(async () => {
-    State.config = defaultConfig()
+  afterEach(async () => {
     await clear()
   })
 
-  afterEach(async () => {
+  beforeEach(async () => {
     await clear()
+    State.config = defaultConfig()
   })
 
   describe('Should throw', () => {

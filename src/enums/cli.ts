@@ -21,4 +21,6 @@ export enum ECliFlags {
   ShortMethod = '-m',
   Code = '--code',
   ShortCode = '-c',
+  SaveDecoded = '--save',
+  ShortSaveDecoded = '-s',
 }

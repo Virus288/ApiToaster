@@ -1,6 +1,6 @@
-import { beforeEach, afterEach, describe, expect, it, beforeAll } from '@jest/globals';
-import express from 'express'
+import { beforeEach, describe, expect, it, beforeAll } from '@jest/globals';
 import fs from 'fs'
+import express from 'express'
 import FileFinder from '../../../src/module/files/finder.js'
 import FileWriter from '../../../src/module/files/writer.js'
 import State from '../../../src/tools/state.js'
@@ -8,9 +8,6 @@ import defaultConfig from '../../../src/tools/config.js'
 import { IFullError } from '../../../types/error.js';
 import { IFindParams } from '../../../types/cli.js';
 import { INotFormattedLogEntry } from '../../../types/logs.js';
-
-// Small note
-// #TODO Those tests should run mocked fs modules. Due to jest not beeing able to mock built-in modules in esm mode, its impossible to do this ( or I just do not know how ). Fix it asap
 
 describe('File finder', () => {
   const clear = async (target?: string): Promise<void> => {
@@ -51,10 +48,6 @@ describe('File finder', () => {
   })
 
   beforeEach(async () => {
-    await clear()
-  })
-
-  afterEach(async () => {
     await clear()
   })
 
@@ -199,7 +192,6 @@ describe('File finder', () => {
       expect(error).toBeUndefined()
       expect(callback.length).toEqual(1)
     });
-
   });
 });
 

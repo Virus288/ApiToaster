@@ -72,6 +72,10 @@ export default class Cli {
       case enums.ECliFlags.ShortPath:
         !target ? Log.error('Cli', 'Please provide file to decode.') : await this.decode(target);
         break;
+      case enums.ECliFlags.SaveDecoded:
+      case enums.ECliFlags.ShortSaveDecoded:
+        !target ? Log.error('Cli', 'Please provide file to save decoded values.') : await this.saveDecoded(target);
+        break;
       case enums.ECliFlags.Help:
       case enums.ECliFlags.ShortHelp:
         Log.log('Cli', enums.ECliResponses.DecodeHelp);
@@ -171,7 +175,23 @@ export default class Cli {
     Log.debug('Cli', 'Decodding');
 
     this.readConfig();
-    await this.timeTravel.decode(fileName);
+    const logs = await this.timeTravel.decode(fileName);
+    Log.log('Logs', logs);
+  }
+
+  /**
+   * Start decoding files.
+   * @description Start decoding selected files.
+   * @param fileName Target to use.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
+  private async saveDecoded(fileName?: string): Promise<void> {
+    Log.debug('Cli', 'Decodding and saving to file');
+
+    this.readConfig();
+    await this.timeTravel.saveDecoded(fileName);
   }
 
   /**
