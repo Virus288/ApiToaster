@@ -100,8 +100,20 @@ export default class FileFinder {
       `methods: ${params.methods.toString()}`,
       `codes: ${params.codes.toString()}`,
     );
+
     // Data is limited to only first value on the list. Make sure to include all params
-    const logs = await this.timeTravel.preLoadLogs(params.files[0]);
+    let logs: [string, INotFormattedLogEntry][];
+    if (params.files.length === 0) {
+      logs = await this.timeTravel.preLoadLogs(params.files[0]);
+    } else {
+      const promises = await Promise.all(
+        params.files.map(async (file) => {
+          const logFile = await this.timeTravel.preLoadLogs(file);
+          return logFile;
+        }),
+      );
+      logs = promises.flat();
+    }
 
     Log.debug('File finder', 'Raw data', logs);
     if (params.ips.length > 0 && !logs[0]?.[1]?.ip) {
