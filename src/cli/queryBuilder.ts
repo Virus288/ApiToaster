@@ -14,7 +14,7 @@ export default class QueryBuilder {
     ips: [],
     json: {},
     methods: [],
-    codes: [],
+    statusCodes: [],
   };
 
   constructor(args: ICliArgs) {
@@ -89,7 +89,7 @@ export default class QueryBuilder {
       this.params.keys.length === 0 &&
       this.params.files.length === 0 &&
       this.params.methods.length === 0 &&
-      this.params.codes.length === 0
+      this.params.statusCodes.length === 0
     );
   }
 

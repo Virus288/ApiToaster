@@ -1,35 +1,35 @@
 import { beforeEach, describe, expect, it, beforeAll } from '@jest/globals';
-import fs from 'fs'
-import express from 'express'
-import FileFinder from '../../../src/module/files/finder.js'
-import FileWriter from '../../../src/module/files/writer.js'
-import State from '../../../src/tools/state.js'
-import defaultConfig from '../../../src/tools/config.js'
+import fs from 'fs';
+import express from 'express';
+import FileFinder from '../../../src/module/files/finder.js';
+import FileWriter from '../../../src/module/files/writer.js';
+import State from '../../../src/tools/state.js';
+import defaultConfig from '../../../src/tools/config.js';
 import { IFullError } from '../../../types/error.js';
 import { IFindParams } from '../../../types/cli.js';
 import { INotFormattedLogEntry } from '../../../types/logs.js';
 
 describe('File finder', () => {
   const clear = async (target?: string): Promise<void> => {
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve) => {
       fs.rmdir(target ?? 'Toaster', { recursive: true }, (_err) => {
-        resolve(undefined)
-      })
-    })
-  }
+        resolve(undefined);
+      });
+    });
+  };
 
   const defaultReq: Partial<express.Request> = {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
-      header: 'val'
+      header: 'val',
     },
     ip: '127.0.0.1', // Don't dox me pls :(
     query: {
-      key: "value"
+      key: 'value',
     },
-    body: {}
-  }
+    body: {},
+  };
 
   const defaultFindParams: IFindParams = {
     files: [],
@@ -37,19 +37,20 @@ describe('File finder', () => {
     values: [],
     ips: [],
     json: {},
-    methods: []
-  }
+    methods: [],
+    statusCodes: [],
+  };
 
-  const fileWriter = new FileWriter()
-  const fileFinder = new FileFinder()
+  const fileWriter = new FileWriter();
+  const fileFinder = new FileFinder();
 
   beforeAll(() => {
-    State.config = { ...defaultConfig(), ip: true }
-  })
+    State.config = { ...defaultConfig(), ip: true };
+  });
 
   beforeEach(async () => {
-    await clear()
-  })
+    await clear();
+  });
 
   describe('Should throw', () => {
     //describe('No data passed', () => {});
@@ -58,93 +59,93 @@ describe('File finder', () => {
 
   describe('Should pass', () => {
     it(`Find files - default config`, async () => {
-      let error: IFullError | undefined = undefined
-      let callback: [string, INotFormattedLogEntry][] = []
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
 
       try {
-        await fileWriter.init(defaultReq as express.Request)
-        callback = await fileFinder.find(defaultFindParams)
+        await fileWriter.init(defaultReq as express.Request);
+        callback = await fileFinder.find(defaultFindParams);
       } catch (err) {
-        error = err as IFullError
+        error = err as IFullError;
       }
 
-      expect(error).toBeUndefined()
-      expect(callback.length).toEqual(1)
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(1);
     });
 
     it(`Find files - different ip - no data`, async () => {
-      let error: IFullError | undefined = undefined
-      let callback: [string, INotFormattedLogEntry][] = []
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
 
       try {
-        await fileWriter.init(defaultReq as express.Request)
-        callback = await fileFinder.find({ ...defaultFindParams, ips: ['123.123.123.123'] })
+        await fileWriter.init(defaultReq as express.Request);
+        callback = await fileFinder.find({ ...defaultFindParams, ips: ['123.123.123.123'] });
       } catch (err) {
-        error = err as IFullError
+        error = err as IFullError;
       }
 
-      expect(error).toBeUndefined()
-      expect(callback.length).toEqual(0)
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(0);
     });
 
     it(`Find files - different ip - data exists`, async () => {
-      let error: IFullError | undefined = undefined
-      let callback: [string, INotFormattedLogEntry][] = []
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
 
       try {
-        await fileWriter.init({ ...defaultReq, ip: '123.123.123.123' } as express.Request)
-        callback = await fileFinder.find({ ...defaultFindParams, ips: ['123.123.123.123'] })
+        await fileWriter.init({ ...defaultReq, ip: '123.123.123.123' } as express.Request);
+        callback = await fileFinder.find({ ...defaultFindParams, ips: ['123.123.123.123'] });
       } catch (err) {
-        error = err as IFullError
+        error = err as IFullError;
       }
 
-      expect(error).toBeUndefined()
-      expect(callback.length).toEqual(1)
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(1);
     });
 
     it(`Find files - different json - no data`, async () => {
-      let error: IFullError | undefined = undefined
-      let callback: [string, INotFormattedLogEntry][] = []
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
 
       try {
-        await fileWriter.init(defaultReq as express.Request)
-        callback = await fileFinder.find({ ...defaultFindParams, json: { key: "value" } })
+        await fileWriter.init(defaultReq as express.Request);
+        callback = await fileFinder.find({ ...defaultFindParams, json: { key: 'value' } });
       } catch (err) {
-        error = err as IFullError
+        error = err as IFullError;
       }
 
-      expect(error).toBeUndefined()
-      expect(callback.length).toEqual(0)
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(0);
     });
 
     it(`Find files - different json - data exists`, async () => {
-      let error: IFullError | undefined = undefined
-      let callback: [string, INotFormattedLogEntry][] = []
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
 
       try {
-        await fileWriter.init({ ...defaultReq, body: { key: "value" } } as express.Request)
-        callback = await fileFinder.find({ ...defaultFindParams, json: { key: "value" } })
+        await fileWriter.init({ ...defaultReq, body: { key: 'value' } } as express.Request);
+        callback = await fileFinder.find({ ...defaultFindParams, json: { key: 'value' } });
       } catch (err) {
-        error = err as IFullError
+        error = err as IFullError;
       }
 
-      expect(error).toBeUndefined()
-      expect(callback.length).toEqual(1)
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(1);
     });
 
     it(`Find files - different values - no data`, async () => {
-      let error: IFullError | undefined = undefined
-      let callback: [string, INotFormattedLogEntry][] = []
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
 
       try {
-        await fileWriter.init(defaultReq as express.Request)
-        callback = await fileFinder.find({ ...defaultFindParams, values: ['value'] })
+        await fileWriter.init(defaultReq as express.Request);
+        callback = await fileFinder.find({ ...defaultFindParams, values: ['value'] });
       } catch (err) {
-        error = err as IFullError
+        error = err as IFullError;
       }
 
-      expect(error).toBeUndefined()
-      expect(callback.length).toEqual(0)
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(0);
     });
 
     // Disabled due to code not working fully
@@ -164,34 +165,33 @@ describe('File finder', () => {
     //});
 
     it(`Find files - different method - no data`, async () => {
-      let error: IFullError | undefined = undefined
-      let callback: [string, INotFormattedLogEntry][] = []
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
 
       try {
-        await fileWriter.init(defaultReq as express.Request)
-        callback = await fileFinder.find({ ...defaultFindParams, methods: ['GET'] })
+        await fileWriter.init(defaultReq as express.Request);
+        callback = await fileFinder.find({ ...defaultFindParams, methods: ['GET'] });
       } catch (err) {
-        error = err as IFullError
+        error = err as IFullError;
       }
 
-      expect(error).toBeUndefined()
-      expect(callback.length).toEqual(0)
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(0);
     });
 
     it(`Find files - different method - data exists`, async () => {
-      let error: IFullError | undefined = undefined
-      let callback: [string, INotFormattedLogEntry][] = []
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
 
       try {
-        await fileWriter.init({ ...defaultReq, method: "GET" } as express.Request)
-        callback = await fileFinder.find({ ...defaultFindParams, methods: ["GET"] })
+        await fileWriter.init({ ...defaultReq, method: 'GET' } as express.Request);
+        callback = await fileFinder.find({ ...defaultFindParams, methods: ['GET'] });
       } catch (err) {
-        error = err as IFullError
+        error = err as IFullError;
       }
 
-      expect(error).toBeUndefined()
-      expect(callback.length).toEqual(1)
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(1);
     });
   });
 });
-

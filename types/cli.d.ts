@@ -9,5 +9,5 @@ export interface IFindParams {
   ips: string[];
   json: Record<string, unknown>;
   methods: string[];
-  codes: number[];
+  statusCodes: number[];
 }

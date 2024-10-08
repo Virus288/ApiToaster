@@ -98,7 +98,7 @@ export default class FileFinder {
       `files: ${params.files.toString()}`,
       `json: ${JSON.stringify(params.json)}`,
       `methods: ${params.methods.toString()}`,
-      `codes: ${params.codes.toString()}`,
+      `codes: ${params.statusCodes.toString()}`,
     );
 
     // Data is limited to only first value on the list. Make sure to include all params
