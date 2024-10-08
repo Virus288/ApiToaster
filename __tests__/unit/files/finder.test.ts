@@ -148,21 +148,20 @@ describe('File finder', () => {
       expect(callback.length).toEqual(0);
     });
 
-    // Disabled due to code not working fully
-    //it(`Find files - different values - data exists`, async () => {
-    //  let error: IFullError | undefined = undefined
-    //  let callback: [string, INotFormattedLogEntry][] = []
-    //
-    //  try {
-    //    await fileWriter.init({ ...defaultReq, body: { key: "value" } } as express.Request)
-    //    callback = await fileFinder.find({ ...defaultFindParams, values: ['value'] })
-    //  } catch (err) {
-    //    error = err as IFullError
-    //  }
-    //
-    //  expect(error).toBeUndefined()
-    //  expect(callback.length).toEqual(1)
-    //});
+    it(`Find files - different values - data exists`, async () => {
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
+
+      try {
+        await fileWriter.init({ ...defaultReq, body: { key: 'value' } } as express.Request);
+        callback = await fileFinder.find({ ...defaultFindParams, values: ['value'] });
+      } catch (err) {
+        error = err as IFullError;
+      }
+
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(1);
+    });
 
     it(`Find files - different method - no data`, async () => {
       let error: IFullError | undefined = undefined;
