@@ -13,14 +13,26 @@ export default class FileFinder {
     return this._timeTravel;
   }
 
-  // Returns array of objects that are nested within given object. If no object is present returns undefined. Arrays are also returned
+  /**
+   * Check for Object
+   * @description Checks if provaided object has nested objects
+   * @param examine Req.body or object nested in req.body
+   * @returns objct or undefined
+   */
   private checkForObj(examine: Record<string, unknown>): undefined | Record<string, unknown>[] {
     const array = Object.values(examine).filter((value) => {
       return typeof value === 'object';
     }) as Record<string, unknown>[];
     return array[0] ? array : undefined;
   }
-  // Checks if all the keys are present. If they are, cheks if values for those keys are the same as in the given json
+
+  /**
+   * Check for JSON
+   * @description Checks if provaided json key:vlaue pairs are present in given object
+   * @param examine Req.body or object nested in req.body
+   * @param json key:value pair provided by the user
+   * @returns Boolean
+   */
   private checkForJSON(examine: Record<string, unknown>, json: Record<string, unknown> | string): boolean {
     if (typeof json === 'string') {
       Log.error('File finder', 'Provided param is not a json!');
@@ -34,7 +46,13 @@ export default class FileFinder {
     );
   }
 
-  // For description go to FindJSON
+  /**
+   * Find Key
+   * @description Find values in provided req.body and nested object
+   * @param examine Req.body or object nested in req.body
+   * @param value string provided by the user
+   * @returns Boolean
+   */
   private findValue(examine: Record<string, unknown>, value: string): boolean {
     let result = false;
     const keyResult = Object.values(examine).includes(value);
@@ -50,7 +68,13 @@ export default class FileFinder {
     }
     return result;
   }
-  // For description go to FindJSON
+  /**
+   * Find Key
+   * @description Find keys in provided req.body and nested object
+   * @param examine Req.body or object nested in req.body
+   * @param key string provided by the user
+   * @returns Boolean
+   */
   private findKey(examine: Record<string, unknown>, key: string): boolean {
     let result = false;
     const keyResult = Object.hasOwn(examine, key);
@@ -66,7 +90,13 @@ export default class FileFinder {
     }
     return result;
   }
-
+  /**
+   * Find JSON
+   * @description Find key:value pairs in req.body or nested objects.
+   * @param examine Req.body or object nested in req.body
+   * @param json key:values pairs provided by the user
+   * @returns Boolean
+   */
   private findJSON(examine: Record<string, unknown>, json: Record<string, unknown>): boolean {
     let result = false;
     const jsonResult = this.checkForJSON(examine, json); // Checks if given json is present on that layer
@@ -136,25 +166,15 @@ export default class FileFinder {
         // Check if req.body is a JSON, if not return false
         if (log[1].headers?.['content-type'] !== 'application/json') {
           Log.debug('File finder', 'Filtered log is not application json type');
-          // If I undefined correctly, data that came here is validated if its json or not. If its not, do not run next steps
-          // Done. At least i think so...
           result = false;
         } else {
           // If req.body is correct check if it's content is matching
-
-          // This is bad. We should parse all data and make sure that key and value does exist in each other. Also we are not looking for nested keys.
-          // Rewrite this, so it will search for keys and them values of those keys in filtered data. This way of searching for data might not work correctly
-          // Done, i think...
           if (!this.findJSON(log[1].body, params.json)) {
             Log.debug('File finder', 'Filtered log does not include provided body');
             result = false;
           }
         }
       }
-
-      // This is bad. We are not looking for nested keys
-      // Replace this for Object.keys(log.body).includes() and filter one by one
-
       // Check for keys. All keys must be present in the body
       for (const key of params.keys) {
         if (key.length > 0 && !this.findKey(log[1].body, key)) {
@@ -162,17 +182,11 @@ export default class FileFinder {
           result = false;
         }
       }
-
-      // This is bad. We are not looking for nested keys
-      // Replace this for Object.keys(log.body).includes() and filter one by one
-
       // Check method. Only first method in the array is considered
       if (params.methods.length > 0 && params.methods[0] && log[1].method !== params.methods[0]) {
         Log.debug('File finder', 'Filtered log does not include provided method');
         result = false;
       }
-
-      // This is bad.We are not looking for nested values
 
       // Check for values. All values must be present in the body
       for (const value of params.values) {
@@ -181,16 +195,11 @@ export default class FileFinder {
           result = false;
         }
       }
-
       return result;
     });
-
-    // If not req found, create different response. Response shold be stringified json, but in readable format ( with proper spaces )
     if (!filteredLogs[0]) {
       Log.warn('File finder', 'No logs has been found');
     }
-
-    // In addition to that, save found logs in decoded file called "found.json". If file exists, remove it
     // @TODO: save filterdLogs to the file (I'm waiting for Marcin to finish his method that does similar thing)
     Log.log('Found requests', filteredLogs);
     return filteredLogs;
