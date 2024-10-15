@@ -20,97 +20,68 @@ export default class FileFinder {
   }
 
   /**
-   * Check for Object
-   * @description Checks if provaided object has nested objects
-   * @param examine Req.body or object nested in req.body
-   * @returns objct or undefined
+   * Check for Object.
+   * @description Checks if provaided object has nested objects.
+   * @param examine Req.body or object nested in req.body.
+   * @returns objct or undefined.
    */
   private checkForObj(examine: Record<string, unknown>): undefined | Record<string, unknown>[] {
-    const array = Object.values(examine).filter((value) => {
-      return typeof value === 'object';
-    }) as Record<string, unknown>[];
-    return array[0] ? array : undefined;
+    const array = Object.values(examine).filter((value) => typeof value === 'object') as Record<string, unknown>[];
+    return array.length > 0 ? array : undefined;
   }
 
   /**
-   * Check for JSON
-   * @description Checks if provaided json key:vlaue pairs are present in given object
-   * @param examine Req.body or object nested in req.body
-   * @param json key:value pair provided by the user
-   * @returns Boolean
+   * Checks if provaided json key:vlaue pairs are present in given object.
+   * @param examine Req.body or object nested in req.body.
+   * @param json Key:value pair provided by the user.
+   * @returns Boolean.
    */
   private checkForJSON(examine: Record<string, unknown>, json: Record<string, unknown>): boolean {
-    return (
-      Object.keys(json).every((key) => Object.hasOwn(examine, key)) &&
-      Object.keys(json).every((key) => {
-        return examine[`${key}`] === json[`${key}`];
-      })
-    );
+    return Object.keys(json).every((key) => Object.hasOwn(examine, key) && examine[key] === json[key]);
   }
 
   /**
-   * Find Key
-   * @description Find values in provided req.body and nested object
-   * @param examine Req.body or object nested in req.body
-   * @param value string provided by the user
-   * @returns Boolean
+   *  Find values in provided req.body and nested object.
+   * @param examine Req.body or object nested in req.body.
+   * @param value string Value provided by the user.
+   * @returns Boolean.
    */
   private findValue(examine: Record<string, unknown>, value: string): boolean {
-    let result = false;
-    const keyResult = Object.values(examine).includes(value);
+    if (Object.values(examine).includes(value)) return true;
+
     const objResult = this.checkForObj(examine);
-    if (keyResult) {
-      result = true;
-    } else if (!objResult) {
-      result = false;
-    } else if (!keyResult && objResult) {
-      objResult?.forEach((obj) => {
-        result = this.findValue(obj, value);
-      });
-    }
-    return result;
+    if (!objResult) return false;
+    return objResult.some((obj) => this.findValue(obj, value));
   }
+
   /**
-   * Find Key
-   * @description Find keys in provided req.body and nested object
-   * @param examine Req.body or object nested in req.body
-   * @param key string provided by the user
-   * @returns Boolean
+   * Find keys in provided req.body and nested object.
+   * @param examine Req.body or object nested in req.body.
+   * @param key string Key provided by the user.
+   * @returns Boolean.
    */
   private findKey(examine: Record<string, unknown>, key: string): boolean {
-    let result = false;
-    const keyResult = Object.hasOwn(examine, key);
-    const objResult = this.checkForObj(examine);
-    if (keyResult) {
-      result = true;
-    } else if (!objResult) {
-      result = false;
-    } else if (!keyResult && objResult) {
-      objResult?.forEach((obj) => {
-        result = this.findKey(obj, key);
-      });
-    }
-    return result;
+    if (Object.hasOwn(examine, key)) return true;
+
+    const nestedObjects = this.checkForObj(examine);
+    if (!nestedObjects) return false;
+
+    return nestedObjects.some((obj) => this.findKey(obj, key));
   }
+
   /**
-   * Find JSON
-   * @description Find key:value pairs in req.body or nested objects.
-   * @param examine Req.body or object nested in req.body
-   * @param json key:values pairs provided by the user
-   * @returns Boolean
+   *  Find key:value pairs in req.body or nested objects.
+   * @param examine Req.body or object nested in req.body.
+   * @param json Key:values pairs provided by the user.
+   * @returns Boolean.
    */
   private findJSON(examine: Record<string, unknown>, json: Record<string, unknown>): boolean {
-    let result = false;
-    const jsonResult = this.checkForJSON(examine, json); // Checks if given json is present on that layer
-    const objResult = this.checkForObj(examine); // Checks if there are any objects on that layer
-    if (jsonResult) {
-      result = true; // If json is present just return true
-    } else if (!jsonResult && objResult) {
-      objResult?.forEach((obj) => {
-        result = this.findJSON(obj, json);
-      }); // If given json is not present but objects are found on that layer, examine those objects
-    }
-    return result;
+    if (this.checkForJSON(examine, json)) return true;
+
+    const nestedObjects = this.checkForObj(examine);
+    if (!nestedObjects) return false;
+
+    return nestedObjects.some((obj) => this.findJSON(obj, json));
   }
 
   /**
