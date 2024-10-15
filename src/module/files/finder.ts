@@ -1,16 +1,22 @@
+import FileWriter from './writer.js';
 import Log from '../../tools/logger.js';
 import TimeTravel from '../timeTravel/index.js';
 import type { IFindParams, INotFormattedLogEntry } from '../../../types/index.js';
 
 export default class FileFinder {
   private readonly _timeTravel: TimeTravel;
-
+  private readonly _writer: FileWriter;
   constructor() {
     this._timeTravel = new TimeTravel();
+    this._writer = new FileWriter();
   }
 
   private get timeTravel(): TimeTravel {
     return this._timeTravel;
+  }
+
+  private get writer(): FileWriter {
+    return this._writer;
   }
 
   /**
@@ -33,11 +39,7 @@ export default class FileFinder {
    * @param json key:value pair provided by the user
    * @returns Boolean
    */
-  private checkForJSON(examine: Record<string, unknown>, json: Record<string, unknown> | string): boolean {
-    if (typeof json === 'string') {
-      Log.error('File finder', 'Provided param is not a json!');
-      throw new EvalError('Param is not a JSON!');
-    }
+  private checkForJSON(examine: Record<string, unknown>, json: Record<string, unknown>): boolean {
     return (
       Object.keys(json).every((key) => Object.hasOwn(examine, key)) &&
       Object.keys(json).every((key) => {
@@ -201,6 +203,7 @@ export default class FileFinder {
       Log.warn('File finder', 'No logs has been found');
     }
     // @TODO: save filterdLogs to the file (I'm waiting for Marcin to finish his method that does similar thing)
+    this.writer.save('found.json', filteredLogs);
     Log.log('Found requests', filteredLogs);
     return filteredLogs;
   }

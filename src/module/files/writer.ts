@@ -87,7 +87,7 @@ export default class FileWriter {
 
   async init(req: express.Request, statusCode?: number): Promise<void> {
     Log.debug('File writer', 'Init');
-    
+
     this.pre();
     this.currLogFile = this.controller.fetchCurrentLogFile();
 
@@ -276,7 +276,7 @@ export default class FileWriter {
       Log.error('File writer', 'Save File', error);
     }
   }
-  
+
   /**
    * Save data.
    * @description Save prepared data to files.
