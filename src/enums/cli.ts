@@ -20,6 +20,8 @@ export enum ECliFlags {
   ShortJson = '-j',
   Method = '--method',
   ShortMethod = '-m',
+  Code = '--code',
+  ShortCode = '-c',
   SaveDecoded = '--save',
   ShortSaveDecoded = '-s',
 }

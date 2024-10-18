@@ -168,12 +168,17 @@ export default class Cli {
   private async handleFind(args: ICliArgs): Promise<void> {
     Log.debug('Cli', 'Handeling find');
 
-    const builder = new QueryBuilder(args);
-    const params = builder.init();
+    this.readConfig();
+    if (args[0] === enums.ECliFlags.Help || args[0] === enums.ECliFlags.ShortHelp) {
+      Log.log('Cli', enums.ECliResponses.FindHelp);
+    } else {
+      const builder = new QueryBuilder(args);
+      const params = builder.init();
 
-    if (builder.isEmpty()) return Log.error('Cli', 'Malformed params');
+      if (builder.isEmpty()) return Log.error('Cli', 'Malformed params');
 
-    await new FileFinder().find(params);
+      await new FileFinder().find(params);
+    }
     return undefined;
   }
 
@@ -204,6 +209,7 @@ export default class Cli {
     Log.debug('Cli', 'Decodding');
 
     this.readConfig();
+    console.log("DECODEIDNE")
     const logs = await this.timeTravel.decode(fileName);
     Log.log('Logs', logs);
   }

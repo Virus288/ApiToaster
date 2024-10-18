@@ -96,7 +96,8 @@ export default class TimeTravel {
 
     const logs = this.readLogs(fileName);
     const prepared = await this.migrateLogs(logs.logs, logFormat!);
-    this.fileWriter.save('migrate.json', prepared);
+    const tobesaved = { logs: prepared };
+    this.fileWriter.save(`migrate_${fileName}`, tobesaved);
   }
   /**
    * Decode file.
@@ -146,6 +147,8 @@ export default class TimeTravel {
    * @private
    */
   private async sendRequests(logs: [string, INotFormattedLogEntry][]): Promise<void> {
+    Log.debug('Time travel', 'Sending req');
+
     if (logs.length === 0) {
       Log.log('Time travel', 'No requests to send');
       return undefined;
@@ -166,17 +169,13 @@ export default class TimeTravel {
    */
   private async sendReq(log: [string, INotFormattedLogEntry]): Promise<void> {
     Log.log('Time travel', `Sending req with id ${log[0]}`);
+
     if ((this.config.waitUntillNextReq ?? 0) > 0) {
       await sleep(this.config.waitUntillNextReq);
     }
 
     if (this.config.inputBeforeNextReq) {
-      const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-      });
-
-      rl.question('Press any button to continue', () => rl.close());
+      await this.promptForInput();
     }
 
     if (this.config.countTime) Log.time(log[0]);
@@ -212,6 +211,15 @@ export default class TimeTravel {
     }
   }
 
+  private async promptForInput(): Promise<void> {
+    return new Promise<void>((resolve) => {
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      rl.question('Press any button to continue', () => {
+        rl.close();
+        resolve();
+      });
+    });
+  }
   /**
    * Remove all cached data.
    * @description Remove all cached data.
@@ -250,6 +258,8 @@ export default class TimeTravel {
    * @private
    */
   private async prepareLogs(logs: ILogProto | ILog): Promise<[string, INotFormattedLogEntry][]> {
+    Log.debug('Time travel', 'Preparing logs');
+
     const proto = new Proto();
     const malformed: string[] = [];
     const prepared = await Promise.all(
@@ -312,13 +322,10 @@ export default class TimeTravel {
     return filteredPrepared as [string, INotFormattedLogEntry][];
   }
 
-  private async migrateLogs(
-    logs: ILogProto | ILog,
-    logFormat: string,
-  ): Promise<[string, INotFormattedLogEntry][] | ILogProto[]> {
+  private async migrateLogs(logs: ILogProto | ILog, logFormat: string): Promise<ILogProto | ILog> {
     const proto = new Proto();
 
-    const prepared = await Promise.all(
+    const migratedLogs = await Promise.all(
       Object.entries(logs).map(async ([k, v]) => {
         let decodedLog: string | INotFormattedLogEntry;
         const isObject = checkIfObject(v as string);
@@ -332,23 +339,24 @@ export default class TimeTravel {
           decodedLog = isObject ? await proto.encodeLog(buffed) : (v as string);
         } else if (logFormat === 'j') {
           decodedLog = isObject
-            ? (JSON.parse(v as string) as INotFormattedLogEntry)
+            ? (v as INotFormattedLogEntry)
             : this.convertLog(await proto.decodeLogEntry(v as string));
         } else {
           return null;
         }
 
         try {
-          return [k, decodedLog];
+          return { [k]: decodedLog }; // Return as a key-value pair object
         } catch (_err) {
           Log.error('Migrate', 'Error migrating', _err);
+          return null;
         }
-        return null;
       }),
     );
-    const filteredPrepared = prepared.filter((e) => e);
 
-    return filteredPrepared as [string, INotFormattedLogEntry][] | ILogProto[];
+    const filteredMigratedLogs = migratedLogs.filter((e) => e);
+
+    return Object.assign({}, ...filteredMigratedLogs) as ILogProto | ILog;
   }
   private convertLog(log: ILogEntry): INotFormattedLogEntry {
     const l = {

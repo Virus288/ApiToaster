@@ -15,6 +15,8 @@ export default class Proto {
    * @async
    */
   async encodeLog(logEntry: ILogEntry): Promise<string> {
+    Log.debug('Proto', 'Encoding log');
+
     const root = await this.loadProto();
     const LogEntry = root.lookupType('apitoaster.LogEntry');
 
@@ -31,7 +33,7 @@ export default class Proto {
 
     const error = LogEntry.verify(log);
     if (error) {
-      Log.error('Protobuf', `Error verifying log entry: ${error}`);
+      Log.error('Proto', `Error verifying log entry: ${error}`);
     }
 
     const encodedLog = LogEntry.encode(LogEntry.create(log)).finish();
@@ -48,6 +50,8 @@ export default class Proto {
    * @async
    */
   async decodeLogEntry(logEntry: string): Promise<ILogEntry> {
+    Log.debug('Proto', 'Decoding log');
+
     const root = await this.loadProto();
 
     const LogEntry = root.lookupType('apitoaster.LogEntry');
@@ -58,7 +62,7 @@ export default class Proto {
     const error = LogEntry.verify(decoded);
 
     if (error) {
-      Log.error('Protobuf', `Error verifying log entry: ${error}`);
+      Log.error('Proto', `Error verifying log entry: ${error}`);
     }
 
     return decoded;
@@ -72,6 +76,8 @@ export default class Proto {
    * @private
    */
   private async loadProto(): Promise<protobuf.Root> {
+    Log.debug('Proto', 'Loading proto');
+
     this.fetchModulePath();
     const protoPath = this.fetchModulePath();
     if (!protoPath) {
@@ -89,6 +95,8 @@ export default class Proto {
    * @private
    */
   private fetchModulePath(): string | undefined {
+    Log.debug('Proto', 'Fetching path');
+
     const pathJson = path.resolve(process.cwd(), 'package.json');
     let mPath: string;
     try {
