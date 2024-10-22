@@ -30,18 +30,17 @@ export default class FileController {
    * Get current number of a log file.
    * @description Get the current log file as a highest numeration or passed filename.
    * @param fileName Name of a file to be read.
-   * @param shouldThrow {boolean} Flag if catch should throw error or just ignore it.
    * @returns {string} File to use.
-   * @throws {MissingCoreStructureError} Eror whenever files or folder structure is missing.
+   * @throws {MissingCoreStructureError} Eror whenever files or folder structure is missing and shouldThrow in config is set to true.
    */
-  fetchCurrentLogFile(fileName?: string, shouldThrow: boolean = false): string {
+  fetchCurrentLogFile(fileName?: string): string {
     Log.debug('File reader', 'Fetching log file');
     if (fileName) {
       try {
         fs.readFileSync(path.resolve(State.config.path, fileName));
       } catch (err) {
         Log.debug('File reader', 'Got error while reading provided file', (err as Error).message, (err as Error).stack);
-        if (shouldThrow) throw new NoSavedLogsError();
+        if (State.config.shouldThrow) throw new NoSavedLogsError();
       }
 
       return fileName;
@@ -59,7 +58,7 @@ export default class FileController {
         (err as Error).message,
         (err as Error).stack,
       );
-      if (shouldThrow) throw new MissingCoreStructureError();
+      if (State.config.shouldThrow) throw new MissingCoreStructureError();
     }
 
     const logNumbers = (files ?? [])
@@ -71,7 +70,7 @@ export default class FileController {
 
     if (logNumbers.length === 0) {
       Log.error('File reader', 'Number of log files is 0');
-      if (shouldThrow) throw new NoSavedLogsError();
+      if (State.config.shouldThrow) throw new NoSavedLogsError();
     }
 
     const max = Math.max(...logNumbers);
@@ -84,12 +83,11 @@ export default class FileController {
   /**
    * Prepare protobuf log files.
    * @description Read, validate and prepare log files.
-   * @param shouldThrow {boolean} Flag if catch should throw error or just ignore it.
    * @param fileName Target file name.
    * @returns {ILogsProto} Logs.
-   * @throws {NoSavedLogsError} Throw error if req comes from reader.
+   * @throws {NoSavedLogsError} Throw error if req comes from reader and shouldThrow in config is set to true.
    */
-  prepareLogfile(fileName: string, shouldThrow: boolean = false): ILogsProto | ILogs {
+  prepareLogfile(fileName: string): ILogsProto | ILogs {
     Log.debug('File reader', 'Preparing log file');
 
     try {
@@ -105,8 +103,9 @@ export default class FileController {
       return file ?? { logs: {} };
     } catch (error) {
       Log.warn('File reader', 'Got error while parsing data', (error as Error).message);
-
-      if (shouldThrow) throw new MalformedLogFilesError(fileName);
+      if (State.config.shouldThrow) {
+        throw new MalformedLogFilesError(fileName);
+      }
       return { logs: {} };
     }
   }
