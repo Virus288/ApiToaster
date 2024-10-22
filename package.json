@@ -39,7 +39,7 @@
     "listErrors": "node_modules/.bin/tsc --skipLibCheck -p tsconfig.release.json",
     "lintStaged": "npx lint-staged",
     "test": "echo 'If you want to run all the tests, please use makefile'",
-    "test:unit": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest finder --config __tests__/jest.config.unit.ts --runInBand",
+    "test:unit": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest timeTravel --config __tests__/jest.config.unit.ts --runInBand",
     "test:e2e": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --config  __tests__/jest.config.e2e.ts"
   },
   "dependencies": {
