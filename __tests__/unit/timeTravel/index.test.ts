@@ -111,7 +111,27 @@ describe('Time Travel', () => {
       }
       expect(error).toBeUndefined();
       expect(callback).toBeUndefined();
-      expect(fetchMock).toHaveBeenCalled();
+      expect(fetchMock).toHaveBeenCalledWith(`http://localhost:0`, {
+        method: 'POST',
+        headers: {
+          'X-Toaster': 'true',
+          header: 'val',
+        },
+        body: '{}',
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+    it(`init - no request to be send`, async () => {
+      let error: IFullError | undefined = undefined;
+      let callback: unknown | undefined;
+      try {
+        callback = await timeTravel.init({ port: 0 });
+      } catch (err) {
+        error = err as IFullError;
+      }
+      expect(error).toBeUndefined();
+      expect(callback).toBeUndefined();
+      expect(fetchMock).toHaveBeenCalledTimes(0);
     });
   });
 });
