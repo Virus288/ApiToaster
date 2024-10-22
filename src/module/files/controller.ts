@@ -30,17 +30,18 @@ export default class FileController {
    * Get current number of a log file.
    * @description Get the current log file as a highest numeration or passed filename.
    * @param fileName Name of a file to be read.
+   * @param shouldThrow {boolean} Flag if catch should throw error or just ignore it.
    * @returns {string} File to use.
    * @throws {MissingCoreStructureError} Eror whenever files or folder structure is missing.
    */
-  fetchCurrentLogFile(fileName?: string): string {
+  fetchCurrentLogFile(fileName?: string, shouldThrow: boolean = false): string {
     Log.debug('File reader', 'Fetching log file');
     if (fileName) {
       try {
         fs.readFileSync(path.resolve(State.config.path, fileName));
       } catch (err) {
         Log.debug('File reader', 'Got error while reading provided file', (err as Error).message, (err as Error).stack);
-        throw new NoSavedLogsError();
+        if (shouldThrow) throw new NoSavedLogsError();
       }
 
       return fileName;
@@ -58,7 +59,7 @@ export default class FileController {
         (err as Error).message,
         (err as Error).stack,
       );
-      throw new MissingCoreStructureError();
+      if (shouldThrow) throw new MissingCoreStructureError();
     }
 
     const logNumbers = (files ?? [])
@@ -69,7 +70,8 @@ export default class FileController {
       .filter((num): num is number => num !== null);
 
     if (logNumbers.length === 0) {
-      throw new NoSavedLogsError();
+      Log.error('File reader', 'Number of log files is 0');
+      if (shouldThrow) throw new NoSavedLogsError();
     }
 
     const max = Math.max(...logNumbers);
