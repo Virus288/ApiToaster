@@ -82,8 +82,8 @@ export default class FileController {
   /**
    * Prepare protobuf log files.
    * @description Read, validate and prepare log files.
-   * @param shouldThrow {boolean} Flag if catch should throw error or just ignore it.
    * @param fileName Target file name.
+   * @param shouldThrow {boolean} Flag if catch should throw error or just ignore it.
    * @returns {ILogsProto} Logs.
    * @throws {NoSavedLogsError} Throw error if req comes from reader.
    */
