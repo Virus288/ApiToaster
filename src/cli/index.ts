@@ -209,7 +209,6 @@ export default class Cli {
     Log.debug('Cli', 'Decodding');
 
     this.readConfig();
-    console.log("DECODEIDNE")
     const logs = await this.timeTravel.decode(fileName);
     Log.log('Logs', logs);
   }
