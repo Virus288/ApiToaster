@@ -15,10 +15,10 @@ describe('File writer', () => {
   const clear = async (target?: string): Promise<void> => {
     return new Promise<void>((resolve) => {
       fs.rmdir(target ?? 'Toaster', { recursive: true }, (_err) => {
-        resolve(undefined);
-      });
-    });
-  };
+        resolve(undefined)
+      })
+    })
+  }
 
   const defaultReq: Partial<express.Request> = {
     method: 'POST',
@@ -37,14 +37,14 @@ describe('File writer', () => {
 
   beforeEach(async () => {
     State.config = defaultConfig();
-    await clear();
-    await clear('AnotherToaster');
-  });
+    await clear()
+    await clear('AnotherToaster')
+  })
 
   afterEach(async () => {
-    await clear();
-    await clear('AnotherToaster');
-  });
+    await clear()
+    await clear('AnotherToaster')
+  })
 
   describe('Should throw', () => {
     //describe('No data passed', () => {});
@@ -192,6 +192,7 @@ describe('File writer', () => {
       } catch (err) {
         error = err as IFullError;
       }
+
       expect(Object.keys(callback?.logs ?? {}).length).toEqual(1);
       expect(error).toBeUndefined();
     });
@@ -247,7 +248,7 @@ describe('File writer', () => {
       expect(callback?.method).toEqual(defaultReq.method);
       expect(callback?.headers).toEqual(defaultReq.headers);
       expect(callback?.queryParams).toEqual(defaultReq.query);
-      expect(callback?.statusCode).toBeUndefined();
+      expect(callback?.statusCode).toBeUndefined()
       expect(error).toBeUndefined();
     });
   });
