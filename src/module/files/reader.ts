@@ -48,7 +48,7 @@ export default class FileReader {
    * @async
    */
   async preLoadLogs(fileName?: string): Promise<[string, INotFormattedLogEntry][]> {
-    Log.debug('Time travel', 'Preloading logs');
+    Log.debug('File reader', 'Preloading logs');
 
     const logs = this.init(fileName);
     return this.prepareLogs(logs.logs);
@@ -62,7 +62,7 @@ export default class FileReader {
    * @private
    */
   async prepareLogs(logs: ILogProto | ILog): Promise<[string, INotFormattedLogEntry][]> {
-    Log.debug('Time travel', 'Preparing logs');
+    Log.debug('File reader', 'Preparing logs');
 
     const proto = new Proto();
     const malformed: string[] = [];
@@ -103,7 +103,7 @@ export default class FileReader {
             decodedLog.body !== null &&
             Object.keys(decodedLog.body).length > 0
           ) {
-            Log.debug('Time travel', `Log ${k} seems to be an object type instead of JSON type`);
+            Log.debug('File reader', `Log ${k} seems to be an object type instead of JSON type`);
             return [k, v] as unknown as [string, INotFormattedLogEntry];
           }
 
@@ -116,12 +116,12 @@ export default class FileReader {
 
     if (malformed.length > 0) {
       Log.error(
-        'Time travel',
+        'File reader',
         `Seems that logs ${malformed.join(', ')} were malformed. Currently this application cannot remove malformed logs. Please remove them manually, or via desktop app`,
       );
     }
 
-    Log.debug('Time travel', 'Formatted logs', JSON.stringify(filteredPrepared));
+    Log.debug('File reader', 'Formatted logs', JSON.stringify(filteredPrepared));
 
     return filteredPrepared as [string, INotFormattedLogEntry][];
   }

@@ -31,7 +31,7 @@ export default class Migration {
    * @async
    */
   async init(fileName?: string, logFormat?: string): Promise<void> {
-    Log.debug('Time travel', 'Migrating');
+    Log.debug('Data Migration', 'Migrating');
 
     const logs = this.readLogs(fileName);
     const prepared = await this.migrateLogs(logs.logs, logFormat!);

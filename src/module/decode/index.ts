@@ -28,7 +28,7 @@ export default class Decoder {
    * @async
    */
   async init(fileName?: string): Promise<[string, INotFormattedLogEntry][]> {
-    Log.debug('Time travel', 'Decoding');
+    Log.debug('Decoder', 'Decoding');
 
     const logs = this.readLogs(fileName);
 
@@ -46,7 +46,7 @@ export default class Decoder {
    * @async
    */
   async saveDecoded(fileName?: string): Promise<void> {
-    Log.debug('Time travel', 'Saving');
+    Log.debug('Decoder', 'Saving');
 
     const logs = await this.init(fileName);
     this.fileWriter.save(`decoded_${fileName}`, logs);
