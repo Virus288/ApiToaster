@@ -212,16 +212,15 @@ export default class FileWriter {
    * @returns {ILogEntry} Preapred log entry.
    * @private
    */
-  prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
+  private prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
     Log.debug('File writer', 'Preapre buffed log');
-
     const formated: ILog['body'] = {
       body: JSON.stringify(log.body),
       method: log.method,
       occured: new Date(log.occured).toISOString(),
       queryParams: JSON.stringify(log.queryParams),
       headers: JSON.stringify(log.headers),
-      ip: log.ip ?? '0.0.0.0',
+      ip: log.ip,
     };
     return formated;
   }
