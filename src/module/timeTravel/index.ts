@@ -1,12 +1,8 @@
 import Log from '../../tools/logger.js';
-import { checkIfObject, sleep } from '../../utils/index.js';
+import { sleep } from '../../utils/index.js';
 import FileReader from '../files/reader.js';
 import FileWriter from '../files/writer.js';
-import Proto from '../protobuf/index.js';
 import type {
-  ILog,
-  ILogEntry,
-  ILogProto,
   ILogs,
   ILogsProto,
   INotFormattedLogEntry,
@@ -61,81 +57,14 @@ export default class TimeTravel {
 
     const logs = this.readLogs(fileName);
     this.config = config;
-    const preparedLogs = await this.prepareLogs(logs.logs);
+    const preparedLogs = await this.fileReader.prepareLogs(logs.logs);
     await this.sendRequests(preparedLogs);
 
     this.cleanUp();
     this.presentData();
   }
-
-  /**
-   * Decode file.
-   * @description Decode targeted file.
-   * @param fileName Target file.
-   * @returns {void} Void.
-   * @async
-   */
-  async decode(fileName?: string): Promise<[string, INotFormattedLogEntry][]> {
-    Log.debug('Time travel', 'Decoding');
-
-    const logs = this.readLogs(fileName);
-
-    return this.prepareLogs(logs.logs);
-  }
-
-  /**
-   * Migrate file.
-   * @description Migrate targeted file to target format.
-   * @param fileName Target file.
-   * @param logFormat Target format.
-   * @returns {void} Void.
-   * @async
-   */
-  async migrate(fileName?: string, logFormat?: string): Promise<void> {
-    Log.debug('Time travel', 'Migrating');
-
-    const logs = this.readLogs(fileName);
-    const prepared = await this.migrateLogs(logs.logs, logFormat!);
-    const tobesaved = { logs: prepared };
-    this.fileWriter.save(`migrate_${fileName}`, tobesaved);
-  }
-  /**
-   * Decode file.
-   * @description Decode targeted file.
-   * @param fileName Target file.
-   * @returns {void} Void.
-   * @async
-   */
-  async saveDecoded(fileName?: string): Promise<void> {
-    Log.debug('Time travel', 'Saving');
-
-    const logs = await this.decode(fileName);
-    this.fileWriter.save(`decoded_${fileName}`, logs);
-  }
-  /**
-   * Preload load.
-   * @description Preload log file.
-   * @param fileName Target file.
-   * @returns {[string, INotFormattedLogEntry][]} Logs files.
-   * @async
-   */
-  async preLoadLogs(fileName?: string): Promise<[string, INotFormattedLogEntry][]> {
-    Log.debug('Time travel', 'Preloading logs');
-
-    const logs = this.readLogs(fileName);
-    return this.prepareLogs(logs.logs);
-  }
-
-  /**
-   * Read logs file.
-   * @description Read logs file.
-   * @param fileName Target file.
-   * @returns {ILogsProto} Log files.
-   * @async
-   * @private
-   */
-  private readLogs(fileName?: string): ILogsProto | ILogs {
-    return this.fileReader.init(fileName);
+  private readLogs(filename?: string): ILogsProto | ILogs {
+    return this.fileReader.init(filename);
   }
 
   /**
@@ -247,132 +176,5 @@ export default class TimeTravel {
     if (this.total.failed.amount > 0) {
       Log.warn('Failed reqs', this.total.failed.ids);
     }
-  }
-
-  /**
-   * Submit data for user.
-   * @description Submit data for user.
-   * @param logs Read logs from file.
-   * @returns {[string, INotFormattedLogEntry][]} Prepared logs.
-   * @async
-   * @private
-   */
-  private async prepareLogs(logs: ILogProto | ILog): Promise<[string, INotFormattedLogEntry][]> {
-    Log.debug('Time travel', 'Preparing logs');
-
-    const proto = new Proto();
-    const malformed: string[] = [];
-    const prepared = await Promise.all(
-      Object.entries(logs).map(async ([k, v]) => {
-        let decodedLog: ILogEntry | INotFormattedLogEntry;
-        const isObject = checkIfObject(v as string);
-        if (isObject) {
-          decodedLog = JSON.parse(v as string) as ILogEntry;
-        } else {
-          decodedLog = await proto.decodeLogEntry(v as string);
-        }
-        try {
-          return [
-            k,
-            {
-              ...decodedLog,
-              body:
-                typeof decodedLog.body === 'string'
-                  ? (JSON.parse(decodedLog.body) as Record<string, unknown>)
-                  : decodedLog.body,
-              occured: new Date(decodedLog.occured).getTime(),
-              queryParams:
-                decodedLog.queryParams && typeof decodedLog.queryParams === 'string'
-                  ? (JSON.parse(decodedLog.queryParams) as Record<string, unknown>)
-                  : (decodedLog.queryParams ?? {}),
-              headers:
-                decodedLog.headers && typeof decodedLog.headers === 'string'
-                  ? (JSON.parse(decodedLog.headers) as Record<string, unknown>)
-                  : (decodedLog.headers ?? {}),
-            } as INotFormattedLogEntry,
-          ];
-        } catch (_err) {
-          if (
-            decodedLog.body &&
-            typeof decodedLog.body === 'object' &&
-            !Array.isArray(decodedLog.body) &&
-            decodedLog.body !== null &&
-            Object.keys(decodedLog.body).length > 0
-          ) {
-            Log.debug('Time travel', `Log ${k} seems to be an object type instead of JSON type`);
-            return [k, v] as unknown as [string, INotFormattedLogEntry];
-          }
-
-          malformed.push(k);
-          return null;
-        }
-      }),
-    );
-    const filteredPrepared = prepared.filter((e) => e);
-
-    if (malformed.length > 0) {
-      Log.error(
-        'Time travel',
-        `Seems that logs ${malformed.join(', ')} were malformed. Currently this application cannot remove malformed logs. Please remove them manually, or via desktop app`,
-      );
-    }
-
-    Log.debug('Time travel', 'Formatted logs', JSON.stringify(filteredPrepared));
-
-    return filteredPrepared as [string, INotFormattedLogEntry][];
-  }
-
-  private async migrateLogs(logs: ILogProto | ILog, logFormat: string): Promise<ILogProto | ILog> {
-    const proto = new Proto();
-
-    const migratedLogs = await Promise.all(
-      Object.entries(logs).map(async ([k, v]) => {
-        let decodedLog: string | INotFormattedLogEntry;
-        const isObject = checkIfObject(v as string);
-        let buffed: ILogEntry;
-        if (logFormat === 'p') {
-          if (isObject) {
-            buffed = this.fileWriter.prepareBuffedLog(JSON.parse(v as string) as INotFormattedLogEntry);
-          } else {
-            buffed = v as ILogEntry;
-          }
-          decodedLog = isObject ? await proto.encodeLog(buffed) : (v as string);
-        } else if (logFormat === 'j') {
-          decodedLog = isObject
-            ? (v as INotFormattedLogEntry)
-            : this.convertLog(await proto.decodeLogEntry(v as string));
-        } else {
-          return null;
-        }
-
-        try {
-          return { [k]: decodedLog }; // Return as a key-value pair object
-        } catch (_err) {
-          Log.error('Migrate', 'Error migrating', _err);
-          return null;
-        }
-      }),
-    );
-
-    const filteredMigratedLogs = migratedLogs.filter((e) => e);
-
-    return Object.assign({}, ...filteredMigratedLogs) as ILogProto | ILog;
-  }
-  private convertLog(log: ILogEntry): INotFormattedLogEntry {
-    const l = {
-      method: log.method ?? '',
-      body: typeof log.body === 'string' ? (JSON.parse(log.body) as Record<string, unknown>) : log.body,
-      queryParams:
-        log.queryParams && typeof log.queryParams === 'string'
-          ? (JSON.parse(log.queryParams) as Record<string, unknown>)
-          : (log.queryParams ?? {}),
-      headers:
-        log.headers && typeof log.headers === 'string'
-          ? (JSON.parse(log.headers) as Record<string, unknown>)
-          : (log.headers ?? {}),
-      occured: new Date(log.occured).getTime(),
-      ip: log.ip ?? '0.0.0.0',
-    } as INotFormattedLogEntry;
-    return l;
   }
 }
