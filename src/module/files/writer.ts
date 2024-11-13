@@ -1,5 +1,4 @@
 import FileController from './controller.js';
-import { CannotCreateFile } from '../../errors/index.js';
 import Log from '../../tools/logger.js';
 import State from '../../tools/state.js';
 import Proto from '../protobuf/index.js';
@@ -213,16 +212,15 @@ export default class FileWriter {
    * @returns {ILogEntry} Preapred log entry.
    * @private
    */
-  prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
+  private prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
     Log.debug('File writer', 'Preapre buffed log');
-
     const formated: ILog['body'] = {
       body: JSON.stringify(log.body),
       method: log.method,
       occured: new Date(log.occured).toISOString(),
       queryParams: JSON.stringify(log.queryParams),
       headers: JSON.stringify(log.headers),
-      ip: log.ip ?? '0.0.0.0',
+      ip: log.ip,
     };
     return formated;
   }
@@ -244,7 +242,6 @@ export default class FileWriter {
    * @param target File to validate.
    * @param baseBody File's body to initialize.
    * @returns {void} Void.
-   * @throws {CannotCreateFile} Error whenever file cannot be created.
    * @private
    */
   private validateFile(target: string, baseBody: string): void {
@@ -257,7 +254,6 @@ export default class FileWriter {
       }
     } catch (err) {
       Log.error('File reader', `Cannot create ${target} file`, (err as Error).message);
-      throw new CannotCreateFile(target);
     }
   }
 

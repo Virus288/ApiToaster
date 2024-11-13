@@ -104,7 +104,12 @@ export default class TimeTravel {
     }
 
     if (this.config.inputBeforeNextReq) {
-      await this.promptForInput();
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+
+      rl.question('Press any button to continue', () => rl.close());
     }
 
     if (this.config.countTime) Log.time(log[0]);
@@ -140,15 +145,6 @@ export default class TimeTravel {
     }
   }
 
-  private async promptForInput(): Promise<void> {
-    return new Promise<void>((resolve) => {
-      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-      rl.question('Press any button to continue', () => {
-        rl.close();
-        resolve();
-      });
-    });
-  }
   /**
    * Remove all cached data.
    * @description Remove all cached data.
