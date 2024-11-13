@@ -39,7 +39,7 @@ export default class FileFinder {
    * Check for Object.
    * @description Checks if provaided object has nested objects.
    * @param examine Req.body or object nested in req.body.
-   * @returns object or undefined.
+   * @returns Objct or undefined.
    */
   private checkForObj(examine: Record<string, unknown>): undefined | Record<string, unknown>[] {
     const array = Object.values(examine).filter((value) => typeof value === 'object') as Record<string, unknown>[];
@@ -59,7 +59,7 @@ export default class FileFinder {
   /**
    *  Find values in provided req.body and nested object.
    * @param examine Req.body or object nested in req.body.
-   * @param value string Value provided by the user.
+   * @param value String Value provided by the user.
    * @returns Boolean.
    */
   private findValue(examine: Record<string, unknown>, value: string): boolean {
@@ -73,7 +73,7 @@ export default class FileFinder {
   /**
    * Find keys in provided req.body and nested object.
    * @param examine Req.body or object nested in req.body.
-   * @param key string Key provided by the user.
+   * @param key String Key provided by the user.
    * @returns Boolean.
    */
   private findKey(examine: Record<string, unknown>, key: string): boolean {
