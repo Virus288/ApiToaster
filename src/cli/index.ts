@@ -8,17 +8,28 @@ import State from '../tools/state.js';
 import Validation from '../tools/validator.js';
 import type { IToasterTimeTravel, ICliArgs } from '../../types/index.js';
 import fs from 'fs';
+import Decoder from 'module/decode/index.js';
+import Migration from 'module/migration/index.js';
 import path from 'path';
 
 export default class Cli {
   private readonly _timeTravel: TimeTravel;
+  private readonly _decoder: Decoder;
+  private readonly _migration: Migration;
 
   constructor() {
     this._timeTravel = new TimeTravel();
+    this._decoder = new Decoder();
+    this._migration = new Migration();
   }
-
+  private get decoder(): Decoder {
+    return this._decoder;
+  }
   private get timeTravel(): TimeTravel {
     return this._timeTravel;
+  }
+  private get migration(): Migration {
+    return this._migration;
   }
 
   /**
@@ -209,7 +220,7 @@ export default class Cli {
     Log.debug('Cli', 'Decodding');
 
     this.readConfig();
-    const logs = await this.timeTravel.decode(fileName);
+    const logs = await this.decoder.init(fileName);
     Log.log('Logs', logs);
   }
 
@@ -226,7 +237,7 @@ export default class Cli {
     Log.debug('Cli', 'Migrating');
 
     this.readConfig();
-    await this.timeTravel.migrate(fileName, logFormat);
+    await this.migration.init(fileName, logFormat);
     // Log.log('Logs', logs);
   }
   /**
@@ -241,7 +252,7 @@ export default class Cli {
     Log.debug('Cli', 'Decodding and saving to file');
 
     this.readConfig();
-    await this.timeTravel.saveDecoded(fileName);
+    await this.decoder.saveDecoded(fileName);
   }
 
   /**
