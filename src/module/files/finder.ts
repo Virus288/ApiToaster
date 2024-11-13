@@ -1,18 +1,18 @@
+import FileReader from './reader.js';
 import FileWriter from './writer.js';
 import Log from '../../tools/logger.js';
-import TimeTravel from '../timeTravel/index.js';
 import type { IFindParams, INotFormattedLogEntry } from '../../../types/index.js';
 
 export default class FileFinder {
-  private readonly _timeTravel: TimeTravel;
+  private readonly _reader: FileReader;
   private readonly _writer: FileWriter;
   constructor() {
-    this._timeTravel = new TimeTravel();
+    this._reader = new FileReader();
     this._writer = new FileWriter();
   }
 
-  private get timeTravel(): TimeTravel {
-    return this._timeTravel;
+  private get reader(): FileReader {
+    return this._reader;
   }
 
   private get writer(): FileWriter {
@@ -107,11 +107,11 @@ export default class FileFinder {
     // Data is limited to only first value on the list. Make sure to include all params
     let logs: [string, INotFormattedLogEntry][];
     if (params.files.length === 0) {
-      logs = await this.timeTravel.preLoadLogs(params.files[0]);
+      logs = await this.reader.preLoadLogs(params.files[0]);
     } else {
       const promises = await Promise.all(
         params.files.map(async (file) => {
-          const logFile = await this.timeTravel.preLoadLogs(file);
+          const logFile = await this.reader.preLoadLogs(file);
           return logFile;
         }),
       );
