@@ -3,6 +3,7 @@ import express from 'express';
 import fs from 'fs';
 import FileWriter from '../../../src/module/files/writer.js';
 import TimeTravel from '../../../src/module/timeTravel/index.js';
+import Decoder from '../../../src/module/decode/index.js';
 import defaultConfig from '../../../src/tools/config.js';
 import State from '../../../src/tools/state.js';
 import { IFullError } from '../../../types/error.js';
@@ -20,6 +21,7 @@ describe('Time Travel', () => {
 
   const timeTravel = new TimeTravel();
   const fileWriter = new FileWriter();
+  const decoder = new Decoder();
   const defaultReq: Partial<express.Request> = {
     method: 'POST',
     headers: {
@@ -68,7 +70,7 @@ describe('Time Travel', () => {
       let callback: [string, INotFormattedLogEntry][] = [];
       try {
         await fileWriter.init(defaultReq as express.Request);
-        callback = await timeTravel.decode();
+        callback = await decoder.init();
       } catch (err) {
         error = err as IFullError;
       }
@@ -93,7 +95,7 @@ describe('Time Travel', () => {
       let error: IFullError | undefined = undefined;
       let callback: [string, INotFormattedLogEntry][] = [];
       try {
-        callback = await timeTravel.decode();
+        callback = await decoder.init();
       } catch (err) {
         error = err as IFullError;
       }

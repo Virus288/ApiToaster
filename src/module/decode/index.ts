@@ -1,4 +1,4 @@
-import Log from 'tools/logger.js';
+import Log from '../../tools/logger.js';
 import FileReader from '../files/reader.js';
 import FileWriter from '../files/writer.js';
 import type { ILogs, ILogsProto, INotFormattedLogEntry } from '../../../types';
