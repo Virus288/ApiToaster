@@ -74,7 +74,7 @@ export default class Cli {
         break;
       case enums.ECliFlags.SaveDecoded:
       case enums.ECliFlags.ShortSaveDecoded:
-        !target ? Log.error('Cli', 'Please provide file to save decoded values.') : await this.saveDecoded(target);
+        await this.saveDecoded(target);
         break;
       case enums.ECliFlags.Help:
       case enums.ECliFlags.ShortHelp:
@@ -188,7 +188,7 @@ export default class Cli {
    * @private
    */
   private async saveDecoded(fileName?: string): Promise<void> {
-    Log.debug('Cli', 'Decodding and saving to file');
+    Log.debug('Cli', 'Decoding and saving to file');
 
     this.readConfig();
     await this.timeTravel.saveDecoded(fileName);
