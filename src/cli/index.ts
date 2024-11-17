@@ -1,6 +1,8 @@
 import QueryBuilder from './queryBuilder.js';
 import * as enums from '../enums/index.js';
+import Decoder from '../module/decode/index.js';
 import FileFinder from '../module/files/finder.js';
+import Migration from '../module/migration/index.js';
 import TimeTravel from '../module/timeTravel/index.js';
 import defaultConfig from '../tools/config.js';
 import Log from '../tools/logger.js';
@@ -8,8 +10,6 @@ import State from '../tools/state.js';
 import Validation from '../tools/validator.js';
 import type { IToasterTimeTravel, ICliArgs } from '../../types/index.js';
 import fs from 'fs';
-import Decoder from 'module/decode/index.js';
-import Migration from 'module/migration/index.js';
 import path from 'path';
 
 export default class Cli {
@@ -87,7 +87,7 @@ export default class Cli {
         break;
       case enums.ECliFlags.SaveDecoded:
       case enums.ECliFlags.ShortSaveDecoded:
-        !target ? Log.error('Cli', 'Please provide file to save decoded values.') : await this.saveDecoded(target);
+        await this.saveDecoded(target);
         break;
       case enums.ECliFlags.Help:
       case enums.ECliFlags.ShortHelp:
@@ -116,7 +116,7 @@ export default class Cli {
 
     const flag = args[0];
     const target = args[1];
-    const logFormat = args[2];
+    const logFormat = args[2] as enums.ECliFlags.FormatJson | enums.ECliFlags.FormatProto;
 
     switch (flag) {
       case enums.ECliFlags.Path:
@@ -233,12 +233,14 @@ export default class Cli {
    * @async
    * @private
    */
-  private async migrate(fileName?: string, logFormat?: string): Promise<void> {
+  private async migrate(
+    fileName?: string,
+    logFormat?: enums.ECliFlags.FormatJson | enums.ECliFlags.FormatProto,
+  ): Promise<void> {
     Log.debug('Cli', 'Migrating');
 
     this.readConfig();
     await this.migration.init(fileName, logFormat);
-    // Log.log('Logs', logs);
   }
   /**
    * Start decoding files.
@@ -249,7 +251,7 @@ export default class Cli {
    * @private
    */
   private async saveDecoded(fileName?: string): Promise<void> {
-    Log.debug('Cli', 'Decodding and saving to file');
+    Log.debug('Cli', 'Decoding and saving to file');
 
     this.readConfig();
     await this.decoder.saveDecoded(fileName);

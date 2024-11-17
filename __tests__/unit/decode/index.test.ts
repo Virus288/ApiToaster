@@ -46,6 +46,7 @@ describe('Decoder', () => {
   afterAll(() => {
     jest.restoreAllMocks();
   });
+
   describe('Should pass', () => {
     it(`decode - return request`, async () => {
       let error: IFullError | undefined = undefined;
@@ -53,6 +54,7 @@ describe('Decoder', () => {
       try {
         await fileWriter.init(defaultReq as express.Request);
         callback = await decoder.init();
+        await decoder.saveDecoded();
       } catch (err) {
         error = err as IFullError;
       }
@@ -73,6 +75,7 @@ describe('Decoder', () => {
         },
       ]);
     });
+
     it(`decode - no request to return`, async () => {
       let error: IFullError | undefined = undefined;
       let callback: [string, INotFormattedLogEntry][] = [];
@@ -83,6 +86,39 @@ describe('Decoder', () => {
       }
       expect(error).toBeUndefined();
       expect(callback.length).toEqual(0);
+    });
+
+    it(`save decoded - creates file`, async () => {
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
+      let dir: string[] = [];
+      try {
+        await fileWriter.init(defaultReq as express.Request);
+        callback = await decoder.init();
+        await decoder.saveDecoded();
+        dir = fs.readdirSync(State.config.path);
+      } catch (err) {
+        error = err as IFullError;
+      }
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(1);
+      expect(dir).toContain('decoded_logs_0.json');
+    });
+
+    it(`save decoded - no return`, async () => {
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
+      let dir: string[] = [];
+      try {
+        callback = await decoder.init();
+        await decoder.saveDecoded();
+        dir = fs.readdirSync(State.config.path);
+      } catch (err) {
+        error = err as IFullError;
+      }
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(0);
+      expect(dir.length).toEqual(0);
     });
   });
 });

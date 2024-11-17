@@ -1,3 +1,4 @@
+import * as enums from '../../enums/cli.js';
 import Log from '../../tools/logger.js';
 import { checkIfObject } from '../../utils/index.js';
 import FileReader from '../files/reader.js';
@@ -30,12 +31,13 @@ export default class Migration {
    * @returns {void} Void.
    * @async
    */
-  async init(fileName?: string, logFormat?: string): Promise<void> {
+  async init(fileName?: string, logFormat?: enums.ECliFlags.FormatJson | enums.ECliFlags.FormatProto): Promise<void> {
     Log.debug('Data Migration', 'Migrating');
 
     const logs = this.readLogs(fileName);
     const prepared = await this.migrateLogs(logs.logs, logFormat!);
     const tobesaved = { logs: prepared };
+
     this.fileWriter.save(`migrate_${fileName}`, tobesaved);
   }
 
@@ -43,7 +45,10 @@ export default class Migration {
     return this.fileReader.init(fileName);
   }
 
-  private async migrateLogs(logs: ILogProto | ILog, logFormat: string): Promise<ILogProto | ILog> {
+  private async migrateLogs(
+    logs: ILogProto | ILog,
+    logFormat: enums.ECliFlags.FormatProto | enums.ECliFlags.FormatJson,
+  ): Promise<ILogProto | ILog> {
     const proto = new Proto();
 
     const migratedLogs = await Promise.all(
@@ -51,14 +56,14 @@ export default class Migration {
         let decodedLog: string | INotFormattedLogEntry;
         const isObject = checkIfObject(v as string);
         let buffed: ILogEntry;
-        if (logFormat === 'p') {
+        if (logFormat === enums.ECliFlags.FormatProto) {
           if (isObject) {
             buffed = this.fileWriter.prepareBuffedLog(JSON.parse(v as string) as INotFormattedLogEntry);
           } else {
             buffed = v as ILogEntry;
           }
           decodedLog = isObject ? await proto.encodeLog(buffed) : (v as string);
-        } else if (logFormat === 'j') {
+        } else if (logFormat === enums.ECliFlags.FormatJson) {
           decodedLog = isObject
             ? (v as INotFormattedLogEntry)
             : this.convertLog(await proto.decodeLogEntry(v as string));

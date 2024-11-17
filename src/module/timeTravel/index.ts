@@ -1,7 +1,6 @@
 import Log from '../../tools/logger.js';
 import { sleep } from '../../utils/index.js';
 import FileReader from '../files/reader.js';
-import FileWriter from '../files/writer.js';
 import type {
   ILogs,
   ILogsProto,
@@ -14,13 +13,11 @@ import readline from 'readline';
 
 export default class TimeTravel {
   private readonly _fileReader: FileReader;
-  private readonly _fileWriter: FileWriter;
   private _config: IToasterTimeTravel | null = null;
   private _total: ITimeTravelStats;
 
   constructor() {
     this._fileReader = new FileReader();
-    this._fileWriter = new FileWriter();
     this._total = { succeeded: { amount: 0, ids: [] }, failed: { amount: 0, ids: [] } };
   }
 
@@ -34,10 +31,6 @@ export default class TimeTravel {
 
   private get fileReader(): FileReader {
     return this._fileReader;
-  }
-
-  public get fileWriter(): FileWriter {
-    return this._fileWriter;
   }
 
   private get total(): ITimeTravelStats {
@@ -63,6 +56,7 @@ export default class TimeTravel {
     this.cleanUp();
     this.presentData();
   }
+
   private readLogs(filename?: string): ILogsProto | ILogs {
     return this.fileReader.init(filename);
   }

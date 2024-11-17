@@ -1,15 +1,22 @@
 import Log from '../../tools/logger.js';
+import FileController from '../files/controller.js';
 import FileReader from '../files/reader.js';
 import FileWriter from '../files/writer.js';
 import type { ILogs, ILogsProto, INotFormattedLogEntry } from '../../../types';
 
 export default class Decoder {
-  private _fileWriter: FileWriter;
-  private _fileReader: FileReader;
+  private readonly _fileController: FileController;
+  private readonly _fileWriter: FileWriter;
+  private readonly _fileReader: FileReader;
 
   constructor() {
+    this._fileController = new FileController();
     this._fileWriter = new FileWriter();
     this._fileReader = new FileReader();
+  }
+
+  private get fileController(): FileController {
+    return this._fileController;
   }
 
   private get fileWriter(): FileWriter {
@@ -46,9 +53,16 @@ export default class Decoder {
    * @async
    */
   async saveDecoded(fileName?: string): Promise<void> {
-    Log.debug('Decoder', 'Saving');
+    Log.debug('Time travel', 'Saving');
+
+    const currName = this.fileController.fetchCurrentLogFile(fileName);
 
     const logs = await this.init(fileName);
-    this.fileWriter.save(`decoded_${fileName}`, logs);
+
+    if (logs.length === 0) {
+      return;
+    }
+
+    this.fileWriter.save(`decoded_${currName}`, logs);
   }
 }
