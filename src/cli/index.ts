@@ -74,7 +74,7 @@ export default class Cli {
         break;
       case enums.ECliFlags.SaveDecoded:
       case enums.ECliFlags.ShortSaveDecoded:
-        !target ? Log.error('Cli', 'Please provide file to save decoded values.') : await this.saveDecoded(target);
+        await this.saveDecoded(target);
         break;
       case enums.ECliFlags.Help:
       case enums.ECliFlags.ShortHelp:
@@ -134,12 +134,17 @@ export default class Cli {
   private async handleFind(args: ICliArgs): Promise<void> {
     Log.debug('Cli', 'Handeling find');
 
-    const builder = new QueryBuilder(args);
-    const params = builder.init();
+    this.readConfig();
+    if (args[0] === enums.ECliFlags.Help || args[0] === enums.ECliFlags.ShortHelp) {
+      Log.log('Cli', enums.ECliResponses.FindHelp);
+    } else {
+      const builder = new QueryBuilder(args);
+      const params = builder.init();
 
-    if (builder.isEmpty()) return Log.error('Cli', 'Malformed params');
+      if (builder.isEmpty()) return Log.error('Cli', 'Malformed params');
 
-    await new FileFinder().find(params);
+      await new FileFinder().find(params);
+    }
     return undefined;
   }
 
@@ -183,7 +188,7 @@ export default class Cli {
    * @private
    */
   private async saveDecoded(fileName?: string): Promise<void> {
-    Log.debug('Cli', 'Decodding and saving to file');
+    Log.debug('Cli', 'Decoding and saving to file');
 
     this.readConfig();
     await this.timeTravel.saveDecoded(fileName);
