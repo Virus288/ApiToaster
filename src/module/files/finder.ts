@@ -1,18 +1,18 @@
+import FileReader from './reader.js';
 import FileWriter from './writer.js';
 import Log from '../../tools/logger.js';
-import TimeTravel from '../timeTravel/index.js';
 import type { IFindParams, INotFormattedLogEntry } from '../../../types/index.js';
 
 export default class FileFinder {
-  private readonly _timeTravel: TimeTravel;
+  private readonly _reader: FileReader;
   private readonly _writer: FileWriter;
   constructor() {
-    this._timeTravel = new TimeTravel();
+    this._reader = new FileReader();
     this._writer = new FileWriter();
   }
 
-  private get timeTravel(): TimeTravel {
-    return this._timeTravel;
+  private get reader(): FileReader {
+    return this._reader;
   }
 
   private get writer(): FileWriter {
@@ -27,10 +27,10 @@ export default class FileFinder {
    */
   private async getLogs(params: IFindParams): Promise<[string, INotFormattedLogEntry][]> {
     if (params.files.length === 0) {
-      const logs = await this.timeTravel.preLoadLogs(params.files[0]);
+      const logs = await this.reader.preLoadLogs(params.files[0]);
       return logs;
     }
-    const logPromises = params.files.map((file) => this.timeTravel.preLoadLogs(file));
+    const logPromises = params.files.map((file) => this.reader.preLoadLogs(file));
     const logEntries = await Promise.all(logPromises);
     return logEntries.flat();
   }

@@ -1,6 +1,7 @@
 export enum ECliOptions {
   TimeTravel = 'time-travel',
   Decode = 'decode',
+  Migrate = 'migrate',
   Find = 'find',
 }
 
@@ -17,6 +18,8 @@ export enum ECliFlags {
   ShortIp = '-ip',
   Json = '--json',
   ShortJson = '-j',
+  FormatProto = '-proto',
+  FormatJson = '-json',
   Method = '--method',
   ShortMethod = '-m',
   Code = '--code',

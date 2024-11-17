@@ -210,9 +210,8 @@ export default class FileWriter {
    * @description Preapre new generic buffed log body.
    * @param log {INotFormattedLogEntry} Not formated log.
    * @returns {ILogEntry} Preapred log entry.
-   * @private
    */
-  private prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
+  prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
     Log.debug('File writer', 'Preapre buffed log');
     const formated: ILog['body'] = {
       body: JSON.stringify(log.body),
