@@ -1,5 +1,6 @@
 import Log from '../../tools/logger.js';
 import { checkIfObject, sleep } from '../../utils/index.js';
+import FileController from '../files/controller.js';
 import FileReader from '../files/reader.js';
 import FileWriter from '../files/writer.js';
 import Proto from '../protobuf/index.js';
@@ -19,12 +20,14 @@ import readline from 'readline';
 export default class TimeTravel {
   private readonly _fileReader: FileReader;
   private readonly _fileWriter: FileWriter;
+  private readonly _fileController: FileController;
   private _config: IToasterTimeTravel | null = null;
   private _total: ITimeTravelStats;
 
   constructor() {
     this._fileReader = new FileReader();
     this._fileWriter = new FileWriter();
+    this._fileController = new FileController();
     this._total = { succeeded: { amount: 0, ids: [] }, failed: { amount: 0, ids: [] } };
   }
 
@@ -42,6 +45,10 @@ export default class TimeTravel {
 
   public get fileWriter(): FileWriter {
     return this._fileWriter;
+  }
+
+  private get fileController(): FileController {
+    return this._fileController;
   }
 
   private get total(): ITimeTravelStats {
@@ -93,8 +100,15 @@ export default class TimeTravel {
   async saveDecoded(fileName?: string): Promise<void> {
     Log.debug('Time travel', 'Saving');
 
+    const currName = this.fileController.fetchCurrentLogFile(fileName);
+
     const logs = await this.decode(fileName);
-    this.fileWriter.save(`decoded_${fileName}`, logs);
+
+    if (logs.length === 0) {
+      return;
+    }
+
+    this.fileWriter.save(`decoded_${currName}`, logs);
   }
   /**
    * Preload load.
@@ -115,7 +129,6 @@ export default class TimeTravel {
    * @description Read logs file.
    * @param fileName Target file.
    * @returns {ILogsProto} Log files.
-   * @async
    * @private
    */
   private readLogs(fileName?: string): ILogsProto | ILogs {

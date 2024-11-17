@@ -1,5 +1,4 @@
 import FileController from './controller.js';
-import { CannotCreateFile } from '../../errors/index.js';
 import Log from '../../tools/logger.js';
 import State from '../../tools/state.js';
 import Proto from '../protobuf/index.js';
@@ -87,7 +86,7 @@ export default class FileWriter {
 
   async init(req: express.Request, statusCode?: number): Promise<void> {
     Log.debug('File writer', 'Init');
-    
+
     this.pre();
     this.currLogFile = this.controller.fetchCurrentLogFile();
 
@@ -243,7 +242,6 @@ export default class FileWriter {
    * @param target File to validate.
    * @param baseBody File's body to initialize.
    * @returns {void} Void.
-   * @throws {CannotCreateFile} Error whenever file cannot be created.
    * @private
    */
   private validateFile(target: string, baseBody: string): void {
@@ -256,7 +254,6 @@ export default class FileWriter {
       }
     } catch (err) {
       Log.error('File reader', `Cannot create ${target} file`, (err as Error).message);
-      throw new CannotCreateFile(target);
     }
   }
 
@@ -276,7 +273,7 @@ export default class FileWriter {
       Log.error('File writer', 'Save File', error);
     }
   }
-  
+
   /**
    * Save data.
    * @description Save prepared data to files.
