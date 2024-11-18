@@ -350,7 +350,7 @@ export default class FileWriter {
 
     const logPath = path.resolve(State.config.path, logName);
     const size = fs.statSync(logPath).size + this.currLogSize;
-    if (size > 50000000000) {
+    if (size > State.config.logFileSize) {
       this.incrementLogFile(logName);
       this.cleanLogs();
     }
