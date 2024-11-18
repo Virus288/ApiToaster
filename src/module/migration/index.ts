@@ -65,7 +65,7 @@ export default class Migration {
           decodedLog = isObject ? await proto.encodeLog(buffed) : (v as string);
         } else if (logFormat === enums.ECliFlags.FormatJson) {
           decodedLog = isObject
-            ? (v as INotFormattedLogEntry)
+            ? (JSON.parse(v as string) as INotFormattedLogEntry)
             : this.convertLog(await proto.decodeLogEntry(v as string));
         } else {
           return null;
