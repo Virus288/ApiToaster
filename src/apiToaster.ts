@@ -1,4 +1,3 @@
-import CodeSaver from './module/codeSaver/codeSaver.js';
 import FileWriter from './module/files/writer.js';
 import defaultConfig from './tools/config.js';
 import Log from './tools/logger.js';
@@ -10,11 +9,9 @@ import path from 'path';
 
 class Toaster {
   private _fileWriter: FileWriter;
-  private _codeSaver: CodeSaver;
 
   constructor() {
     this._fileWriter = new FileWriter();
-    this._codeSaver = new CodeSaver();
   }
 
   public get fileWriter(): FileWriter {
@@ -23,10 +20,6 @@ class Toaster {
 
   public set fileWriter(value: FileWriter) {
     this._fileWriter = value;
-  }
-
-  private get codeSaver(): CodeSaver {
-    return this._codeSaver;
   }
   /**
    * Initialize application.
@@ -55,9 +48,6 @@ class Toaster {
     this.initPath(config);
   }
 
-  saveStatusCode(res: express.Response): void {
-    this.codeSaver.init(res);
-  }
   /**
    * Initialize path.
    * @description Prepare application and initialize its path.
