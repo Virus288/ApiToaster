@@ -32,15 +32,16 @@ class Toaster {
    * Initialize application.
    * @description Initialize application to save logs.
    * @param req {express.Request} Request received from user.
+   * @param statusCode {express.Response.statusCode} statusCode send by server.
    * @returns {void} Void.
    * @async
    */
-  async init(req: express.Request): Promise<void> {
+  async init(req: express.Request, statusCode?: number): Promise<void> {
     Log.log('Main action', 'Initing');
     const shouldSave = this.shouldSave(req);
 
     if (shouldSave) {
-      await this.fileWriter.init(req);
+      await this.fileWriter.init(req, statusCode);
     }
   }
 
@@ -113,7 +114,6 @@ export default function (
   const toaster = new Toaster();
   toaster.preInit(config);
 
-  if (State.config.statusCode) toaster.saveStatusCode(res);
   if (State.config.countTime) {
     Log.time(reqUuid, 'Counting time for req');
     res.once('finish', () => {
@@ -121,8 +121,10 @@ export default function (
     });
   }
 
-  toaster.init(req).catch((err) => {
-    Log.error('Main action', 'Got error', (err as Error).message);
+  res.once('finish', () => {
+    toaster.init(req, res.statusCode).catch((err) => {
+      Log.error('Main action', 'Got error', (err as Error).message);
+    });
   });
   next();
 }
