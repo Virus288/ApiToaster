@@ -1,5 +1,6 @@
 export interface IConfig {
   path: string;
+  shouldThrow?: boolean;
   method: boolean;
   body: boolean;
   queryParams: boolean;
@@ -9,6 +10,7 @@ export interface IConfig {
   disableProto: boolean;
   statusCode: boolean;
   countTime: boolean;
+  logFileSize: number;
 }
 
 export type IToasterConfig = Partial<IConfig>;
