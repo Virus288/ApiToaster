@@ -269,6 +269,10 @@ export default class TimeTravel {
                 decodedLog.headers && typeof decodedLog.headers === 'string'
                   ? (JSON.parse(decodedLog.headers) as Record<string, unknown>)
                   : (decodedLog.headers ?? {}),
+              statusCode:
+                decodedLog.statusCode && typeof decodedLog.statusCode === 'string'
+                  ? (JSON.parse(decodedLog.statusCode) as Record<string, unknown>)
+                  : (decodedLog.statusCode ?? {}),
             } as INotFormattedLogEntry,
           ];
         } catch (_err) {
