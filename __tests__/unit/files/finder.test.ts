@@ -85,6 +85,7 @@ describe('File finder', () => {
             key: 'value',
           },
           body: {},
+          statusCode: 0,
         },
       ]);
     });
@@ -131,6 +132,7 @@ describe('File finder', () => {
             key: 'value',
           },
           body: {},
+          statusCode: 0,
         },
       ]);
     });
@@ -177,6 +179,7 @@ describe('File finder', () => {
             key: 'value',
           },
           body: { key: 'value' },
+          statusCode: 0,
         },
       ]);
     });
@@ -223,6 +226,7 @@ describe('File finder', () => {
             key: 'value',
           },
           body: { key: 'value' },
+          statusCode: 0,
         },
       ]);
     });
@@ -269,6 +273,7 @@ describe('File finder', () => {
             key: 'value',
           },
           body: {},
+          statusCode: 0,
         },
       ]);
     });

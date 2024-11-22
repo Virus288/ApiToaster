@@ -72,6 +72,7 @@ describe('Decoder', () => {
             key: 'value',
           },
           body: {},
+          statusCode: 0,
         },
       ]);
     });
