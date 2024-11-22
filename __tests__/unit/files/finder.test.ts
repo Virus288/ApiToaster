@@ -137,6 +137,52 @@ describe('File finder', () => {
       ]);
     });
 
+    it(`Find files - different statusCode - no data`, async () => {
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
+
+      try {
+        await fileWriter.init(defaultReq as express.Request);
+        callback = await fileFinder.find({ ...defaultFindParams, statusCodes: [200] });
+      } catch (err) {
+        error = err as IFullError;
+      }
+
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(0);
+    });
+
+    it(`Find files - different statusCode - data exists`, async () => {
+      let error: IFullError | undefined = undefined;
+      let callback: [string, INotFormattedLogEntry][] = [];
+
+      try {
+        await fileWriter.init(defaultReq as express.Request, 200);
+        callback = await fileFinder.find({ ...defaultFindParams, statusCodes: [200] });
+      } catch (err) {
+        error = err as IFullError;
+      }
+
+      expect(error).toBeUndefined();
+      expect(callback.length).toEqual(1);
+      expect(callback[0]).toEqual([
+        expect.anything(),
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            header: 'val',
+          },
+          ip: '127.0.0.1',
+          occured: expect.anything(),
+          queryParams: {
+            key: 'value',
+          },
+          body: {},
+          statusCode: 200,
+        },
+      ]);
+    });
     it(`Find files - different json - no data`, async () => {
       let error: IFullError | undefined = undefined;
       let callback: [string, INotFormattedLogEntry][] = [];
