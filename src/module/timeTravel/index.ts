@@ -98,12 +98,17 @@ export default class TimeTravel {
     }
 
     if (this.config.inputBeforeNextReq) {
-      const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-      });
+      await new Promise<void>((resolve) => {
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout,
+        });
 
-      rl.question('Press any button to continue', () => rl.close());
+        rl.question('Press any button to continue\n', () => {
+          rl.close();
+          resolve();
+        });
+      });
     }
 
     if (this.config.countTime) Log.time(log[0]);
