@@ -136,7 +136,7 @@ export default class FileFinder {
         return false && Log.debug('File finder', 'Filtered log does not include required ip');
       // JSON checking
       // Check if req.body is a JSON, if not return false
-      if (params.json && log[1].headers?.['content-type'] !== 'application/json')
+      if (Object.keys(params.json).length > 0 && log[1].headers?.['content-type'] !== 'application/json')
         return false && Log.debug('File finder', 'Filtered log is not application json type');
 
       // If req.body is correct check if it's content is matching
