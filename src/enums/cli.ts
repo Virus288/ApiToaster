@@ -3,6 +3,7 @@ export enum ECliOptions {
   Decode = 'decode',
   Migrate = 'migrate',
   Find = 'find',
+  Unification = 'unif',
 }
 
 export enum ECliFlags {

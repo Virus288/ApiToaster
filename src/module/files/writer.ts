@@ -187,10 +187,10 @@ export default class FileWriter {
     const body: INotFormattedLogEntry = {
       method: State.config.method ? req.method : undefined,
       body: State.config.body ? ((req.body ?? {}) as Record<string, unknown>) : {},
-      queryParams: State.config.queryParams ? (req.query as Record<string, string>) : {},
+      queryParams: State.config.queryParams ? ((req.query as Record<string, string>) ?? {}) : {},
       headers: State.config.headers ? filteredHeaders : {},
       ip: State.config.ip ? req.ip : undefined,
-      statusCode: State.config.statusCode ? statusCode : undefined,
+      statusCode: State.config.statusCode ? statusCode : 0,
       occured: Date.now(),
     };
     this.obfuscate(body);
@@ -202,12 +202,13 @@ export default class FileWriter {
       headers: body.headers,
     };
 
+    console.log({ logBody });
     return logBody;
   }
 
   /**
    * Prepare new buffed log body.
-   * @description Preapre new generic buffed log body.
+   * @description Prepare new generic buffed log body.
    * @param log {INotFormattedLogEntry} Not formated log.
    * @returns {ILogEntry} Preapred log entry.
    */

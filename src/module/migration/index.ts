@@ -72,7 +72,7 @@ export default class Migration {
         }
 
         try {
-          return { [k]: decodedLog }; // Return as a key-value pair object
+          return { [k]: decodedLog };
         } catch (_err) {
           Log.error('Migrate', 'Error migrating', _err);
           return null;

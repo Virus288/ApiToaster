@@ -43,4 +43,10 @@ export enum ECliResponses {
   You can also decode and save output to a file "decoded_name_of_log.json" by providing -s or --save flag :
   npx api-toaster decode -s log_1.json
   `,
+  UnificateHelp = `
+  TODO ADD SOME HELP TEXT
+  `,
+  UnificationUnknownCommand = `
+  TODO ADD SOME HELP TEXT
+  `,
 }
