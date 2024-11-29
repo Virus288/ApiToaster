@@ -190,7 +190,7 @@ export default class FileWriter {
       queryParams: State.config.queryParams ? ((req.query as Record<string, string>) ?? {}) : {},
       headers: State.config.headers ? filteredHeaders : {},
       ip: State.config.ip ? req.ip : undefined,
-      statusCode: State.config.statusCode ? statusCode : 0,
+      statusCode: State.config.statusCode ? statusCode : undefined,
       occured: Date.now(),
     };
     this.obfuscate(body);
@@ -202,7 +202,6 @@ export default class FileWriter {
       headers: body.headers,
     };
 
-    console.log({ logBody });
     return logBody;
   }
 

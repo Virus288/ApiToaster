@@ -133,17 +133,17 @@ export default class Cli {
     switch (flag) {
       case enums.ECliFlags.Path:
       case enums.ECliFlags.ShortPath:
-        !target && !logFormat
+        !target || !logFormat
           ? Log.error('Cli', 'Please provide file to decode and target format.')
           : await this.migrate(target, logFormat);
         break;
       case enums.ECliFlags.Help:
       case enums.ECliFlags.ShortHelp:
-        Log.log('Cli', enums.ECliResponses.DecodeHelp);
+        Log.log('Cli', enums.ECliResponses.MigrateHelp);
         break;
       default:
         // TODO: change response
-        Log.error('Cli', 'Unknown parameter.', enums.ECliResponses.TimeTravelUnknownCommand);
+        Log.error('Cli', 'Unknown parameter.', enums.ECliResponses.MigrateUnknownCommand);
         break;
     }
   }
@@ -217,28 +217,18 @@ export default class Cli {
     Log.debug('Cli', 'Handling unification');
 
     this.readConfig();
-    // if (args[0] === enums.ECliFlags.Help || args[0] === enums.ECliFlags.ShortHelp) {
-    //   Log.log('Cli', enums.ECliResponses.UnificateHelp);
-    // } else {
-    //   const builder = new QueryBuilder(args);
-    //   const params = builder.init();
-    //
-    //   if (builder.isEmpty()) return Log.error('Cli', 'Malformed params');
-    //
-    //   await new Unification().init(params);
-    // }
-    // return undefined;
+
     const flag = args[0];
     const target = args[1];
 
     switch (flag) {
       case enums.ECliFlags.Path:
       case enums.ECliFlags.ShortPath:
-        !target ? Log.error('Cli', 'Please provide file to unificate.') : await this.unification.init(target);
+        !target ? Log.error('Cli', 'Please provide file to unificate.') : await this.initUnification(target);
         break;
       case enums.ECliFlags.Help:
       case enums.ECliFlags.ShortHelp:
-        Log.log('Cli', enums.ECliResponses.DecodeHelp);
+        Log.log('Cli', enums.ECliResponses.UnificateHelp);
         break;
       case undefined:
       case null:
@@ -257,12 +247,12 @@ export default class Cli {
    * @async
    * @private
    */
-  // private async initUnification(fileName?: string): Promise<void> {
-  //   Log.debug('Cli', 'Starting time travel');
-  //
-  //   this.readConfig();
-  //   await this.unification.init(fileName);
-  // }
+  private async initUnification(fileName?: string): Promise<void> {
+    Log.debug('Cli', 'Starting time travel');
+
+    this.readConfig();
+    await this.unification.init(fileName);
+  }
   /**
    * Start time traver.
    * @description Start time travel session.

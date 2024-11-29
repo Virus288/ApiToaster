@@ -8,7 +8,10 @@ export enum ECliResponses {
   Params:
    - time-travel: Tests already received requests, by sending them again to your server
    - decode: Decode saved logs to readable json format
-   - find: Find requests in logs`,
+   - find: Find requests in logs
+   - migrate: Migrate data from one format to the other.
+   - uni: Unification of log files.
+   `,
   TimeTravelUnknownCommand = `
   Available parameters for time-travel:
    -p filename : provide filename to run command on.`,
@@ -43,10 +46,26 @@ export enum ECliResponses {
   You can also decode and save output to a file "decoded_name_of_log.json" by providing -s or --save flag :
   npx api-toaster decode -s log_1.json
   `,
+  MigrateHelp = `
+  Migrate is command, which is used to migrate log files from one format to other.
+  Example usage: 'npx api-toaster migrate [params....]'.
+  npx api-toaster migrate -p log_1.json -json
+  This will create new file migrated_log_1.json
+  `,
+  MigrateUnknownCommand = `
+  Available parameters for migrate:
+   -p filename : provide filename to run command on.
+   -proto : translate file into proto and save it.
+   -json : translate file into json and save it.
+     `,
   UnificateHelp = `
-  TODO ADD SOME HELP TEXT
+  Unification is command, which allows you to add some default values for missing
+  fields in log files. If for some reason user disabled sosent all values of the original type, the value is converted to an int . Otherwise, it is converted to an unsigned int. me fields to be written
+  this command will add some empty/default values.
+  Example usage: 'npx api-toaster uni -p logs_0.json'
   `,
   UnificationUnknownCommand = `
-  TODO ADD SOME HELP TEXT
+  Available parameters for unification:
+   -p filename : provide filename to run command on.
   `,
 }

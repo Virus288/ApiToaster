@@ -8,7 +8,6 @@ import FileWriter from '../../../src/module/files/writer.js';
 import FileReader from '../../../src/module/files/reader.js';
 import FileDecoder from '../../../src/module/decode/index.js';
 import Unification from '../../../src/module/unification/index.js';
-import Proto from '../../../src/module/protobuf/index.js'
 import { INotFormattedLogEntry } from '../../../types/logs.js';
 
 describe('Unification', () => {
@@ -78,12 +77,9 @@ describe('Unification', () => {
     it(`unification - add all default values`, async () => {
       let error: IFullError | undefined = undefined;
       let callback: [string, INotFormattedLogEntry][] = [];
-      const newReq = structuredClone(defaultReq);
-      delete newReq.headers;
-      delete newReq.query;
-      (newReq.ip as string)=""
+      State.config = { ...defaultConfig(), ip: false, headers: false, body: false, method: false, queryParams: false };
       try {
-        await fileWriter.init(newReq as express.Request);
+        await fileWriter.init(defaultReq as express.Request);
         await unification.init('logs_0.json');
         fileReader.init('logs_0.json');
         callback = await fileDecoder.init('logs_0.json');
@@ -91,10 +87,6 @@ describe('Unification', () => {
         error = err as IFullError;
       }
       expect(error).toBeUndefined();
-      const buff=fileWriter.prepareBuffedLog(callback[0]![1])
-      const proto=new Proto()
-      const enco=await proto.encodeLog(buff)
-      console.log('00000000',await proto.decodeLogEntry(enco))
       expect(callback[0]![1]).toEqual({
         method: 'GET',
         headers: {},
