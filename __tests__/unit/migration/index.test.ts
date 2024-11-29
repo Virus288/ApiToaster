@@ -140,5 +140,27 @@ describe('Decoder', () => {
         body: {},
       });
     });
+    it(`migration - migrate from JSON to PROTO, and from PROTO to JSON -it is the same as original`, async () => {
+      let error: IFullError | undefined = undefined;
+      let dir: string[] = [];
+      let migratedFile: ILogs = { logs: {} };
+      let origin: ILogs = { logs: {} };
+
+      State.config.disableProto = true;
+      try {
+        await fileWriter.init(defaultReq as express.Request);
+        await migration.init('logs_0.json', enums.ECliFlags.FormatProto);
+        dir = fs.readdirSync(State.config.path);
+        await migration.init('migrate_logs_0.json', enums.ECliFlags.FormatJson);
+        migratedFile = JSON.parse(fs.readFileSync(`${State.config.path}/migrate_migrate_logs_0.json`, 'utf-8'));
+        origin = JSON.parse(fs.readFileSync(`${State.config.path}/logs_0.json`, 'utf-8'));
+      } catch (err) {
+        error = err as IFullError;
+      }
+      expect(error).toBeUndefined();
+      expect(dir.length).toBeGreaterThan(0);
+      expect(dir).toContain('migrate_logs_0.json');
+      expect(Object.values(migratedFile.logs)[0]).toEqual(JSON.parse(Object.values(origin.logs)[0] as unknown as string));
+    });
   });
 });
