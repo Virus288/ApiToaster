@@ -187,7 +187,7 @@ export default class FileWriter {
     const body: INotFormattedLogEntry = {
       method: State.config.method ? req.method : undefined,
       body: State.config.body ? ((req.body ?? {}) as Record<string, unknown>) : {},
-      queryParams: State.config.queryParams ? (req.query as Record<string, string>) : {},
+      queryParams: State.config.queryParams ? ((req.query as Record<string, string>) ?? {}) : {},
       headers: State.config.headers ? filteredHeaders : {},
       ip: State.config.ip ? req.ip : undefined,
       statusCode: State.config.statusCode ? statusCode : undefined,
@@ -200,14 +200,14 @@ export default class FileWriter {
       occured: body.occured,
       queryParams: body.queryParams,
       headers: body.headers,
+      statusCode: body.statusCode,
     };
-
     return logBody;
   }
 
   /**
    * Prepare new buffed log body.
-   * @description Preapre new generic buffed log body.
+   * @description Prepare new generic buffed log body.
    * @param log {INotFormattedLogEntry} Not formated log.
    * @returns {ILogEntry} Preapred log entry.
    */
@@ -220,6 +220,7 @@ export default class FileWriter {
       queryParams: JSON.stringify(log.queryParams),
       headers: JSON.stringify(log.headers),
       ip: log.ip,
+      statusCode: log.statusCode,
     };
     return formated;
   }
@@ -350,7 +351,7 @@ export default class FileWriter {
 
     const logPath = path.resolve(State.config.path, logName);
     const size = fs.statSync(logPath).size + this.currLogSize;
-    if (size > 50000000000) {
+    if (size > State.config.logFileSize) {
       this.incrementLogFile(logName);
       this.cleanLogs();
     }

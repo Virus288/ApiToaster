@@ -93,6 +93,8 @@ export default class FileReader {
                 decodedLog.headers && typeof decodedLog.headers === 'string'
                   ? (JSON.parse(decodedLog.headers) as Record<string, unknown>)
                   : (decodedLog.headers ?? {}),
+              statusCode:
+                decodedLog.statusCode && typeof decodedLog.statusCode === 'number' ? decodedLog.statusCode : 0,
             } as INotFormattedLogEntry,
           ];
         } catch (_err) {

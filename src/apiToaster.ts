@@ -21,21 +21,20 @@ class Toaster {
   public set fileWriter(value: FileWriter) {
     this._fileWriter = value;
   }
-
   /**
    * Initialize application.
    * @description Initialize application to save logs.
    * @param req {express.Request} Request received from user.
+   * @param statusCode {express.Response.statusCode} statusCode send by server.
    * @returns {void} Void.
    * @async
    */
-  async init(req: express.Request): Promise<void> {
+  async init(req: express.Request, statusCode?: number): Promise<void> {
     Log.log('Main action', 'Initing');
-
     const shouldSave = this.shouldSave(req);
 
     if (shouldSave) {
-      await this.fileWriter.init(req);
+      await this.fileWriter.init(req, statusCode);
     }
   }
 
@@ -112,8 +111,10 @@ export default function (
     });
   }
 
-  toaster.init(req).catch((err) => {
-    Log.error('Main action', 'Got error', (err as Error).message);
+  res.once('finish', () => {
+    toaster.init(req, res.statusCode).catch((err) => {
+      Log.error('Main action', 'Got error', (err as Error).message);
+    });
   });
   next();
 }
