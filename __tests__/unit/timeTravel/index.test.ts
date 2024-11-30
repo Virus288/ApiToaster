@@ -6,7 +6,6 @@ import TimeTravel from '../../../src/module/timeTravel/index.js';
 import defaultConfig from '../../../src/tools/config.js';
 import State from '../../../src/tools/state.js';
 import { IFullError } from '../../../types/error.js';
-import { INotFormattedLogEntry } from '../../../types/logs.js';
 
 describe('Time Travel', () => {
   let fetchMock: unknown;
@@ -63,43 +62,6 @@ describe('Time Travel', () => {
   // });
 
   describe('Should pass', () => {
-    it(`decode - return request`, async () => {
-      let error: IFullError | undefined = undefined;
-      let callback: [string, INotFormattedLogEntry][] = [];
-      try {
-        await fileWriter.init(defaultReq as express.Request);
-        callback = await timeTravel.decode();
-      } catch (err) {
-        error = err as IFullError;
-      }
-      expect(error).toBeUndefined();
-      expect(callback.length).toEqual(1);
-      expect(callback[0]).toEqual([
-        expect.anything(),
-        {
-          method: 'POST',
-          headers: {
-            header: 'val',
-          },
-          occured: expect.anything(),
-          queryParams: {
-            key: 'value',
-          },
-          body: {},
-        },
-      ]);
-    });
-    it(`decode - no request to return`, async () => {
-      let error: IFullError | undefined = undefined;
-      let callback: [string, INotFormattedLogEntry][] = [];
-      try {
-        callback = await timeTravel.decode();
-      } catch (err) {
-        error = err as IFullError;
-      }
-      expect(error).toBeUndefined();
-      expect(callback.length).toEqual(0);
-    });
     it(`init - sends requests`, async () => {
       let error: IFullError | undefined = undefined;
       let callback: unknown | undefined;

@@ -40,6 +40,7 @@
     "lintStaged": "npx lint-staged",
     "test": "echo 'If you want to run all the tests, please use makefile'",
     "test:unit": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --config __tests__/jest.config.unit.ts --runInBand",
+    "test:unit:bail": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --config __tests__/jest.config.unit.bail.ts --runInBand",
     "test:e2e": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --config  __tests__/jest.config.e2e.ts"
   },
   "dependencies": {
@@ -64,7 +65,7 @@
     "eslint": "9.11.1",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-check-file": "2.8.0",
-    "eslint-plugin-import": "2.30.0",
+    "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jest": "28.8.3",
     "eslint-plugin-jsdoc": "^50.0.0",
     "eslint-plugin-prettier": "5.2.1",

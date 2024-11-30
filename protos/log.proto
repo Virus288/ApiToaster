@@ -9,4 +9,5 @@ message LogEntry {
   string headers = 4;
   string ip = 5;
   string occured = 6;
+  int32 statusCode = 7;
 }
