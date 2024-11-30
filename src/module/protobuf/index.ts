@@ -27,6 +27,7 @@ export default class Proto {
       headers: '',
       ip: '',
       occured: '',
+      statusCode: 200,
     };
 
     const log = { ...defaultLog, ...logEntry };

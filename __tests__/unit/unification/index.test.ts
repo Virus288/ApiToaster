@@ -71,6 +71,7 @@ describe('Unification', () => {
           key: 'value',
         },
         body: {},
+        statusCode:200
       });
     });
 
@@ -94,6 +95,7 @@ describe('Unification', () => {
         occured: expect.anything(),
         queryParams: {},
         body: {},
+        statusCode:200
       });
     });
   });

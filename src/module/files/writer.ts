@@ -200,8 +200,8 @@ export default class FileWriter {
       occured: body.occured,
       queryParams: body.queryParams,
       headers: body.headers,
+      statusCode: body.statusCode,
     };
-
     return logBody;
   }
 
@@ -220,6 +220,7 @@ export default class FileWriter {
       queryParams: JSON.stringify(log.queryParams),
       headers: JSON.stringify(log.headers),
       ip: log.ip,
+      statusCode: log.statusCode,
     };
     return formated;
   }

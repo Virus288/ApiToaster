@@ -161,6 +161,9 @@ export default class FileFinder {
         if (value.length > 0 && !this.findValue(log[1].body, value))
           return false && Log.debug('File finder', 'Filtered log does not include privded values values');
       }
+      // Check for statusCode. If multiple values are being provided by the user, only first is consider
+      if (params.statusCodes.length > 0 && params.statusCodes[0] && log[1].statusCode !== params.statusCodes[0])
+        return false;
       return true;
     });
 
