@@ -3,8 +3,8 @@ import { IncomingHttpHeaders } from 'http';
 export interface ILogEntry {
   method?: string;
   body: string;
-  queryParams?: string
-  headers?: string
+  queryParams?: string;
+  headers?: string;
   ip?: string;
   statusCode?: number;
   occured: string;

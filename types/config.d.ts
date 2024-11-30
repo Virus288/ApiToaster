@@ -10,6 +10,7 @@ export interface IConfig {
   disableProto: boolean;
   statusCode: boolean;
   countTime: boolean;
+  logFileSize: number;
 }
 
 export type IToasterConfig = Partial<IConfig>;

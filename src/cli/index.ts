@@ -1,7 +1,10 @@
 import QueryBuilder from './queryBuilder.js';
 import * as enums from '../enums/index.js';
+import Decoder from '../module/decode/index.js';
 import FileFinder from '../module/files/finder.js';
+import Migration from '../module/migration/index.js';
 import TimeTravel from '../module/timeTravel/index.js';
+import Unification from '../module/unification/index.js';
 import defaultConfig from '../tools/config.js';
 import Log from '../tools/logger.js';
 import State from '../tools/state.js';
@@ -12,13 +15,31 @@ import path from 'path';
 
 export default class Cli {
   private readonly _timeTravel: TimeTravel;
+  private readonly _decoder: Decoder;
+  private readonly _migration: Migration;
+  private readonly _unification: Unification;
 
   constructor() {
     this._timeTravel = new TimeTravel();
+    this._decoder = new Decoder();
+    this._migration = new Migration();
+    this._unification = new Unification();
+  }
+
+  private get decoder(): Decoder {
+    return this._decoder;
   }
 
   private get timeTravel(): TimeTravel {
     return this._timeTravel;
+  }
+
+  private get migration(): Migration {
+    return this._migration;
+  }
+
+  private get unification(): Unification {
+    return this._unification;
   }
 
   /**
@@ -44,8 +65,12 @@ export default class Cli {
         return this.handleTimeTravel(args.slice(1));
       case enums.ECliOptions.Decode:
         return this.handleDecode(args.slice(1));
+      case enums.ECliOptions.Migrate:
+        return this.handleMigrate(args.slice(1));
       case enums.ECliOptions.Find:
         return this.handleFind(args.slice(1));
+      case enums.ECliOptions.Unification:
+        return this.handleUnificate(args.slice(1));
       case enums.ECliFlags.Help:
         return Log.log('Cli', enums.ECliResponses.Help);
       default:
@@ -90,6 +115,38 @@ export default class Cli {
     }
   }
 
+  /**
+   * Start migrating.
+   * @description Migrate logs json/proto.
+   * @param args User's params.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
+  private async handleMigrate(args: ICliArgs): Promise<void> {
+    Log.debug('Cli', 'Handling migration');
+
+    const flag = args[0];
+    const target = args[1];
+    const logFormat = args[2] as enums.ECliFlags.FormatJson | enums.ECliFlags.FormatProto;
+
+    switch (flag) {
+      case enums.ECliFlags.Path:
+      case enums.ECliFlags.ShortPath:
+        !target || !logFormat
+          ? Log.error('Cli', 'Please provide file to decode and target format.')
+          : await this.migrate(target, logFormat);
+        break;
+      case enums.ECliFlags.Help:
+      case enums.ECliFlags.ShortHelp:
+        Log.log('Cli', enums.ECliResponses.MigrateHelp);
+        break;
+      default:
+        // TODO: change response
+        Log.error('Cli', 'Unknown parameter.', enums.ECliResponses.MigrateUnknownCommand);
+        break;
+    }
+  }
   /**
    * Start time travel.
    * @description Start time travel session.
@@ -149,6 +206,54 @@ export default class Cli {
   }
 
   /**
+   * Start unificate log file.
+   * @description Unificate log files.
+   * @param args User's params.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
+  private async handleUnificate(args: ICliArgs): Promise<void> {
+    Log.debug('Cli', 'Handling unification');
+
+    this.readConfig();
+
+    const flag = args[0];
+    const target = args[1];
+
+    switch (flag) {
+      case enums.ECliFlags.Path:
+      case enums.ECliFlags.ShortPath:
+        !target ? Log.error('Cli', 'Please provide file to unificate.') : await this.initUnification(target);
+        break;
+      case enums.ECliFlags.Help:
+      case enums.ECliFlags.ShortHelp:
+        Log.log('Cli', enums.ECliResponses.UnificateHelp);
+        break;
+      case undefined:
+      case null:
+        Log.error('Cli', 'Unification', 'Provide path flag');
+        break;
+      default:
+        Log.error('Cli', 'Unknown parameter.', enums.ECliResponses.TimeTravelUnknownCommand);
+        break;
+    }
+  }
+  /**
+   * Start unification.
+   * @description Start file unification.
+   * @param fileName Target to use.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
+  private async initUnification(fileName?: string): Promise<void> {
+    Log.debug('Cli', 'Starting time travel');
+
+    this.readConfig();
+    await this.unification.init(fileName);
+  }
+  /**
    * Start time traver.
    * @description Start time travel session.
    * @param fileName Target to use.
@@ -175,10 +280,28 @@ export default class Cli {
     Log.debug('Cli', 'Decodding');
 
     this.readConfig();
-    const logs = await this.timeTravel.decode(fileName);
+    const logs = await this.decoder.init(fileName);
     Log.log('Logs', logs);
   }
 
+  /**
+   * Start decoding files.
+   * @description Start decoding selected files.
+   * @param fileName Target to use.
+   * @param logFormat Target log format.
+   * @returns {void} Void.
+   * @async
+   * @private
+   */
+  private async migrate(
+    fileName?: string,
+    logFormat?: enums.ECliFlags.FormatJson | enums.ECliFlags.FormatProto,
+  ): Promise<void> {
+    Log.debug('Cli', 'Migrating');
+
+    this.readConfig();
+    await this.migration.init(fileName, logFormat);
+  }
   /**
    * Start decoding files.
    * @description Start decoding selected files.
@@ -191,7 +314,7 @@ export default class Cli {
     Log.debug('Cli', 'Decoding and saving to file');
 
     this.readConfig();
-    await this.timeTravel.saveDecoded(fileName);
+    await this.decoder.saveDecoded(fileName);
   }
 
   /**
