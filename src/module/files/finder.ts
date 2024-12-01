@@ -2,7 +2,7 @@ import FileReader from './reader.js';
 import FileWriter from './writer.js';
 import Log from '../../tools/logger.js';
 import type { IFindParams, INotFormattedLogEntry } from '../../../types/index.js';
-// import type { IncomingHttpHeaders } from 'http2';
+import type { IncomingHttpHeaders } from 'http2';
 
 export default class FileFinder {
   private readonly _reader: FileReader;
@@ -101,9 +101,12 @@ export default class FileFinder {
     return nestedObjects.some((obj) => this.findJSON(obj, json));
   }
 
-  // private checkForHeaders(headers: IncomingHttpHeaders | undefined): boolean {
-  //   return !headers || Object.keys(headers).length === 0;
-  // }
+  private checkForHeaders(headers: IncomingHttpHeaders | undefined): boolean {
+    return !headers || Object.keys(headers).length === 0;
+  }
+  private checkForBodyParam(params: IFindParams): boolean {
+    return Object.keys(params.json).length !== 0 || Boolean(params.keys[0]) || Boolean(params.values[0]);
+  }
   /**
    * Find data.
    * @description Find data in files.
@@ -137,42 +140,44 @@ export default class FileFinder {
     const filteredLogs = logs.filter((log) => {
       // Check if ip is correct (only first ip in array is considered)
       if (params.ips.length > 0 && log[1].ip !== params.ips[0]) {
-        console.log('ip');
+        console.log('wyjebało ip');
         Log.debug('File finder', `Log ${log[0]} does not include required ip`);
         return false;
       }
 
       // Check for statusCode. If multiple values are being provided by the user, only first is consider
       if (params.statusCodes.length > 0 && params.statusCodes[0] && log[1].statusCode !== params.statusCodes[0]) {
-        console.log('status');
+        console.log('wyjebało status');
         Log.debug('File finder', `Log ${log[0]} does not include required statusCode`);
         return false;
       }
       // Check method. Only first method in the array is considered
       if (params.methods.length > 0 && params.methods[0] && log[1].method !== params.methods[0]) {
-        console.log('method');
+        console.log('wyjebało method');
         Log.debug('File finder', `Log ${log[0]} does not include provided method`);
         return false;
       }
 
       // Check if headers are present and inform user if not
-      // if (Object.keys(log[1].headers!).length === 0) {
-      //   Log.warn(
-      //     'File finder',
-      //     `There are no headers saved for log ${log[0]}. Body and headers search is disable for this log. If you want to run these searches use --force flag`,
-      //   );
-      //   return false;
-      // }
+      if (!params.force && this.checkForHeaders(log[1].headers) && this.checkForBodyParam(params)) {
+        console.log('wyjebało header');
+        Log.warn(
+          'File finder',
+          `There are no headers saved for log ${log[0]}. Body and headers search is disable for this log. If you want to run these searches use --force flag`,
+        );
+        return false;
+      }
+
       // Check if req.body is a JSON, if not return false
       if (Object.keys(params.json).length !== 0 && log[1].headers?.['content-type'] !== 'application/json') {
-        console.log('json check');
+        console.log('wyjebało json check');
         Log.debug('File finder', `Log ${log[0]} is not a json`);
         return false;
       }
 
       // If req.body is correct check if it's content is matching
-      if (params.json && !this.findJSON(log[1].body, params.json)) {
-        console.log('json');
+      if (Object.keys(params.json).length !== 0 && !this.findJSON(log[1].body, params.json)) {
+        console.log('wyjebało json');
         Log.debug('File finder', `Log ${log[0]} does not include provided json`);
         return false;
       }
@@ -180,7 +185,7 @@ export default class FileFinder {
       // Check for keys. All keys must be present in the body
       for (const key of params.keys) {
         if (key.length > 0 && !this.findKey(log[1].body, key)) {
-          console.log('key');
+          console.log('wyjebało key');
           Log.debug('File finder', `Log ${log[0]} does not include provided key`);
           return false;
         }
@@ -188,7 +193,7 @@ export default class FileFinder {
       // Check for values. All values must be present in the body
       for (const value of params.values) {
         if (value.length > 0 && !this.findValue(log[1].body, value)) {
-          console.log('value');
+          console.log('wyjebało value');
           Log.debug('File finder', `Log ${log[0]} does not include provided value`);
           return false;
         }
