@@ -32,6 +32,7 @@ describe('File finder', () => {
   };
 
   const defaultFindParams: IFindParams = {
+    force: false,
     files: [],
     keys: [],
     values: [],
