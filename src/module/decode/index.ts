@@ -39,6 +39,8 @@ export default class Decoder {
 
     const logs = this.readLogs(fileName);
 
+    // TODO: if file contain json logs it shows error.
+    // it should either just print, or show nothing
     return this.fileReader.prepareLogs(logs.logs);
   }
 

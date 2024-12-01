@@ -68,11 +68,12 @@ export default class Migration {
             ? (JSON.parse(v as string) as INotFormattedLogEntry)
             : this.convertLog(await proto.decodeLogEntry(v as string));
         } else {
+          Log.error('Migrate', 'Wrong file format', 'Available formats:', '-proto', '-json');
           return null;
         }
 
         try {
-          return { [k]: decodedLog }; // Return as a key-value pair object
+          return { [k]: decodedLog };
         } catch (_err) {
           Log.error('Migrate', 'Error migrating', _err);
           return null;
