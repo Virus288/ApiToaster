@@ -324,5 +324,77 @@ describe('File finder', () => {
         },
       ]);
     });
+    describe('Headers disabled', () => {
+      it(`Find files - no headers, use key`, async () => {
+        let error: IFullError | undefined = undefined;
+        let callback: [string, INotFormattedLogEntry][] = [];
+
+        try {
+          await fileWriter.init({ ...defaultReq, body: { key: 'value' }, headers: {} } as express.Request);
+          callback = await fileFinder.find({ ...defaultFindParams, keys: ['key'] });
+        } catch (err) {
+          error = err as IFullError;
+        }
+
+        expect(error).toBeUndefined();
+        expect(callback.length).toEqual(0);
+      });
+      it(`Find files - no headers, use key with force`, async () => {
+        let error: IFullError | undefined = undefined;
+        let callback: [string, INotFormattedLogEntry][] = [];
+
+        try {
+          await fileWriter.init({ ...defaultReq, body: { key: 'value' }, headers: {} } as express.Request);
+          callback = await fileFinder.find({ ...defaultFindParams, keys: ['key'], force: true });
+        } catch (err) {
+          error = err as IFullError;
+        }
+        expect(error).toBeUndefined();
+        expect(callback.length).toEqual(1);
+        expect(callback[0]).toEqual([
+          expect.anything(),
+          {
+            method: 'POST',
+            headers: {},
+            ip: '127.0.0.1',
+            occured: expect.anything(),
+            queryParams: {
+              key: 'value',
+            },
+            body: {
+              key: 'value',
+            },
+            statusCode: 0,
+          },
+        ]);
+      });
+      it(`Find files - no headers, use method`, async () => {
+        let error: IFullError | undefined = undefined;
+        let callback: [string, INotFormattedLogEntry][] = [];
+
+        try {
+          await fileWriter.init({ ...defaultReq, method: 'GET', headers: {} } as express.Request);
+          callback = await fileFinder.find({ ...defaultFindParams, methods: ['GET'] });
+        } catch (err) {
+          error = err as IFullError;
+        }
+        expect(error).toBeUndefined();
+        expect(callback.length).toEqual(1);
+        expect(callback[0]).toEqual([
+          expect.anything(),
+          {
+            method: 'GET',
+            headers: {},
+            ip: '127.0.0.1',
+            occured: expect.anything(),
+            queryParams: {
+              key: 'value',
+            },
+            body: {},
+            statusCode: 0,
+          },
+        ]);
+      });
+    });
   });
 });
