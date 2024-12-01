@@ -32,9 +32,12 @@ export enum ECliResponses {
   You can also specify, what file should be used: 'npx apiToaster find -p logs_1.json'
   Or if you need specific data, you can filter by:
    - json: 'npx apiToaster find -j {"name": "jakob"}'. This will search for requests, which include those elements in body
-   - client ip 'npx apiToaster find -ip 192.168.1.100'. Only supported, when storing client's ip is specified in middleware's config. By default for privacy reasons, its disabled.
-   - keys 'npx apiToaster find -k password city name'. This will search for requests, which include those keys in body. Usefull if your body has dynamic data
-   - value 'npx apiToaster find -v value1 value2 value3'. This will search for requests, which include those values in body.`,
+   - client: ip 'npx apiToaster find -ip 192.168.1.100'. Only supported, when storing client's ip is specified in middleware's config. By default for privacy reasons, its disabled.
+   - keys: 'npx apiToaster find -k password city name'. This will search for requests, which include those keys in body. Usefull if your body has dynamic data
+   - value: 'npx apiToaster find -v value1 value2 value3'. This will search for requests, which include those values in body.
+   - method: 'npx apiToaster find -m POST'. This will search for requests with provided method.
+   - statusCode: 'npx apiToaster find -c 200'. This will look for specific response statusCode in logs.
+   - force: 'npx apiToaster find -f'. Force flag. Use to omit headers validation while searching for body or headers`,
   DecodeUnknownCommand = `
   Available parameters for decode:
    -p filename : provide filename to decode.`,
