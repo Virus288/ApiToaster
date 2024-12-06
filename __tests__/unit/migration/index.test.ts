@@ -9,7 +9,7 @@ import FileWriter from '../../../src/module/files/writer.js';
 import Migration from '../../../src/module/migration/index.js';
 import { ILogs } from '../../../types/logs.js';
 
-describe('Decoder', () => {
+describe('Migration', () => {
   const clear = async (target?: string): Promise<void> => {
     return new Promise<void>((resolve) => {
       fs.rmdir(target ?? 'Toaster', { recursive: true }, (_err) => {
@@ -70,6 +70,7 @@ describe('Decoder', () => {
         queryParams: {
           key: 'value',
         },
+        statusCode: 0,
         body: {},
       });
     });
@@ -101,9 +102,9 @@ describe('Decoder', () => {
       let migratedFile: ILogs = { logs: {} };
       State.config.disableProto = true;
       try {
-        await fileWriter.init(defaultReq as express.Request);
+        await fileWriter.init(defaultReq as express.Request, 0);
         State.config.disableProto = false;
-        await fileWriter.init(defaultReq as express.Request);
+        await fileWriter.init(defaultReq as express.Request, 0);
         await migration.init('logs_0.json', enums.ECliFlags.FormatJson);
         dir = fs.readdirSync(State.config.path);
         migratedFile = JSON.parse(fs.readFileSync(`${State.config.path}/migrate_logs_0.json`, 'utf-8'));
@@ -122,6 +123,7 @@ describe('Decoder', () => {
         },
         ip: '127.0.0.1',
         occured: expect.anything(),
+        statusCode: 0,
         queryParams: {
           key: 'value',
         },
@@ -134,6 +136,7 @@ describe('Decoder', () => {
         },
         ip: '127.0.0.1',
         occured: expect.anything(),
+        statusCode: 0,
         queryParams: {
           key: 'value',
         },
@@ -148,7 +151,7 @@ describe('Decoder', () => {
 
       State.config.disableProto = true;
       try {
-        await fileWriter.init(defaultReq as express.Request);
+        await fileWriter.init(defaultReq as express.Request, 0);
         await migration.init('logs_0.json', enums.ECliFlags.FormatProto);
         dir = fs.readdirSync(State.config.path);
         await migration.init('migrate_logs_0.json', enums.ECliFlags.FormatJson);
@@ -160,7 +163,9 @@ describe('Decoder', () => {
       expect(error).toBeUndefined();
       expect(dir.length).toBeGreaterThan(0);
       expect(dir).toContain('migrate_logs_0.json');
-      expect(Object.values(migratedFile.logs)[0]).toEqual(JSON.parse(Object.values(origin.logs)[0] as unknown as string));
+      expect(Object.values(migratedFile.logs)[0]).toEqual(
+        JSON.parse(Object.values(origin.logs)[0] as unknown as string),
+      );
     });
   });
 });
