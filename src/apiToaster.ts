@@ -9,7 +9,6 @@ import path from 'path';
 
 class Toaster {
   private _fileWriter: FileWriter;
-
   constructor() {
     this._fileWriter = new FileWriter();
   }
@@ -21,6 +20,7 @@ class Toaster {
   public set fileWriter(value: FileWriter) {
     this._fileWriter = value;
   }
+
   /**
    * Initialize application.
    * @description Initialize application to save logs.
@@ -46,6 +46,11 @@ class Toaster {
    */
   preInit(config?: IToasterConfig): void {
     this.initPath(config);
+    this.initUuid();
+  }
+
+  private initUuid(): void {
+    State.reqUuid = randomUUID();
   }
 
   /**
@@ -99,21 +104,20 @@ export default function (
   next: express.NextFunction,
   config?: IToasterConfig,
 ): void {
-  const reqUuid = randomUUID();
-
   const toaster = new Toaster();
   toaster.preInit(config);
 
   if (State.config.countTime) {
-    Log.time(reqUuid, 'Counting time for req');
+    Log.time(State.reqUuid, 'Counting time for req');
     res.once('finish', () => {
-      Log.endTime(reqUuid, 'Request finished');
+      Log.endTime(State.reqUuid, 'Request finished');
     });
   }
 
   res.once('finish', () => {
     toaster.init(req, res.statusCode).catch((err) => {
       Log.error('Main action', 'Got error', (err as Error).message);
+      State.reqUuid = null;
     });
   });
   next();

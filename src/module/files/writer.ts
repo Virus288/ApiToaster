@@ -129,7 +129,7 @@ export default class FileWriter {
   private async prepareBufLog(req: express.Request, statusCode?: number): Promise<void> {
     Log.debug('File writer', 'Prepare buf log');
 
-    const uuid = randomUUID() as string;
+    const uuid = State.reqUuid ?? randomUUID();
     const proto = new Proto();
 
     const logBody = this.prepareLog(req, statusCode);
@@ -156,7 +156,7 @@ export default class FileWriter {
   private prepareJsonLog(req: express.Request, statusCode?: number): void {
     Log.debug('File writer', 'Prepare json log');
 
-    const uuid = randomUUID() as string;
+    const uuid = State.reqUuid ?? randomUUID();
 
     const logBody = this.prepareLog(req, statusCode);
 
