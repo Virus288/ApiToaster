@@ -7,6 +7,8 @@ export enum ECliOptions {
 }
 
 export enum ECliFlags {
+  Force = '--force',
+  ShortForce = '-f',
   Help = '--help',
   ShortHelp = '-h',
   Path = '--path',
