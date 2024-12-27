@@ -1,5 +1,6 @@
-import type { IConfig } from "./config.js";
+import type { IConfig } from './config.js';
 
 export interface IState {
-  config: IConfig
+  config: IConfig;
+  reqUuid: string;
 }

@@ -8,6 +8,7 @@ export default class QueryBuilder {
   private _args: ICliArgs;
 
   private _params: IFindParams = {
+    force: false,
     files: [],
     keys: [],
     values: [],
@@ -56,6 +57,10 @@ export default class QueryBuilder {
     const target = this.args[0];
 
     switch (target) {
+      case enums.ECliFlags.Force:
+      case enums.ECliFlags.ShortForce:
+        this.params.force = true;
+        break;
       case enums.ECliFlags.ShortPath:
       case enums.ECliFlags.Path:
       case enums.ECliFlags.Value:
