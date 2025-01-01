@@ -14,13 +14,11 @@ import fs from 'fs';
 import path from 'path';
 
 export default class Cli {
-  private readonly _timeTravel: TimeTravel;
   private readonly _decoder: Decoder;
   private readonly _migration: Migration;
   private readonly _unification: Unification;
 
   constructor() {
-    this._timeTravel = new TimeTravel();
     this._decoder = new Decoder();
     this._migration = new Migration();
     this._unification = new Unification();
@@ -28,10 +26,6 @@ export default class Cli {
 
   private get decoder(): Decoder {
     return this._decoder;
-  }
-
-  private get timeTravel(): TimeTravel {
-    return this._timeTravel;
   }
 
   private get migration(): Migration {
@@ -156,28 +150,18 @@ export default class Cli {
    * @private
    */
   private async handleTimeTravel(args: ICliArgs): Promise<void> {
-    Log.debug('Cli', 'Handeling time travel');
+    Log.debug('Cli', 'Handling time travel');
 
-    const flag = args[0];
-    const target = args[1];
+    const config = this.readConfig();
+    if (args[0] === enums.ECliFlags.Help || args[0] === enums.ECliFlags.ShortHelp) {
+      Log.log('Cli', enums.ECliResponses.TimeTravelHelp);
+    } else {
+      const builder = new QueryBuilder(args);
+      const params = builder.init();
 
-    switch (flag) {
-      case enums.ECliFlags.Path:
-      case enums.ECliFlags.ShortPath:
-        !target ? Log.error('Cli', 'Please provide a log file name.') : await this.initTimeTravel(target);
-        break;
-      case enums.ECliFlags.Help:
-      case enums.ECliFlags.ShortHelp:
-        Log.log('Cli', enums.ECliResponses.TimeTravelHelp);
-        break;
-      case undefined:
-      case null:
-        await this.initTimeTravel();
-        break;
-      default:
-        Log.error('Cli', 'Unknown parameter.', enums.ECliResponses.TimeTravelUnknownCommand);
-        break;
+      await new TimeTravel().init(config, params);
     }
+    return undefined;
   }
 
   /**
@@ -252,20 +236,6 @@ export default class Cli {
 
     this.readConfig();
     await this.unification.init(fileName);
-  }
-  /**
-   * Start time traver.
-   * @description Start time travel session.
-   * @param fileName Target to use.
-   * @returns {void} Void.
-   * @async
-   * @private
-   */
-  private async initTimeTravel(fileName?: string): Promise<void> {
-    Log.debug('Cli', 'Starting time travel');
-
-    const config = this.readConfig();
-    await this.timeTravel.init(config, fileName);
   }
 
   /**

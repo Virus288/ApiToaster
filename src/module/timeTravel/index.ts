@@ -1,9 +1,8 @@
 import Log from '../../tools/logger.js';
 import { sleep } from '../../utils/index.js';
-import FileReader from '../files/reader.js';
+import FileFinder from '../files/finder.js';
 import type {
-  ILogs,
-  ILogsProto,
+  IFindParams,
   INotFormattedLogEntry,
   ITimeTravelReq,
   ITimeTravelStats,
@@ -12,12 +11,12 @@ import type {
 import readline from 'readline';
 
 export default class TimeTravel {
-  private readonly _fileReader: FileReader;
+  private readonly _fileFinder: FileFinder;
   private _config: IToasterTimeTravel | null = null;
   private _total: ITimeTravelStats;
 
   constructor() {
-    this._fileReader = new FileReader();
+    this._fileFinder = new FileFinder();
     this._total = { succeeded: { amount: 0, ids: [] }, failed: { amount: 0, ids: [] } };
   }
 
@@ -29,8 +28,8 @@ export default class TimeTravel {
     this._config = val;
   }
 
-  private get fileReader(): FileReader {
-    return this._fileReader;
+  private get fileFinder(): FileFinder {
+    return this._fileFinder;
   }
 
   private get total(): ITimeTravelStats {
@@ -41,25 +40,27 @@ export default class TimeTravel {
    * Initialize time travel.
    * @description Initialize time travel and send all requests.
    * @param config User's config.
-   * @param fileName Target file.
+   * @param params Target file.
    * @returns {void} Void.
    * @async
    */
-  async init(config: IToasterTimeTravel, fileName?: string): Promise<void> {
+  async init(config: IToasterTimeTravel, params: IFindParams): Promise<void> {
     Log.debug('Time travel', 'Initiing');
-
-    const logs = this.readLogs(fileName);
     this.config = config;
-    const preparedLogs = await this.fileReader.prepareLogs(logs.logs);
-    await this.sendRequests(preparedLogs);
+    if (params.files.length > 1) {
+      Log.warn('TimeTravel', 'Please provide only one file.');
+      return;
+    }
+    const cos = await this.fileFinder.find(params);
+    await this.sendRequests(cos);
 
     this.cleanUp();
     this.presentData();
   }
 
-  private readLogs(filename?: string): ILogsProto | ILogs {
-    return this.fileReader.init(filename);
-  }
+  // private readLogs(filename?: string): ILogsProto | ILogs {
+  //   return this.fileReader.init(filename);
+  // }
 
   /**
    * Send requests created from logs.

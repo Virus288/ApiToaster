@@ -6,6 +6,7 @@ import TimeTravel from '../../../src/module/timeTravel/index.js';
 import defaultConfig from '../../../src/tools/config.js';
 import State from '../../../src/tools/state.js';
 import { IFullError } from '../../../types/error.js';
+import { IFindParams } from '../../../types/cli.js';
 
 describe('Time Travel', () => {
   let fetchMock: unknown;
@@ -19,16 +20,39 @@ describe('Time Travel', () => {
 
   const timeTravel = new TimeTravel();
   const fileWriter = new FileWriter();
+
   const defaultReq: Partial<express.Request> = {
     method: 'POST',
     headers: {
       header: 'val',
     },
-    ip: '127.0.0.1', // Don't dox me pls :(
+    ip: '127.0.0.1',
     query: {
       key: 'value',
     },
     body: {},
+  };
+
+  const defaultReq2: Partial<express.Request> = {
+    method: 'POST',
+    headers: {
+      header: 'val',
+    },
+    ip: '127.0.0.1',
+    body: {
+      key2: 'value2',
+    },
+  };
+
+  const params: IFindParams = {
+    force: false,
+    files: [],
+    keys: [],
+    values: [],
+    ips: [],
+    json: {},
+    methods: [],
+    statusCodes: [],
   };
 
   beforeAll(() => {
@@ -37,7 +61,7 @@ describe('Time Travel', () => {
       Promise.resolve({
         ok: true,
         status: 200,
-        json: async () => {},
+        json: async () => { },
       } as Response),
     );
   });
@@ -67,7 +91,7 @@ describe('Time Travel', () => {
       let callback: unknown | undefined;
       try {
         await fileWriter.init(defaultReq as express.Request);
-        callback = await timeTravel.init({ port: 0 });
+        callback = await timeTravel.init({ port: 0 },params);
       } catch (err) {
         error = err as IFullError;
       }
@@ -83,11 +107,74 @@ describe('Time Travel', () => {
       });
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
-    it(`init - no request to be send`, async () => {
+
+    it(`init - sends filtered requests`, async () => {
       let error: IFullError | undefined = undefined;
       let callback: unknown | undefined;
       try {
-        callback = await timeTravel.init({ port: 0 });
+        await fileWriter.init(defaultReq as express.Request);
+        await fileWriter.init(defaultReq2 as express.Request);
+        const newParams = structuredClone(params);
+        newParams.values.push('value2');
+        callback = await timeTravel.init({ port: 0 }, newParams);
+      } catch (err) {
+        error = err as IFullError;
+      }
+      expect(error).toBeUndefined();
+      expect(callback).toBeUndefined();
+      expect(fetchMock).toHaveBeenCalledWith(`http://localhost:0`, {
+        method: 'POST',
+        headers: {
+          'X-Toaster': 'true',
+          header: 'val',
+        },
+        body: JSON.stringify({
+          key2: 'value2',
+        }),
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it(`init - sends multiple requests`, async () => {
+      let error: IFullError | undefined = undefined;
+      let callback: unknown | undefined;
+      try {
+        await fileWriter.init(defaultReq as express.Request);
+        await fileWriter.init(defaultReq2 as express.Request);
+        callback = await timeTravel.init({ port: 0 }, params);
+      } catch (err) {
+        error = err as IFullError;
+      }
+      expect(error).toBeUndefined();
+      expect(callback).toBeUndefined();
+      expect(fetchMock).toHaveBeenCalledWith(`http://localhost:0`, {
+        method: 'POST',
+        headers: {
+          'X-Toaster': 'true',
+          header: 'val',
+        },
+        body: JSON.stringify({
+          key2: 'value2',
+        }),
+      });
+      expect(fetchMock).toHaveBeenCalledWith(`http://localhost:0`, {
+        method: 'POST',
+        headers: {
+          'X-Toaster': 'true',
+          header: 'val',
+        },
+        body: JSON.stringify({
+          key2: 'value2',
+        }),
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+    it(`init - no request to be send`, async () => {
+
+      let error: IFullError | undefined = undefined;
+      let callback: unknown | undefined;
+      try {
+        callback = await timeTravel.init({ port: 0 },params);
       } catch (err) {
         error = err as IFullError;
       }

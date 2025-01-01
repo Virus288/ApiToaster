@@ -21,10 +21,12 @@ export enum ECliResponses {
   Example usage: 'npx apiToaster time-travel'. This command will load latest file with logs. Files are rotated based on hardcoded amount of requests.
   You can also specify, what file should be used in testing: 'npx apiToaster time-travel -p logs_1.json'
   Or if you need specific data, you can filter by:
-   - json: 'npx apiToaster time-travel -j {"name": "jakob"}'. This will search for requests, which include those elements in body
-   - client ip 'npx apiToaster time-travel -ip 192.168.1.100'. Only supported, when storing client's ip is specified in middleware's config. By default for privacy reasons, its disabled.
-   - keys 'npx apiToaster time-travel -k password city name'. This will search for requests, which include those keys in body. Usefull if your body has dynamic data
-   - value 'npx apiToaster time-travel -v value1 value2 value3'. This will search for requests, which include those values in body.`,
+   - json: 'npx apiToaster find -j {"name": "jakob"}'. This will search for requests, which include those elements in body
+   - client: ip 'npx apiToaster find -ip 192.168.1.100'. Only supported, when storing client's ip is specified in middleware's config. By default for privacy reasons, its disabled.
+   - keys: 'npx apiToaster find -k password city name'. This will search for requests, which include those keys in body. Usefull if your body has dynamic data
+   - value: 'npx apiToaster find -v value1 value2 value3'. This will search for requests, which include those values in body.
+   - method: 'npx apiToaster find -m POST'. This will search for requests with provided method.
+   - statusCode: 'npx apiToaster find -c 200'. This will look for specific response statusCode in logs.`,
   FindHelp = `
   Find is command, which allows you to decode locally saved files to readable format ( jsoon )
   This command requires your server to be running. Make sure that toaster config file exists or flag with server's port is provided.
