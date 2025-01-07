@@ -159,7 +159,6 @@ export default class FileWriter {
     const uuid = State.reqUuid ?? randomUUID();
 
     const logBody = this.prepareLog(req, statusCode);
-
     const logProto: ILogProto = {
       [uuid]: JSON.stringify(logBody),
     };

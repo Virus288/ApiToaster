@@ -1,4 +1,5 @@
 import * as errors from '../errors/index.js';
+import type { IUnifiactionKey } from '../../types/unification.js';
 
 export default class Validation {
   private readonly _v: unknown;
@@ -53,6 +54,16 @@ export default class Validation {
       throw new errors.IncorrectArgTypeError(`${name} should be a object`);
     }
 
+    return this;
+  }
+
+  isIUnificationKey(): this {
+    const validKeys: IUnifiactionKey[] = ['method', 'body', 'queryParams', 'headers', 'ip', 'statusCode', 'occured'];
+    const { v, name } = this;
+
+    if (typeof v !== 'string' || !validKeys.includes(v as IUnifiactionKey)) {
+      throw new errors.IncorrectArgTypeError(`${name} should be a valid IUnificationKey`);
+    }
     return this;
   }
 }

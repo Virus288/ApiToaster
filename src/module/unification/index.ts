@@ -4,7 +4,7 @@ import FileController from '../files/controller.js';
 import FileReader from '../files/reader.js';
 import FileWriter from '../files/writer.js';
 import Proto from '../protobuf/index.js';
-import type { ILogEntry, ILogs, ILogsProto } from '../../../types/index.js';
+import type { ILogEntry, ILogs, ILogsProto, IUnifiactionKey, IUnificationParams } from '../../../types/index.js';
 
 export default class Unification {
   private readonly _fileReader: FileReader;
@@ -47,17 +47,23 @@ export default class Unification {
   /**
    * Unificate file.
    * @description Unificate logs and add empty fields if missing in original file.
-   * @param fileName Name of a file.
+   * @param params Params for unification.
    * @returns {void} Void.
    * @async
    */
-  async init(fileName?: string): Promise<void> {
+  async init(params: IUnificationParams): Promise<void> {
     Log.debug('Data Migration', 'Migrating');
+    // if there is no or only file flag than proceed
+    // if there is some value provided, than generate defaults and add them for values
+    // TODO: change it later to handle mutliple files
+    if (params.files.length > 1) {
+      Log.warn('Unification', 'Please provide only one file.');
+      return;
+    }
+    this.readLogs(params.files[0]);
+    await this.generateDefaults(params);
 
-    this.readLogs(fileName);
-
-    await this.generateDefaults();
-    const file = this.fileController.fetchCurrentLogFile(fileName);
+    const file = this.fileController.fetchCurrentLogFile(params.files[0]);
     this.fileWriter.save(file, this.logs);
   }
   /**
@@ -71,26 +77,25 @@ export default class Unification {
 
   /**
    * Applies default values to all logs.
+   * @param params Unification params.
    * @returns {Promise<void>} Resolves when defaults are applied.
    * @async
    */
-  private async generateDefaults(): Promise<void> {
+  private async generateDefaults(params: IUnificationParams): Promise<void> {
     if ('logs' in this.logs && typeof this.logs.logs === 'object') {
       const logEntries = Object.entries(this.logs.logs);
-
       const updatedLogs: [string, string][] = await Promise.all(
         logEntries.map(async ([key, value]) => {
           let entry: ILogEntry;
 
           if (checkIfObject(value as string)) {
             // Handle JSON object logs
-            entry = JSON.parse(value as string) as ILogEntry;
-            entry = this.applyDefaults(entry); // Apply defaults
+            entry = this.applyDefaults(JSON.parse(value as string) as ILogEntry, params.values);
             return [key, JSON.stringify(entry)];
           }
           // Handle Protobuf logs
           const decodedEntry = await this.proto.decodeLogEntry(value as string);
-          const updatedEntry = this.applyDefaults(decodedEntry);
+          const updatedEntry = this.applyDefaults(decodedEntry, params.values);
           const reEncodedEntry = await this.proto.encodeLog(updatedEntry);
           return [key, reEncodedEntry];
         }),
@@ -104,17 +109,35 @@ export default class Unification {
   /**
    * Applies default values to a log entry.
    * @param entry The log entry to modify.
+   * @param keys Fields to add default value to.
    * @returns {ILogEntry} The modified log entry with defaults applied.
    */
-  private applyDefaults(entry: ILogEntry): ILogEntry {
+  private applyDefaults(entry: ILogEntry, keys?: IUnifiactionKey[]): ILogEntry {
+    if (keys?.length === 0 || !keys) {
+      return {
+        method: entry.method ? entry.method.trim() : 'GET',
+        body: entry.body ?? '{}',
+        queryParams: entry.queryParams ?? '{}',
+        headers: entry.headers ?? '{}',
+        ip: entry.ip && entry.ip.length > 0 ? entry.ip : '::ffff:127.0.0.1',
+        statusCode: entry.statusCode ? entry.statusCode : 200,
+        occured: entry.occured ?? new Date().toISOString(),
+      };
+    }
+
     return {
-      method: entry.method ? entry.method.trim() : 'GET',
-      body: entry.body ?? '{}',
-      queryParams: entry.queryParams ?? '{}',
-      headers: entry.headers ?? '{}',
-      ip: entry.ip && entry.ip.length > 0 ? entry.ip : '::ffff:127.0.0.1',
-      statusCode: entry.statusCode ? entry.statusCode : 200,
-      occured: entry.occured ?? new Date().toISOString(),
+      method: keys.includes('method') && !entry.method ? 'GET' : entry.method?.trim(),
+      body: keys.includes('body') && (entry.body === null || !entry.body) ? '{}' : entry.body,
+      queryParams:
+        keys.includes('queryParams') && (entry.queryParams === null || !entry.queryParams) ? '{}' : entry.queryParams,
+      headers: keys.includes('headers') && (entry.headers === null || !entry.headers) ? '{}' : entry.headers,
+      ip: keys.includes('ip') && (!entry.ip || entry.ip.length === 0) ? '::ffff:127.0.0.1' : entry.ip,
+      statusCode:
+        keys.includes('statusCode') && (entry.statusCode === null || !entry.statusCode) ? 200 : entry.statusCode,
+      occured:
+        keys.includes('occured') && (entry.occured === null || !entry.occured)
+          ? new Date().toISOString()
+          : entry.occured,
     };
   }
 }
