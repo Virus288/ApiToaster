@@ -1,4 +1,5 @@
 import QueryBuilder from './queryBuilder.js';
+import UniQueryBuilder from './unificationQueryBuilder.js';
 import * as enums from '../enums/index.js';
 import Decoder from '../module/decode/index.js';
 import FileFinder from '../module/files/finder.js';
@@ -16,12 +17,10 @@ import path from 'path';
 export default class Cli {
   private readonly _decoder: Decoder;
   private readonly _migration: Migration;
-  private readonly _unification: Unification;
 
   constructor() {
     this._decoder = new Decoder();
     this._migration = new Migration();
-    this._unification = new Unification();
   }
 
   private get decoder(): Decoder {
@@ -30,10 +29,6 @@ export default class Cli {
 
   private get migration(): Migration {
     return this._migration;
-  }
-
-  private get unification(): Unification {
-    return this._unification;
   }
 
   /**
@@ -202,40 +197,17 @@ export default class Cli {
 
     this.readConfig();
 
-    const flag = args[0];
-    const target = args[1];
+    if (args[0] === enums.ECliFlags.Help || args[0] === enums.ECliFlags.ShortHelp) {
+      Log.log('Cli', enums.ECliResponses.UnificateHelp);
+    } else {
+      const builder = new UniQueryBuilder(args);
+      const params = builder.init();
 
-    switch (flag) {
-      case enums.ECliFlags.Path:
-      case enums.ECliFlags.ShortPath:
-        !target ? Log.error('Cli', 'Please provide file to unificate.') : await this.initUnification(target);
-        break;
-      case enums.ECliFlags.Help:
-      case enums.ECliFlags.ShortHelp:
-        Log.log('Cli', enums.ECliResponses.UnificateHelp);
-        break;
-      case undefined:
-      case null:
-        Log.error('Cli', 'Unification', 'Provide path flag');
-        break;
-      default:
-        Log.error('Cli', 'Unknown parameter.', enums.ECliResponses.TimeTravelUnknownCommand);
-        break;
+      if (builder.isEmpty()) return Log.error('Cli', 'Malformed params');
+
+      await new Unification().init(params);
     }
-  }
-  /**
-   * Start unification.
-   * @description Start file unification.
-   * @param fileName Target to use.
-   * @returns {void} Void.
-   * @async
-   * @private
-   */
-  private async initUnification(fileName?: string): Promise<void> {
-    Log.debug('Cli', 'Starting time travel');
-
-    this.readConfig();
-    await this.unification.init(fileName);
+    return undefined;
   }
 
   /**
@@ -295,7 +267,7 @@ export default class Cli {
    * @throws {Error} Throw new error whenever config is malformed.
    * @private
    */
-  private readConfig(): IToasterTimeTravel {
+  public readConfig(): IToasterTimeTravel {
     Log.debug('Cli', 'Reading config');
 
     if (!fs.existsSync(path.join(process.cwd(), 'toaster.json'))) {

@@ -65,9 +65,15 @@ export enum ECliResponses {
      `,
   UnificateHelp = `
   Unification is command, which allows you to add some default values for missing
-  fields in log files. If for some reason user disabled sosent all values of the original type, the value is converted to an int . Otherwise, it is converted to an unsigned int. me fields to be written
+  fields in log files. If for some reason user disabled some fields to be written in logs, or some fields were malformed,
   this command will add some empty/default values.
+  Available parameters for unification:
+   -p filename : provide filename to run command on.
+   -v fields: provide one or more field name
   Example usage: 'npx api-toaster uni -p logs_0.json'
+  This command will add defaults to every possible missing field.
+  Example usage: 'npx api-toaster uni -p logs_0.json -v ip method'
+  This command will add defaults to ip and method.
   `,
   UnificationUnknownCommand = `
   Available parameters for unification:
