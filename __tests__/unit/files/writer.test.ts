@@ -224,7 +224,6 @@ describe('File writer', () => {
       } catch (err) {
         error = err as IFullError;
       }
-    console.log("CALLBACK",callback)
       expect(callback?.body).toEqual(defaultReq.body);
       expect(callback?.method).toEqual(defaultReq.method);
       expect(callback?.headers).toEqual(defaultReq.headers);

@@ -17,7 +17,7 @@ export interface INotFormattedLogEntry {
   headers?: IncomingHttpHeaders;
   ip?: string;
   statusCode?: number;
-  occured: number;
+  occured:string
 }
 
 export interface ILogProto {

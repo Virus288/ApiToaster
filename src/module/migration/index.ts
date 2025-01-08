@@ -97,7 +97,7 @@ export default class Migration {
         log.headers && typeof log.headers === 'string'
           ? (JSON.parse(log.headers) as Record<string, unknown>)
           : (log.headers ?? {}),
-      occured: new Date(log.occured).getTime(),
+      occured: new Date(log.occured).getTime().toString(),
       statusCode: log.statusCode ?? 0,
       ip: log.ip ?? '0.0.0.0',
     } as INotFormattedLogEntry;

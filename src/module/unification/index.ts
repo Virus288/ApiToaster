@@ -61,6 +61,7 @@ export default class Unification {
       return;
     }
     this.readLogs(params.files[0]);
+
     await this.generateDefaults(params);
 
     const file = this.fileController.fetchCurrentLogFile(params.files[0]);
@@ -121,7 +122,8 @@ export default class Unification {
         headers: entry.headers ?? '{}',
         ip: entry.ip && entry.ip.length > 0 ? entry.ip : '::ffff:127.0.0.1',
         statusCode: entry.statusCode ? entry.statusCode : 200,
-        occured: entry.occured ?? new Date().toISOString(),
+        // occured: entry.occured ?? new Date().toISOString(),
+        occured: entry.occured ?? Date.now(),
       };
     }
 
@@ -136,7 +138,8 @@ export default class Unification {
         keys.includes('statusCode') && (entry.statusCode === null || !entry.statusCode) ? 200 : entry.statusCode,
       occured:
         keys.includes('occured') && (entry.occured === null || !entry.occured)
-          ? new Date().toISOString()
+          ? // ? new Date().toISOString()
+            Date.now().toString()
           : entry.occured,
     };
   }

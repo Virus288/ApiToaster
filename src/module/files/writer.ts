@@ -159,6 +159,7 @@ export default class FileWriter {
     const uuid = State.reqUuid ?? randomUUID();
 
     const logBody = this.prepareLog(req, statusCode);
+    logBody.occured = logBody.occured.toString(); // Explicitly ensure `occured` is a string
     const logProto: ILogProto = {
       [uuid]: JSON.stringify(logBody),
     };
@@ -190,7 +191,7 @@ export default class FileWriter {
       headers: State.config.headers ? filteredHeaders : {},
       ip: State.config.ip ? req.ip : undefined,
       statusCode: State.config.statusCode ? statusCode : undefined,
-      occured: Date.now(),
+      occured: Date.now().toString(),
     };
     this.obfuscate(body);
 
@@ -215,7 +216,7 @@ export default class FileWriter {
     const formated: ILog['body'] = {
       body: JSON.stringify(log.body),
       method: log.method,
-      occured: new Date(log.occured).toISOString(),
+      occured: new Date(Number(log.occured)).toISOString(),
       queryParams: JSON.stringify(log.queryParams),
       headers: JSON.stringify(log.headers),
       ip: log.ip,
