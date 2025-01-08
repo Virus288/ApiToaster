@@ -84,7 +84,7 @@ export default class FileReader {
                 typeof decodedLog.body === 'string'
                   ? (JSON.parse(decodedLog.body) as Record<string, unknown>)
                   : decodedLog.body,
-              occured: new Date(decodedLog.occured).getTime(),
+              occured: new Date(Number(decodedLog.occured)).getTime().toString(),
               queryParams:
                 decodedLog.queryParams && typeof decodedLog.queryParams === 'string'
                   ? (JSON.parse(decodedLog.queryParams) as Record<string, unknown>)
