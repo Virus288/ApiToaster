@@ -231,43 +231,43 @@ describe('File writer', () => {
       expect(error).toBeUndefined();
     });
 
-    // it(`Write file - debuffed, disabled statusCode`, async () => {
-    //   let error: IFullError | undefined = undefined;
-    //   State.config = { ...State.config, statusCode: false, disableProto: true };
-    //   let callback: INotFormattedLogEntry | undefined = undefined;
-    //
-    //   try {
-    //     await fileWriter.init(defaultReq as express.Request, 200);
-    //     callback = JSON.parse(Object.values((fileReader.init() as ILogsProto).logs)[0]!);
-    //   } catch (err) {
-    //     error = err as IFullError;
-    //   }
-    //
-    //   expect(callback?.body).toEqual(defaultReq.body);
-    //   expect(callback?.method).toEqual(defaultReq.method);
-    //   expect(callback?.headers).toEqual(defaultReq.headers);
-    //   expect(callback?.queryParams).toEqual(defaultReq.query);
-    //   expect(callback?.statusCode).toBeUndefined()
-    //   expect(error).toBeUndefined();
-    // });
-    // it(`Write file - debuffed, enabled statusCode`, async () => {
-    //   let error: IFullError | undefined = undefined;
-    //   State.config = { ...State.config, disableProto: true };
-    //   let callback: INotFormattedLogEntry | undefined = undefined;
-    //
-    //   try {
-    //     await fileWriter.init(defaultReq as express.Request, 400);
-    //     callback = JSON.parse(Object.values((fileReader.init() as ILogsProto).logs)[0]!);
-    //   } catch (err) {
-    //     error = err as IFullError;
-    //   }
-    //
-    //   expect(callback?.body).toEqual(defaultReq.body);
-    //   expect(callback?.method).toEqual(defaultReq.method);
-    //   expect(callback?.headers).toEqual(defaultReq.headers);
-    //   expect(callback?.queryParams).toEqual(defaultReq.query);
-    //   expect(callback?.statusCode).toEqual(400)
-    //   expect(error).toBeUndefined();
-    // });
+    it(`Write file - debuffed, disabled statusCode`, async () => {
+      let error: IFullError | undefined = undefined;
+      State.config = { ...State.config, statusCode: false, disableProto: true };
+      let callback: INotFormattedLogEntry | undefined = undefined;
+
+      try {
+        await fileWriter.init(defaultReq as express.Request, 200);
+        callback = JSON.parse(Object.values((fileReader.init() as ILogsProto).logs)[0]!);
+      } catch (err) {
+        error = err as IFullError;
+      }
+
+      expect(callback?.body).toEqual(defaultReq.body);
+      expect(callback?.method).toEqual(defaultReq.method);
+      expect(callback?.headers).toEqual(defaultReq.headers);
+      expect(callback?.queryParams).toEqual(defaultReq.query);
+      expect(callback?.statusCode).toBeUndefined()
+      expect(error).toBeUndefined();
+    });
+    it(`Write file - debuffed, enabled statusCode`, async () => {
+      let error: IFullError | undefined = undefined;
+      State.config = { ...State.config, disableProto: true };
+      let callback: INotFormattedLogEntry | undefined = undefined;
+
+      try {
+        await fileWriter.init(defaultReq as express.Request, 400);
+        callback = JSON.parse(Object.values((fileReader.init() as ILogsProto).logs)[0]!);
+      } catch (err) {
+        error = err as IFullError;
+      }
+
+      expect(callback?.body).toEqual(defaultReq.body);
+      expect(callback?.method).toEqual(defaultReq.method);
+      expect(callback?.headers).toEqual(defaultReq.headers);
+      expect(callback?.queryParams).toEqual(defaultReq.query);
+      expect(callback?.statusCode).toEqual(400)
+      expect(error).toBeUndefined();
+    });
   });
 });

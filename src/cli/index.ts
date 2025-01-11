@@ -1,5 +1,5 @@
-import QueryBuilder from './queryBuilder.js';
-import UniQueryBuilder from './unificationQueryBuilder.js';
+import FinderQueryBuilder from './querybuilders/finderQueryBuilder.js';
+import UniQueryBuilder from './querybuilders/unificationQueryBuilder.js';
 import * as enums from '../enums/index.js';
 import Decoder from '../module/decode/index.js';
 import FileFinder from '../module/files/finder.js';
@@ -151,7 +151,7 @@ export default class Cli {
     if (args[0] === enums.ECliFlags.Help || args[0] === enums.ECliFlags.ShortHelp) {
       Log.log('Cli', enums.ECliResponses.TimeTravelHelp);
     } else {
-      const builder = new QueryBuilder(args);
+      const builder = new FinderQueryBuilder(args);
       const params = builder.init();
 
       await new TimeTravel().init(config, params);
@@ -174,7 +174,7 @@ export default class Cli {
     if (args[0] === enums.ECliFlags.Help || args[0] === enums.ECliFlags.ShortHelp) {
       Log.log('Cli', enums.ECliResponses.FindHelp);
     } else {
-      const builder = new QueryBuilder(args);
+      const builder = new FinderQueryBuilder(args);
       const params = builder.init();
 
       if (builder.isEmpty()) return Log.error('Cli', 'Malformed params');
@@ -223,6 +223,7 @@ export default class Cli {
 
     this.readConfig();
     const logs = await this.decoder.init(fileName);
+
     Log.log('Logs', logs);
   }
 

@@ -3,5 +3,6 @@ type IUnifiactionKey = "method" | "body" | "queryParams" | "headers" | "ip" | "s
 export type IUnificationParams={
   files: string[];
   values:IUnifiactionKey[]
+  remove:boolean
 }
 

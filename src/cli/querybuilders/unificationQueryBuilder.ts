@@ -1,13 +1,14 @@
-import * as enums from '../enums/index.js';
-import Log from '../tools/logger.js';
-import Validation from '../tools/validator.js';
-import type { IUnificationParams, ICliArgs, IUnifiactionKey } from '../../types/index.js';
+import * as enums from '../../enums/index.js';
+import Log from '../../tools/logger.js';
+import Validation from '../../tools/validator.js';
+import type { IUnificationParams, ICliArgs, IUnifiactionKey } from '../../../types/index.js';
 
 export default class QueryBuilder {
   private _lastCommmand: enums.ECliFlags | undefined = undefined;
   private _params: IUnificationParams = {
     files: [],
     values: [],
+    remove: false,
   };
   private _args: ICliArgs;
 
@@ -49,6 +50,10 @@ export default class QueryBuilder {
     const target = this.args[0];
 
     switch (target) {
+      case enums.ECliFlags.Remove:
+      case enums.ECliFlags.ShortRemove:
+        this.params.remove = true;
+        break;
       case enums.ECliFlags.ShortPath:
       case enums.ECliFlags.Path:
       case enums.ECliFlags.Value:

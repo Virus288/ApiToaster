@@ -69,11 +69,14 @@ export enum ECliResponses {
   this command will add some empty/default values.
   Available parameters for unification:
    -p filename : provide filename to run command on.
-   -v fields: provide one or more field name
+   -v fields: provide one or more field name.
+   -r: provide if one wants to remove some fields.
   Example usage: 'npx api-toaster uni -p logs_0.json'
   This command will add defaults to every possible missing field.
   Example usage: 'npx api-toaster uni -p logs_0.json -v ip method'
   This command will add defaults to ip and method.
+  Example usage: 'npx api-toaster uni -p logs_0.json -r -v ip method'
+  This command will remove ip and method fields from logs.
   `,
   UnificationUnknownCommand = `
   Available parameters for unification:

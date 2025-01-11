@@ -62,8 +62,12 @@ export default class Unification {
     }
     this.readLogs(params.files[0]);
 
-    await this.generateDefaults(params);
-
+    if (!params.remove) {
+      await this.generateDefaults(params);
+    }
+    if (params.remove) {
+      await this.removeFields(params);
+    }
     const file = this.fileController.fetchCurrentLogFile(params.files[0]);
     this.fileWriter.save(file, this.logs);
   }
@@ -76,6 +80,40 @@ export default class Unification {
     this.logs = this.fileReader.init(fileName);
   }
 
+  private async removeFields(params: IUnificationParams): Promise<void> {
+    if ('logs' in this.logs && typeof this.logs.logs === 'object') {
+      const logEntries = Object.entries(this.logs.logs);
+      const updatedLogs: [string, string][] = await Promise.all(
+        logEntries.map(async ([key, value]) => {
+          // let entry: ILogEntry;
+
+          if (checkIfObject(value as string)) {
+            const log = JSON.parse(value as string) as ILogEntry;
+            for (const v in log) {
+              if (params.values.includes(v as IUnifiactionKey)) {
+                delete log[v as IUnifiactionKey];
+              }
+            }
+            // Handle JSON object logs
+            return [key, JSON.stringify(log)];
+          }
+          // Handle Protobuf logs
+          const decodedEntry = await this.proto.decodeLogEntry(value as string);
+          for (const v in decodedEntry) {
+            if (params.values.includes(v as IUnifiactionKey)) {
+              delete decodedEntry[v as IUnifiactionKey];
+            }
+          }
+          const reEncodedEntry = await this.proto.encodeLog(decodedEntry);
+          return [key, reEncodedEntry];
+        }),
+      );
+
+      for (const [key, value] of updatedLogs) {
+        this.logs.logs[key as keyof typeof this.logs.logs] = value;
+      }
+    }
+  }
   /**
    * Applies default values to all logs.
    * @param params Unification params.
@@ -122,8 +160,7 @@ export default class Unification {
         headers: entry.headers ?? '{}',
         ip: entry.ip && entry.ip.length > 0 ? entry.ip : '::ffff:127.0.0.1',
         statusCode: entry.statusCode ? entry.statusCode : 200,
-        // occured: entry.occured ?? new Date().toISOString(),
-        occured: entry.occured ?? Date.now(),
+        occured: entry.occured ?? Date.now().toString(),
       };
     }
 
@@ -137,10 +174,7 @@ export default class Unification {
       statusCode:
         keys.includes('statusCode') && (entry.statusCode === null || !entry.statusCode) ? 200 : entry.statusCode,
       occured:
-        keys.includes('occured') && (entry.occured === null || !entry.occured)
-          ? // ? new Date().toISOString()
-            Date.now().toString()
-          : entry.occured,
+        keys.includes('occured') && (entry.occured === null || !entry.occured) ? Date.now().toString() : entry.occured,
     };
   }
 }
