@@ -8,7 +8,6 @@ import State from '../../../src/tools/state.js';
 import Log from '../../../src/tools/logger.js';
 import { IFullError } from '../../../types/error.js';
 import FileWriter from '../../../src/module/files/writer.js';
-import FileReader from '../../../src/module/files/reader.js';
 import FileDecoder from '../../../src/module/decode/index.js';
 import Unification from '../../../src/module/unification/index.js';
 import { INotFormattedLogEntry } from '../../../types/logs.js';
@@ -23,13 +22,13 @@ describe('Unification', () => {
         });
     };
     const fileWriter = new FileWriter();
-    const fileReader = new FileReader();
     const fileDecoder = new FileDecoder();
     const unification = new Unification();
     const cli = new Cli();
     const params: IUnificationParams = {
         files: [],
         values: [],
+        remove:false
     };
     const defaultReq: Partial<express.Request> = {
         headers: {
@@ -84,7 +83,6 @@ describe('Unification', () => {
             try {
                 await fileWriter.init(defaultReq as express.Request);
                 await unification.init(params);
-                fileReader.init('logs_0.json');
                 callback = await fileDecoder.init('logs_0.json');
             } catch (err) {
                 error = err as IFullError;
@@ -114,7 +112,6 @@ describe('Unification', () => {
                 paramsClone.values.push('method');
                 await fileWriter.init(defaultReq as express.Request);
                 await unification.init(paramsClone);
-                fileReader.init('logs_0.json');
                 callback = await fileDecoder.init('logs_0.json');
             } catch (err) {
                 error = err as IFullError;
@@ -122,12 +119,8 @@ describe('Unification', () => {
             expect(error).toBeUndefined();
             expect(callback[0]![1]).toEqual({
                 method: 'GET',
-                headers: {},
-                ip: '',
                 occured: expect.anything(),
-                queryParams: {},
                 body: {},
-                statusCode: 0,
             });
         });
 
@@ -141,7 +134,6 @@ describe('Unification', () => {
                 paramsClone.values.push('method');
                 await fileWriter.init(defaultReq as express.Request);
                 await unification.init(paramsClone);
-                fileReader.init('logs_0.json');
                 callback = await fileDecoder.init('logs_0.json');
             } catch (err) {
                 error = err as IFullError;
@@ -149,12 +141,9 @@ describe('Unification', () => {
             expect(error).toBeUndefined();
             expect(callback[0]![1]).toEqual({
                 method: 'GET',
-                headers: {},
                 ip: '::ffff:127.0.0.1',
                 occured: expect.anything(),
-                queryParams: {},
                 body: {},
-                statusCode: 0,
             });
         });
         it(`unification - add all default values`, async () => {
@@ -164,7 +153,6 @@ describe('Unification', () => {
             try {
                 await fileWriter.init(defaultReq as express.Request);
                 await unification.init(params);
-                fileReader.init('logs_0.json');
                 callback = await fileDecoder.init('logs_0.json');
             } catch (err) {
                 error = err as IFullError;
@@ -172,12 +160,31 @@ describe('Unification', () => {
             expect(error).toBeUndefined();
             expect(callback[0]![1]).toEqual({
                 method: 'GET',
-                headers: {},
                 ip: '::ffff:127.0.0.1',
                 occured: expect.anything(),
-                queryParams: {},
                 body: {},
                 statusCode: 200,
+            });
+        });
+
+        it(`unification - remove ip`, async () => {
+            let error: IFullError | undefined = undefined;
+            let callback: [string, INotFormattedLogEntry][] = [];
+            State.config = { ...defaultConfig(), ip: true ,disableProto:true,headers: false,method: false};
+            try {
+                await fileWriter.init(defaultReq as express.Request);
+                const cloneParams=structuredClone(params)
+                cloneParams.remove=true
+                cloneParams.values.push('ip')
+                await unification.init(cloneParams);
+                callback = await fileDecoder.init('logs_0.json');
+            } catch (err) {
+                error = err as IFullError;
+            }
+            expect(error).toBeUndefined();
+            expect(callback[0]![1]).toEqual({
+                occured: expect.anything(),
+                body: {},
             });
         });
     });

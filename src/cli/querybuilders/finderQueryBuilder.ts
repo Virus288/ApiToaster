@@ -1,6 +1,6 @@
-import * as enums from '../enums/index.js';
-import Log from '../tools/logger.js';
-import type { IFindParams, ICliArgs } from '../../types/index.js';
+import * as enums from '../../enums/index.js';
+import Log from '../../tools/logger.js';
+import type { IFindParams, ICliArgs } from '../../../types/index.js';
 
 export default class QueryBuilder {
   private _lastCommmand: enums.ECliFlags | undefined = undefined;

@@ -86,7 +86,6 @@ describe('File finder', () => {
             key: 'value',
           },
           body: {},
-          statusCode: 0,
         },
       ]);
     });
@@ -133,7 +132,6 @@ describe('File finder', () => {
             key: 'value',
           },
           body: {},
-          statusCode: 0,
         },
       ]);
     });
@@ -226,7 +224,6 @@ describe('File finder', () => {
             key: 'value',
           },
           body: { key: 'value' },
-          statusCode: 0,
         },
       ]);
     });
@@ -273,7 +270,6 @@ describe('File finder', () => {
             key: 'value',
           },
           body: { key: 'value' },
-          statusCode: 0,
         },
       ]);
     });
@@ -320,7 +316,6 @@ describe('File finder', () => {
             key: 'value',
           },
           body: {},
-          statusCode: 0,
         },
       ]);
     });
@@ -355,7 +350,7 @@ describe('File finder', () => {
           expect.anything(),
           {
             method: 'POST',
-            headers: {},
+            // headers: {},
             ip: '127.0.0.1',
             occured: expect.anything(),
             queryParams: {
@@ -364,7 +359,6 @@ describe('File finder', () => {
             body: {
               key: 'value',
             },
-            statusCode: 0,
           },
         ]);
       });
@@ -384,14 +378,13 @@ describe('File finder', () => {
           expect.anything(),
           {
             method: 'GET',
-            headers: {},
+            // headers: {},
             ip: '127.0.0.1',
             occured: expect.anything(),
             queryParams: {
               key: 'value',
             },
             body: {},
-            statusCode: 0,
           },
         ]);
       });

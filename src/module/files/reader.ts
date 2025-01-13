@@ -64,6 +64,64 @@ export default class FileReader {
   async prepareLogs(logs: ILogProto | ILog): Promise<[string, INotFormattedLogEntry][]> {
     Log.debug('File reader', 'Preparing logs');
 
+    const removeEmptyFields = (log: INotFormattedLogEntry): Partial<INotFormattedLogEntry> => {
+      return Object.entries(log).reduce((acc, [key, value]) => {
+        // Always include 'body', even if it's empty
+        if (key === 'body') {
+          if (value !== null && typeof value === 'object') {
+            acc[key] = value as Record<string, unknown>;
+          }
+          return acc;
+        }
+        // Check if the field is non-empty
+        // if (
+        //   value !== null &&
+        //   value !== undefined &&
+        //   !(typeof value === 'string' && value.trim() === '') && // Skip empty strings
+        //   !(typeof value === 'object' && Object.keys(value as object).length === 0)
+        // ) {
+        //   acc[key as keyof INotFormattedLogEntry] = value;
+        // }
+
+        // Type-specific checks for each key
+        // queryParams?: Record<string, string>
+        // headers?: IncomingHttpHeaders
+        switch (key) {
+          case 'queryParams':
+          case 'headers':
+            if (
+              typeof value === 'object' &&
+              value !== null &&
+              Object.keys(value as Record<string, string>).length > 0
+            ) {
+              acc[key] = value as Record<string, string>;
+            }
+            break;
+          case 'ip':
+          case 'occured':
+            if (typeof value === 'string' && value && value.trim() !== '') {
+              acc[key] = value;
+            }
+            break;
+
+          case 'statusCode':
+            if (typeof value === 'number' && value) {
+              acc[key] = value;
+            }
+            break;
+
+          case 'method':
+            if (typeof value === 'string' && value && value.trim() !== '') {
+              acc[key] = value;
+            }
+            break;
+          default:
+            break;
+        }
+        return acc;
+      }, {} as Partial<INotFormattedLogEntry>);
+    };
+
     const proto = new Proto();
     const malformed: string[] = [];
     const prepared = await Promise.all(
@@ -76,27 +134,40 @@ export default class FileReader {
           decodedLog = await proto.decodeLogEntry(v as string);
         }
         try {
-          return [
-            k,
-            {
-              ...decodedLog,
-              body:
-                typeof decodedLog.body === 'string'
-                  ? (JSON.parse(decodedLog.body) as Record<string, unknown>)
-                  : decodedLog.body,
-              occured: new Date(Number(decodedLog.occured)).getTime().toString(),
-              queryParams:
-                decodedLog.queryParams && typeof decodedLog.queryParams === 'string'
-                  ? (JSON.parse(decodedLog.queryParams) as Record<string, unknown>)
-                  : (decodedLog.queryParams ?? {}),
-              headers:
-                decodedLog.headers && typeof decodedLog.headers === 'string'
-                  ? (JSON.parse(decodedLog.headers) as Record<string, unknown>)
-                  : (decodedLog.headers ?? {}),
-              statusCode:
-                decodedLog.statusCode && typeof decodedLog.statusCode === 'number' ? decodedLog.statusCode : 0,
-            } as INotFormattedLogEntry,
-          ];
+          // Dynamically construct the log entry
+          const result: INotFormattedLogEntry = {
+            body:
+              typeof decodedLog.body === 'string'
+                ? (JSON.parse(decodedLog.body) as Record<string, unknown>)
+                : decodedLog.body,
+            method: decodedLog.method,
+            ip: decodedLog.ip,
+            statusCode: decodedLog.statusCode,
+            occured: decodedLog.occured,
+          };
+
+          // Conditionally include fields
+          if (decodedLog.body) {
+            result.body =
+              typeof decodedLog.body === 'string'
+                ? (JSON.parse(decodedLog.body) as Record<string, unknown>)
+                : decodedLog.body;
+          }
+          if (decodedLog.queryParams) {
+            result.queryParams =
+              decodedLog.queryParams && typeof decodedLog.queryParams === 'string'
+                ? (JSON.parse(decodedLog.queryParams) as Record<string, string>)
+                : undefined;
+          }
+          if (decodedLog.headers) {
+            result.headers =
+              typeof decodedLog.headers === 'string'
+                ? (JSON.parse(decodedLog.headers) as Record<string, string | string[]>)
+                : decodedLog.headers;
+          }
+
+          const newResult = removeEmptyFields(result);
+          return [k, newResult];
         } catch (_err) {
           if (
             decodedLog.body &&

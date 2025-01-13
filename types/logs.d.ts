@@ -7,17 +7,17 @@ export interface ILogEntry {
   headers?: string;
   ip?: string;
   statusCode?: number;
-  occured: string;
+  occured?: string;
 }
 
 export interface INotFormattedLogEntry {
   method?: string;
   body: Record<string, unknown>;
-  queryParams?: Record<string, string>;
-  headers?: IncomingHttpHeaders;
+  queryParams?: Record<string, string>
+  headers?: IncomingHttpHeaders
   ip?: string;
   statusCode?: number;
-  occured:string
+  occured?:string
 }
 
 export interface ILogProto {

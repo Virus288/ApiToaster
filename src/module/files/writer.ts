@@ -134,6 +134,8 @@ export default class FileWriter {
 
     const logBody = this.prepareLog(req, statusCode);
 
+    logBody.occured = logBody.occured?.toString();
+
     const buffedLog = this.prepareBuffedLog(logBody);
 
     const logProto: ILogProto = {
@@ -159,7 +161,9 @@ export default class FileWriter {
     const uuid = State.reqUuid ?? randomUUID();
 
     const logBody = this.prepareLog(req, statusCode);
-    logBody.occured = logBody.occured.toString(); // Explicitly ensure `occured` is a string
+
+    logBody.occured = logBody.occured?.toString();
+
     const logProto: ILogProto = {
       [uuid]: JSON.stringify(logBody),
     };
@@ -169,6 +173,9 @@ export default class FileWriter {
     this.index.indexes[uuid] = path.resolve(State.config.path, this.currLogFile);
   }
 
+  private isEmptyObject(value: unknown): boolean {
+    return typeof value === 'object' && value !== null && Object.keys(value).length === 0;
+  }
   /**
    * Prepare new generic log body.
    * @description Preapre new generic log body.
@@ -193,16 +200,9 @@ export default class FileWriter {
       statusCode: State.config.statusCode ? statusCode : undefined,
       occured: Date.now().toString(),
     };
-    this.obfuscate(body);
 
-    const logBody: INotFormattedLogEntry = {
-      ...body,
-      occured: body.occured,
-      queryParams: body.queryParams,
-      headers: body.headers,
-      statusCode: body.statusCode,
-    };
-    return logBody;
+    this.obfuscate(body);
+    return this.filterEmptyFields(body);
   }
 
   /**
@@ -212,19 +212,40 @@ export default class FileWriter {
    * @returns {ILogEntry} Preapred log entry.
    */
   prepareBuffedLog(log: INotFormattedLogEntry): ILogEntry {
-    Log.debug('File writer', 'Preapre buffed log');
-    const formated: ILog['body'] = {
+    Log.debug('File writer', 'Prepare buffed log');
+
+    const formatted: ILog['body'] = {
       body: JSON.stringify(log.body),
       method: log.method,
-      occured: new Date(Number(log.occured)).toISOString(),
+      occured: log.occured,
       queryParams: JSON.stringify(log.queryParams),
       headers: JSON.stringify(log.headers),
       ip: log.ip,
       statusCode: log.statusCode,
     };
-    return formated;
+
+    const filteredLog = this.filterEmptyFields(formatted);
+    return filteredLog;
   }
 
+  /**
+   * Filters out empty fields from the given object, leaving `body` intact even if empty.
+   * @param entry The log entry to filter.
+   * @returns The filtered log entry.
+   */
+  private filterEmptyFields<T extends { body: unknown }>(entry: T): T {
+    return Object.entries(entry).reduce(
+      (acc, [key, value]) => {
+        if (key === 'body') {
+          acc.body = entry.body; // Always include `body`, even if empty
+        } else if (value !== undefined && value !== null && value !== '' && !this.isEmptyObject(value)) {
+          (acc as Record<string, unknown>)[key] = value;
+        }
+        return acc;
+      },
+      { body: entry.body } as T,
+    );
+  }
   /**
    * Prepare and update conig state.
    * @description Updates field disableProto in state.

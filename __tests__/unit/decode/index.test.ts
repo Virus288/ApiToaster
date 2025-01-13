@@ -35,7 +35,7 @@ describe('Decoder', () => {
 
   beforeEach(async () => {
     await clear();
-    State.config = defaultConfig();
+    State.config = { ...defaultConfig(), ip: true };
   });
 
   afterEach(async () => {
@@ -72,7 +72,7 @@ describe('Decoder', () => {
             key: 'value',
           },
           body: {},
-          statusCode: 0,
+          ip:'127.0.0.1'
         },
       ]);
     });
