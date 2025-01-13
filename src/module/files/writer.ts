@@ -134,7 +134,7 @@ export default class FileWriter {
 
     const logBody = this.prepareLog(req, statusCode);
 
-    logBody.occured = logBody.occured?.toString(); // Explicitly ensure `occured` is a string
+    logBody.occured = logBody.occured?.toString();
 
     const buffedLog = this.prepareBuffedLog(logBody);
 
@@ -161,7 +161,9 @@ export default class FileWriter {
     const uuid = State.reqUuid ?? randomUUID();
 
     const logBody = this.prepareLog(req, statusCode);
-    logBody.occured = logBody.occured?.toString(); // Explicitly ensure `occured` is a string
+
+    logBody.occured = logBody.occured?.toString();
+
     const logProto: ILogProto = {
       [uuid]: JSON.stringify(logBody),
     };
