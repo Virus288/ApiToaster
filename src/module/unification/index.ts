@@ -10,7 +10,7 @@ export default class Unification {
   private readonly _fileReader: FileReader;
   private readonly _fileWriter: FileWriter;
   private readonly _fileController: FileController;
-  private _logs: ILogsProto | ILogs = { logs: {} };
+  private _logs: ILogsProto | ILogs = { meta: { logCount: 0 }, logs: {} };
   private _proto: Proto;
 
   constructor() {

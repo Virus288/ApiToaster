@@ -19,6 +19,6 @@ export default function (): IConfig {
     disableProto: false,
     statusCode: true,
     countTime: false,
-    logFileSize: 10000,
+    logFileSize: 1000,
   };
 }

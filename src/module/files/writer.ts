@@ -27,7 +27,7 @@ export default class FileWriter {
 
   constructor() {
     this._controller = new FileController();
-    this._logs = { logs: {} };
+    this._logs = { meta: { logCount: 0 }, logs: {} };
     this._index = { indexes: {} };
     this._config = { disableProto: false };
   }
@@ -91,6 +91,7 @@ export default class FileWriter {
     this.currLogFile = this.controller.fetchCurrentLogFile();
 
     this.logs = this.controller.prepareLogfile(this.currLogFile);
+    this.updateLogCount();
 
     this.prepareIndexFile();
     this.prepareConfigFile();
@@ -114,7 +115,7 @@ export default class FileWriter {
     Log.debug('File writer', 'Pre');
     this.controller.initDirectories();
     this.validateFile('index.json', JSON.stringify({ indexes: {} }));
-    this.validateFile(this.currLogFile, JSON.stringify({ logs: {} }));
+    this.validateFile(this.currLogFile, JSON.stringify({ meta: { logCount: 0 }, logs: {} }));
     this.validateFile('config.json', JSON.stringify({ disableProto: false }));
   }
 
@@ -302,6 +303,7 @@ export default class FileWriter {
    * @private
    */
   private saveFiles(): void {
+    this.incrementLogCount();
     this.save('index.json', this.index);
     this.save(this.currLogFile, this.logs);
     this.save('config.json', this.config);
@@ -370,9 +372,9 @@ export default class FileWriter {
   private checkFileSize(logName: string): void {
     Log.debug('File writer', 'Checking file size');
 
-    const logPath = path.resolve(State.config.path, logName);
-    const size = fs.statSync(logPath).size + this.currLogSize;
-    if (size > State.config.logFileSize) {
+    const size = this.logs.meta.logCount;
+
+    if (size >= State.config.logFileSize) {
       this.incrementLogFile(logName);
       this.cleanLogs();
     }
@@ -388,9 +390,21 @@ export default class FileWriter {
     Log.debug('File writer', 'Cleaning logs');
 
     const lastLog = Object.entries(this.logs.logs).slice(-1);
+    this.logs.meta.logCount = 0;
     this.logs.logs = { ...Object.fromEntries(lastLog) };
   }
 
+  /**
+   * Reset curr log number.
+   * @description Method to reset current log counter.
+   * @returns {void} Void.
+   * @private
+   */
+  resetLogCount(): void {
+    Log.debug('File writer', 'Reseting log count');
+
+    this.currLogFile = 'logs_0.json';
+  }
   /**
    * Increments log numeration.
    * @description Method to increment log file numeration.
@@ -409,5 +423,26 @@ export default class FileWriter {
 
     const number = parseInt(match![0], 10) + 1;
     this.currLogFile = logName.replace(/\d+/u, number.toString());
+  }
+
+  /**
+   * Increments log count .
+   * @description Method to increment log count.
+   * @returns {void} Void.
+   * @private
+   */
+  private incrementLogCount(): void {
+    Log.debug('File writer', 'Incrementing log count');
+    this.logs.meta.logCount++;
+  }
+  /**
+   * Updates log count .
+   * @description Method to update log count.
+   * @returns {void} Void.
+   * @private
+   */
+  private updateLogCount(): void {
+    Log.debug('File writer', 'Updating log count');
+    this.logs.meta.logCount = Object.keys(this.logs.logs).length;
   }
 }
