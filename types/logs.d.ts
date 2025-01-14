@@ -1,5 +1,9 @@
 import { IncomingHttpHeaders } from 'http';
 
+export interface IMetadata{
+  logCount:number
+}
+
 export interface ILogEntry {
   method?: string;
   body: string;
@@ -30,9 +34,11 @@ export interface ILog {
 
 export interface ILogsProto {
   logs: ILogProto;
+  meta:IMetadata
 }
 export interface ILogs {
   logs: ILog;
+  meta:IMetadata
 }
 
 export interface IIndexEntry {

@@ -42,7 +42,6 @@ export default class FileController {
         Log.debug('File reader', 'Got error while reading provided file', (err as Error).message, (err as Error).stack);
         if (State.config.shouldThrow) throw new NoSavedLogsError();
       }
-
       return fileName;
     }
 
@@ -106,7 +105,7 @@ export default class FileController {
       if (State.config.shouldThrow) {
         throw new MalformedLogFilesError(fileName);
       }
-      return { logs: {} };
+      return { meta: { logCount: 0 }, logs: {} };
     }
   }
 }

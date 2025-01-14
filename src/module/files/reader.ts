@@ -27,6 +27,7 @@ export default class FileReader {
 
     const file = this.controller.fetchCurrentLogFile(fileName);
 
+    // const logCount=this.
     return this.controller.prepareLogfile(file);
   }
 
