@@ -129,6 +129,8 @@ export default class FileFinder {
 
     const logs = await this.getLogs(params);
 
+      const ss=this.reader.getMalformedLogs()
+console.log(")))))",ss)
     Log.debug('File finder', 'Raw data', logs);
     if (params.ips.length > 0 && !logs[0]?.[1]?.ip) {
       Log.warn(

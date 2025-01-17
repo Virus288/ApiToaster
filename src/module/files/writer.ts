@@ -91,6 +91,7 @@ export default class FileWriter {
     this.currLogFile = this.controller.fetchCurrentLogFile();
 
     this.logs = this.controller.prepareLogfile(this.currLogFile);
+
     this.updateLogCount();
 
     this.prepareIndexFile();

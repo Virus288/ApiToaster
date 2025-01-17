@@ -1,6 +1,7 @@
 import Log from '../../tools/logger.js';
 import { sleep } from '../../utils/index.js';
 import FileFinder from '../files/finder.js';
+import FileReader from '../files/reader.js';
 import type {
   IFindParams,
   INotFormattedLogEntry,
@@ -12,11 +13,13 @@ import readline from 'readline';
 
 export default class TimeTravel {
   private readonly _fileFinder: FileFinder;
+  private readonly _fileReader: FileReader;
   private _config: IToasterTimeTravel | null = null;
   private _total: ITimeTravelStats;
 
   constructor() {
     this._fileFinder = new FileFinder();
+    this._fileReader = new FileReader();
     this._total = { succeeded: { amount: 0, ids: [] }, failed: { amount: 0, ids: [] } };
   }
 
@@ -30,6 +33,10 @@ export default class TimeTravel {
 
   private get fileFinder(): FileFinder {
     return this._fileFinder;
+  }
+
+  private get fileReader(): FileReader {
+    return this._fileReader;
   }
 
   private get total(): ITimeTravelStats {
@@ -53,6 +60,8 @@ export default class TimeTravel {
     }
     const cos = await this.fileFinder.find(params);
     await this.sendRequests(cos);
+    const aa= this.fileReader.getMalformedLogs()
+    console.log("------------------------",aa)
 
     this.cleanUp();
     this.presentData();

@@ -6,15 +6,27 @@ import type { ILog, ILogEntry, ILogProto, ILogs, ILogsProto, INotFormattedLogEnt
 
 export default class FileReader {
   private _controller: FileController;
+  _malformed: string[] = [];
 
   constructor() {
     this._controller = new FileController();
+  }
+
+  get malformed(): string[] {
+    return this._malformed;
+  }
+
+  set malformed(value: string[]) {
+    this._malformed = value;
   }
 
   private get controller(): FileController {
     return this._controller;
   }
 
+  getMalformedLogs(): string[] {
+    return this.malformed;
+  }
   /**
    * Read logs files.
    * @description Get current or specified log file, read and return it for usage.
@@ -74,19 +86,7 @@ export default class FileReader {
           }
           return acc;
         }
-        // Check if the field is non-empty
-        // if (
-        //   value !== null &&
-        //   value !== undefined &&
-        //   !(typeof value === 'string' && value.trim() === '') && // Skip empty strings
-        //   !(typeof value === 'object' && Object.keys(value as object).length === 0)
-        // ) {
-        //   acc[key as keyof INotFormattedLogEntry] = value;
-        // }
-
         // Type-specific checks for each key
-        // queryParams?: Record<string, string>
-        // headers?: IncomingHttpHeaders
         switch (key) {
           case 'queryParams':
           case 'headers':
@@ -124,7 +124,7 @@ export default class FileReader {
     };
 
     const proto = new Proto();
-    const malformed: string[] = [];
+    // const malformed: string[] = [];
     const prepared = await Promise.all(
       Object.entries(logs).map(async ([k, v]) => {
         let decodedLog: ILogEntry | INotFormattedLogEntry;
@@ -181,17 +181,17 @@ export default class FileReader {
             return [k, v] as unknown as [string, INotFormattedLogEntry];
           }
 
-          malformed.push(k);
+          this.malformed.push(k);
           return null;
         }
       }),
     );
     const filteredPrepared = prepared.filter((e) => e);
 
-    if (malformed.length > 0) {
+    if (this.malformed.length > 0) {
       Log.error(
         'File reader',
-        `Seems that logs ${malformed.join(', ')} were malformed. Currently this application cannot remove malformed logs. Please remove them manually, or via desktop app`,
+        `Seems that logs ${this.malformed.join(', ')} were malformed. Currently this application cannot remove malformed logs. Please remove them manually, or via desktop app`,
       );
     }
 
