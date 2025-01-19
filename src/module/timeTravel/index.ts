@@ -1,6 +1,7 @@
 import Log from '../../tools/logger.js';
 import { sleep } from '../../utils/index.js';
 import FileFinder from '../files/finder.js';
+// import FileReader from '../files/reader.js';
 import type {
   IFindParams,
   INotFormattedLogEntry,
@@ -32,6 +33,10 @@ export default class TimeTravel {
     return this._fileFinder;
   }
 
+  // private get fileReader(): FileReader {
+  //   return this._fileReader;
+  // }
+
   private get total(): ITimeTravelStats {
     return this._total;
   }
@@ -57,10 +62,6 @@ export default class TimeTravel {
     this.cleanUp();
     this.presentData();
   }
-
-  // private readLogs(filename?: string): ILogsProto | ILogs {
-  //   return this.fileReader.init(filename);
-  // }
 
   /**
    * Send requests created from logs.

@@ -19,18 +19,7 @@ export default class Proto {
 
     const root = await this.loadProto();
     const LogEntry = root.lookupType('apitoaster.LogEntry');
-    //
-    // const defaultLog: ILogEntry = {
-    //   method: '',
-    //   body: '',
-    //   queryParams: '',
-    //   headers: '',
-    //   ip: '',
-    //   occured: '',
-    //   statusCode: 200,
-    // };
 
-    // const log = { ...defaultLog, ...logEntry };
     const log = { ...logEntry };
 
     const error = LogEntry.verify(log);
@@ -39,6 +28,7 @@ export default class Proto {
     }
 
     const encodedLog = LogEntry.encode(LogEntry.create(log)).finish();
+
     return Buffer.from(encodedLog).toString('base64');
   }
 

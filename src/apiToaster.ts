@@ -1,5 +1,5 @@
 import FileWriter from './module/files/writer.js';
-import defaultConfig from './tools/config.js';
+import { defaultMiddlewareConfig } from './tools/config.js';
 import Log from './tools/logger.js';
 import State from './tools/state.js';
 import type { IToasterConfig } from '../types';
@@ -73,14 +73,14 @@ class Toaster {
         const root = process.cwd();
         const str = config.path.startsWith('/') ? config.path.slice(1) : config.path;
         const dirPath = path.resolve(root, str);
-        State.config = { ...defaultConfig(), ...config, path: dirPath };
+        State.config = { ...defaultMiddlewareConfig(), ...config, path: dirPath };
       } else {
-        State.config = { ...defaultConfig(), ...config };
+        State.config = { ...defaultMiddlewareConfig(), ...config };
       }
     } else {
       Log.log('Main action', 'User did not provide config');
 
-      State.config = defaultConfig();
+      State.config = defaultMiddlewareConfig();
     }
   }
 
@@ -107,7 +107,7 @@ export default function (
   const toaster = new Toaster();
   toaster.preInit(config);
 
-  if (State.config.countTime) {
+  if (State.toasterConfig.countTime) {
     Log.time(State.reqUuid, 'Counting time for req');
     res.once('finish', () => {
       Log.endTime(State.reqUuid, 'Request finished');

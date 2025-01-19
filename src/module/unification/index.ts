@@ -1,15 +1,18 @@
+import { ApplyingDefaultsError } from '../../errors/index.js';
 import Log from '../../tools/logger.js';
 import { checkIfObject } from '../../utils/index.js';
 import FileController from '../files/controller.js';
 import FileReader from '../files/reader.js';
 import FileWriter from '../files/writer.js';
 import Proto from '../protobuf/index.js';
+import Utils from '../utils/index.js';
 import type { ILogEntry, ILogs, ILogsProto, IUnifiactionKey, IUnificationParams } from '../../../types/index.js';
 
 export default class Unification {
   private readonly _fileReader: FileReader;
   private readonly _fileWriter: FileWriter;
   private readonly _fileController: FileController;
+  private readonly _utils: Utils;
   private _logs: ILogsProto | ILogs = { meta: { logCount: 0 }, logs: {} };
   private _proto: Proto;
 
@@ -17,6 +20,7 @@ export default class Unification {
     this._fileReader = new FileReader();
     this._fileController = new FileController();
     this._fileWriter = new FileWriter();
+    this._utils = new Utils(this._fileReader, this._fileWriter);
     this._proto = new Proto();
   }
 
@@ -43,6 +47,9 @@ export default class Unification {
   private get proto(): Proto {
     return this._proto;
   }
+  private get utils(): Utils {
+    return this._utils;
+  }
 
   /**
    * Unificate file.
@@ -53,6 +60,7 @@ export default class Unification {
    */
   async init(params: IUnificationParams): Promise<void> {
     Log.debug('Data Migration', 'Migrating');
+    const filename = params.files[0];
     // if there is no or only file flag than proceed
     // if there is some value provided, than generate defaults and add them for values
     // TODO: change it later to handle mutliple files
@@ -60,7 +68,11 @@ export default class Unification {
       Log.warn('Unification', 'Please provide only one file.');
       return;
     }
-    this.readLogs(params.files[0]);
+    this.readLogs(filename);
+    await this.fileReader.prepareLogs(this.logs.logs);
+    await this.utils.promptMalformedLogDeletion();
+    // in case of deleting malformed logs we need to read logs again to update them.
+    this.readLogs(filename);
 
     if (!params.remove) {
       await this.generateDefaults(params);
@@ -68,7 +80,7 @@ export default class Unification {
     if (params.remove) {
       await this.removeFields(params);
     }
-    const file = this.fileController.fetchCurrentLogFile(params.files[0]);
+    const file = this.fileController.fetchCurrentLogFile(filename);
     this.fileWriter.save(file, this.logs);
   }
   /**
@@ -85,8 +97,6 @@ export default class Unification {
       const logEntries = Object.entries(this.logs.logs);
       const updatedLogs: [string, string][] = await Promise.all(
         logEntries.map(async ([key, value]) => {
-          // let entry: ILogEntry;
-
           if (checkIfObject(value as string)) {
             const log = JSON.parse(value as string) as ILogEntry;
             for (const v in log) {
@@ -150,31 +160,52 @@ export default class Unification {
    * @param entry The log entry to modify.
    * @param keys Fields to add default value to.
    * @returns {ILogEntry} The modified log entry with defaults applied.
+   * @throws
    */
-  private applyDefaults(entry: ILogEntry, keys?: IUnifiactionKey[]): ILogEntry {
-    if (keys?.length === 0 || !keys) {
-      return {
-        method: entry.method ? entry.method.trim() : 'GET',
-        body: entry.body ?? '{}',
-        queryParams: entry.queryParams ?? '{}',
-        headers: entry.headers ?? '{}',
-        ip: entry.ip && entry.ip.length > 0 ? entry.ip : '::ffff:127.0.0.1',
-        statusCode: entry.statusCode ? entry.statusCode : 200,
-        occured: entry.occured ?? Date.now().toString(),
-      };
+  private applyDefaults(entry: ILogEntry, keys?: IUnifiactionKey[]): ILogEntry | never {
+    let log: ILogEntry;
+    try {
+      if (keys?.length === 0 || !keys) {
+        log = {
+          method: entry.method ? entry.method.trim() : 'GET',
+          // body: entry.body ?? '{}',
+          body: entry.body && Object.entries(entry.body as unknown as object).length > 0 ? entry.body : '{}',
+          queryParams:
+            entry.queryParams && Object.entries(entry.queryParams as unknown as object).length > 0
+              ? entry.queryParams
+              : JSON.stringify({ key: 'value' }),
+          headers:
+            entry.headers && Object.entries(entry.headers as unknown as object).length > 0
+              ? entry.headers
+              : JSON.stringify({ key: 'value' }),
+          ip: entry.ip && entry.ip.length > 0 ? entry.ip : '::ffff:127.0.0.1',
+          statusCode: entry.statusCode ? entry.statusCode : 200,
+          occured: entry.occured ?? Date.now().toString(),
+        };
+      } else {
+        log = {
+          method: keys.includes('method') && !entry.method ? 'GET' : entry.method?.trim(),
+          body: keys.includes('body') && (entry.body === null || !entry.body) ? '{}' : entry.body,
+          queryParams:
+            keys.includes('queryParams') && (entry.queryParams === null || !entry.queryParams)
+              ? JSON.stringify({ key: 'value' })
+              : entry.queryParams,
+          headers:
+            keys.includes('headers') && (entry.headers === null || !entry.headers)
+              ? JSON.stringify({ key: 'value' })
+              : entry.headers,
+          ip: keys.includes('ip') && (!entry.ip || entry.ip.length === 0) ? '::ffff:127.0.0.1' : entry.ip,
+          statusCode:
+            keys.includes('statusCode') && (entry.statusCode === null || !entry.statusCode) ? 200 : entry.statusCode,
+          occured:
+            keys.includes('occured') && (entry.occured === null || !entry.occured)
+              ? Date.now().toString()
+              : entry.occured,
+        };
+      }
+      return log;
+    } catch (_error) {
+      throw new ApplyingDefaultsError();
     }
-
-    return {
-      method: keys.includes('method') && !entry.method ? 'GET' : entry.method?.trim(),
-      body: keys.includes('body') && (entry.body === null || !entry.body) ? '{}' : entry.body,
-      queryParams:
-        keys.includes('queryParams') && (entry.queryParams === null || !entry.queryParams) ? '{}' : entry.queryParams,
-      headers: keys.includes('headers') && (entry.headers === null || !entry.headers) ? '{}' : entry.headers,
-      ip: keys.includes('ip') && (!entry.ip || entry.ip.length === 0) ? '::ffff:127.0.0.1' : entry.ip,
-      statusCode:
-        keys.includes('statusCode') && (entry.statusCode === null || !entry.statusCode) ? 200 : entry.statusCode,
-      occured:
-        keys.includes('occured') && (entry.occured === null || !entry.occured) ? Date.now().toString() : entry.occured,
-    };
   }
 }

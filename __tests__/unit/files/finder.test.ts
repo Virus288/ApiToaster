@@ -3,7 +3,7 @@ import express from 'express';
 import fs from 'fs';
 import FileFinder from '../../../src/module/files/finder.js';
 import FileWriter from '../../../src/module/files/writer.js';
-import defaultConfig from '../../../src/tools/config.js';
+import {defaultMiddlewareConfig as defaultConfig,defaultToasterConfig} from '../../../src/tools/config.js';
 import State from '../../../src/tools/state.js';
 import { IFindParams } from '../../../types/cli.js';
 import { IFullError } from '../../../types/error.js';
@@ -47,6 +47,7 @@ describe('File finder', () => {
 
   beforeAll(() => {
     State.config = { ...defaultConfig(), ip: true };
+    State.toasterConfig = { ...defaultToasterConfig()};
   });
 
   beforeEach(async () => {

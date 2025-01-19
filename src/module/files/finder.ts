@@ -1,15 +1,19 @@
 import FileReader from './reader.js';
 import FileWriter from './writer.js';
 import Log from '../../tools/logger.js';
+import Utils from '../utils/index.js';
 import type { IFindParams, INotFormattedLogEntry } from '../../../types/index.js';
 import type { IncomingHttpHeaders } from 'http2';
+// import readline from 'readline';
 
 export default class FileFinder {
   private readonly _reader: FileReader;
   private readonly _writer: FileWriter;
+  private readonly _utils: Utils;
   constructor() {
     this._reader = new FileReader();
     this._writer = new FileWriter();
+    this._utils = new Utils(this._reader, this._writer);
   }
 
   private get reader(): FileReader {
@@ -18,6 +22,10 @@ export default class FileFinder {
 
   private get writer(): FileWriter {
     return this._writer;
+  }
+
+  private get utils(): Utils {
+    return this._utils;
   }
 
   /**
@@ -29,6 +37,7 @@ export default class FileFinder {
   private async getLogs(params: IFindParams): Promise<[string, INotFormattedLogEntry][]> {
     if (params.files.length === 0) {
       const logs = await this.reader.preLoadLogs(params.files[0]);
+      await this.utils.promptMalformedLogDeletion();
       return logs;
     }
     const logPromises = params.files.map((file) => this.reader.preLoadLogs(file));

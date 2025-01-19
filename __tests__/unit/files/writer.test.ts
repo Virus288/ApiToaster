@@ -4,10 +4,11 @@ import express from 'express';
 import FileReader from '../../../src/module/files/reader.js';
 import FileWriter from '../../../src/module/files/writer.js';
 import State from '../../../src/tools/state.js';
-import defaultConfig from '../../../src/tools/config.js';
-import { ILogs, ILogsProto, INotFormattedLogEntry } from '../../../types/logs.js';
+import {defaultMiddlewareConfig as defaultConfig,defaultToasterConfig} from '../../../src/tools/config.js';
+import { IIndex, ILogs, ILogsProto, INotFormattedLogEntry } from '../../../types/logs.js';
 import { IFullError } from '../../../types/error.js';
 import fs from 'fs';
+import * as utils from '../../utils';
 
 // Small note
 // #TODO Those tests should run mocked fs modules. Due to jest Crashing with internal errors, this is like this.
@@ -37,6 +38,7 @@ describe('File writer', () => {
 
     beforeEach(async () => {
         State.config = defaultConfig();
+        State.toasterConfig=defaultToasterConfig()
         await clear();
         await clear('AnotherToaster');
         fileWriter.resetLogCount();
@@ -54,28 +56,28 @@ describe('File writer', () => {
     });
 
     describe('Should pass', () => {
-        // it(`Write file - buffed, default config`, async () => {
-        //   let error: IFullError | undefined = undefined;
-        //   let callback: ILogsProto | ILogs | undefined = undefined;
-        //
-        //   try {
-        //     await fileWriter.init(defaultReq as express.Request);
-        //     callback = fileReader.init();
-        //   } catch (err) {
-        //     error = err as IFullError;
-        //   }
-        //
-        //   expect(Object.keys(callback?.logs ?? {}).length).toEqual(1);
-        //   expect(error).toBeUndefined();
-        // });
-        //
+        it(`Write file - buffed, default config`, async () => {
+            let error: IFullError | undefined = undefined;
+            let callback: ILogsProto | ILogs | undefined = undefined;
+
+            try {
+                await fileWriter.init(defaultReq as express.Request);
+                callback = fileReader.init();
+            } catch (err) {
+                error = err as IFullError;
+            }
+
+            expect(Object.keys(callback?.logs ?? {}).length).toEqual(1);
+            expect(error).toBeUndefined();
+        });
+
         // Because we do not have an option to manipulate file size by hand, this is disabled. Test was manually started. Uncomment, after file size validation changes
         it(`Write file - buffed, default config - save 2 entries to 2 different files and test index location`, async () => {
             let error: IFullError | undefined = undefined;
             let callback: ILogsProto | ILogs | undefined = undefined;
             let callback2: ILogsProto | ILogs | undefined = undefined;
 
-            State.config = { ...State.config, logFileSize: 1 };
+            State.toasterConfig = { ...State.toasterConfig, logFileSize: 1 };
             let dir: string[] = [];
             try {
                 await fileWriter.init(defaultReq as express.Request);
@@ -284,7 +286,8 @@ describe('File writer', () => {
             let callback: ILogsProto | ILogs | undefined = undefined;
             let callback2: ILogsProto | ILogs | undefined = undefined;
 
-            State.config = { ...State.config, disableProto: true, logFileSize: 1 };
+            State.config={...State.config,disableProto:true}
+            State.toasterConfig = { ...State.toasterConfig, logFileSize: 1 };
             let dir: string[] = [];
             try {
                 await fileWriter.init(defaultReq as express.Request);
@@ -300,6 +303,43 @@ describe('File writer', () => {
             expect(Object.keys(callback2?.logs ?? {}).length).toEqual(1);
             expect(dir).toContain('logs_0.json');
             expect(dir).toContain('logs_1.json');
+            expect(error).toBeUndefined();
+        });
+        it(`Write file - debuffed, default config - delete 2  malformed logs`, async () => {
+            let error: IFullError | undefined = undefined;
+            let malformed: string[] = [];
+            const log = utils.fakeData.logs[0];
+            const index = utils.fakeData.index[0];
+            let updatedLogsContent: ILogsProto | ILogs = { meta: { logCount: 0 }, logs: {} };
+            let updatedIndexContent: IIndex = { indexes: {} };
+
+            State.config = { ...State.config, disableProto: true };
+            let dir: string[] = [];
+
+            try {
+                await fileWriter.init(defaultReq as express.Request);
+                fileWriter.save('logs_0.json', log);
+
+                fileReader.preLoadLogs();
+                fileWriter.save('index.json', index);
+                malformed = fileReader.getMalformedLogs();
+                dir = fs.readdirSync(State.config.path);
+
+                fileWriter.deleteLog(malformed);
+                updatedLogsContent = JSON.parse(fs.readFileSync(`${State.config.path}/logs_0.json`, 'utf8'));
+                updatedIndexContent = JSON.parse(fs.readFileSync(`${State.config.path}/index.json`, 'utf8'));
+                malformed.forEach((log) => {
+                    expect(updatedLogsContent.logs[log]).toBeUndefined();
+                    expect(updatedIndexContent.indexes[log]).toBeUndefined();
+                });
+            } catch (err) {
+                error = err as IFullError;
+            }
+            expect(Object.entries(updatedLogsContent.logs).length).toEqual(1);
+            expect(Object.entries(updatedIndexContent.indexes).length).toEqual(1);
+            expect(dir).toContain('logs_0.json');
+            expect(dir).toContain('index.json');
+            expect(malformed.length).toEqual(2);
             expect(error).toBeUndefined();
         });
     });
