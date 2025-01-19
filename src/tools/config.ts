@@ -1,4 +1,4 @@
-import type { IConfig } from '../../types/index.js';
+import type { IConfig, IToasterTimeTravel } from '../../types/index.js';
 import path from 'path';
 
 /**
@@ -6,7 +6,7 @@ import path from 'path';
  * @returns Configuration for a logging middleware.
  * @default
  */
-export default function (): IConfig {
+export function defaultMiddlewareConfig(): IConfig {
   return {
     path: path.resolve(process.cwd(), 'Toaster'),
     shouldThrow: false,
@@ -18,6 +18,20 @@ export default function (): IConfig {
     obfuscate: ['password'],
     disableProto: false,
     statusCode: true,
+  };
+}
+
+/**
+ * Function to get default toaster config .
+ * @returns Configuration for whole package.
+ * @default
+ */
+export function defaultToasterConfig(): IToasterTimeTravel {
+  return {
+    waitUntillNextReq: 1000,
+    inputBeforeNextReq: false,
+    port: 5003,
+    removeMalformed: false,
     countTime: false,
     logFileSize: 1000,
   };

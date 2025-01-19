@@ -3,7 +3,9 @@ export interface IToasterTimeTravel {
   inputBeforeNextReq?: boolean;
   port: number;
   path?: string;
-  countTime?: boolean
+  removeMalformed?:boolean
+  countTime: boolean
+  logFileSize: number;
 }
 
 export interface ITimeTravelStats {

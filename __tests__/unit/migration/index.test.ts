@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, beforeEach, describe, it, expect } from '@jest/globals';
 import express from 'express';
 import fs from 'fs';
-import defaultConfig from '../../../src/tools/config.js';
+import {defaultMiddlewareConfig as defaultConfig,defaultToasterConfig} from '../../../src/tools/config.js';
 import * as enums from '../../../src/enums/cli.js';
 import State from '../../../src/tools/state.js';
 import { IFullError } from '../../../types/error.js';
@@ -32,11 +32,13 @@ describe('Migration', () => {
     };
     beforeAll(() => {
         State.config = { ...defaultConfig(), ip: true };
+        State.toasterConfig=defaultToasterConfig()
     });
 
     beforeEach(async () => {
         await clear();
         State.config = { ...defaultConfig(), ip: true };
+        State.toasterConfig=defaultToasterConfig()
     });
 
     afterEach(async () => {

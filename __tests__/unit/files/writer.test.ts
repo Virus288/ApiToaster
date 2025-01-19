@@ -4,7 +4,7 @@ import express from 'express';
 import FileReader from '../../../src/module/files/reader.js';
 import FileWriter from '../../../src/module/files/writer.js';
 import State from '../../../src/tools/state.js';
-import defaultConfig from '../../../src/tools/config.js';
+import {defaultMiddlewareConfig as defaultConfig,defaultToasterConfig} from '../../../src/tools/config.js';
 import { IIndex, ILogs, ILogsProto, INotFormattedLogEntry } from '../../../types/logs.js';
 import { IFullError } from '../../../types/error.js';
 import fs from 'fs';
@@ -38,6 +38,7 @@ describe('File writer', () => {
 
     beforeEach(async () => {
         State.config = defaultConfig();
+        State.toasterConfig=defaultToasterConfig()
         await clear();
         await clear('AnotherToaster');
         fileWriter.resetLogCount();
@@ -76,7 +77,7 @@ describe('File writer', () => {
             let callback: ILogsProto | ILogs | undefined = undefined;
             let callback2: ILogsProto | ILogs | undefined = undefined;
 
-            State.config = { ...State.config, logFileSize: 1 };
+            State.toasterConfig = { ...State.toasterConfig, logFileSize: 1 };
             let dir: string[] = [];
             try {
                 await fileWriter.init(defaultReq as express.Request);
@@ -285,7 +286,8 @@ describe('File writer', () => {
             let callback: ILogsProto | ILogs | undefined = undefined;
             let callback2: ILogsProto | ILogs | undefined = undefined;
 
-            State.config = { ...State.config, disableProto: true, logFileSize: 1 };
+            State.config={...State.config,disableProto:true}
+            State.toasterConfig = { ...State.toasterConfig, logFileSize: 1 };
             let dir: string[] = [];
             try {
                 await fileWriter.init(defaultReq as express.Request);

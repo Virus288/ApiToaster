@@ -1,7 +1,7 @@
 import { describe, afterEach, expect, it, beforeAll, beforeEach } from '@jest/globals';
 import express from 'express'
 import State from '../../../src/tools/state.js'
-import defaultConfig from '../../../src/tools/config.js'
+import {defaultMiddlewareConfig as defaultConfig,defaultToasterConfig} from '../../../src/tools/config.js'
 import { IFullError } from '../../../types/error.js';
 import Protobuff from '../../../src/module/protobuf/index.js'
 import fs from 'fs'
@@ -43,6 +43,7 @@ describe('Protobuff', () => {
 
   beforeAll(() => {
     State.config = { ...defaultConfig(), ip: true }
+    State.toasterConfig=defaultToasterConfig()
   })
 
   afterEach(async () => {
@@ -52,6 +53,7 @@ describe('Protobuff', () => {
   beforeEach(async () => {
     await clear()
     State.config = defaultConfig()
+    State.toasterConfig=defaultToasterConfig()
   })
 
   describe('Should throw', () => {

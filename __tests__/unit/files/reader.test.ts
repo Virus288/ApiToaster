@@ -2,7 +2,7 @@ import { beforeEach, beforeAll, afterEach, describe, expect, it } from '@jest/gl
 import fs from 'fs';
 import FileReader from '../../../src/module/files/reader.js';
 import State from '../../../src/tools/state.js';
-import defaultConfig from '../../../src/tools/config.js';
+import {defaultMiddlewareConfig as defaultConfig} from '../../../src/tools/config.js';
 import { IFullError } from '../../../types/error.js';
 import { MalformedLogFilesError, NoSavedLogsError } from '../../../src/errors/index.js';
 import path from 'path';

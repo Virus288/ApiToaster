@@ -11,6 +11,7 @@ import type {
   ILogs,
   ILogsProto,
   INotFormattedLogEntry,
+  IToasterTimeTravel,
 } from '../../../types/index.js';
 import type express from 'express';
 import { randomUUID } from 'crypto';
@@ -278,6 +279,30 @@ export default class FileWriter {
       Log.error('File reader', `Cannot create ${target} file`, (err as Error).message);
     }
   }
+  /**
+   * Validate and create files.
+   * @description Validate and create files with base validates if they do not exist.
+   * @param target File to validate.
+   * @returns {void} Void.
+   * @private
+   */
+  validateMainConfig(target: string): void {
+    Log.debug('File writer', 'Validate main config file');
+    const location = path.resolve(process.cwd(), target);
+
+    const config: IToasterTimeTravel = {
+      port: 5003,
+      countTime: false,
+      logFileSize: 200,
+    };
+    try {
+      if (!fs.existsSync(location)) {
+        fs.writeFileSync(location, JSON.stringify(config, null, 2));
+      }
+    } catch (err) {
+      Log.error('File reader', `Cannot create ${target} file`, (err as Error).message);
+    }
+  }
 
   /**
    * Save generic data.
@@ -374,7 +399,7 @@ export default class FileWriter {
 
     const size = this.logs.meta.logCount;
 
-    if (size >= State.config.logFileSize) {
+    if (size >= State.toasterConfig.logFileSize) {
       this.incrementLogFile(logName);
       this.cleanLogs();
     }

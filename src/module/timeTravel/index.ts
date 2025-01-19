@@ -13,13 +13,11 @@ import readline from 'readline';
 
 export default class TimeTravel {
   private readonly _fileFinder: FileFinder;
-  // private readonly _fileReader: FileReader;
   private _config: IToasterTimeTravel | null = null;
   private _total: ITimeTravelStats;
 
   constructor() {
     this._fileFinder = new FileFinder();
-    // this._fileReader = new FileReader();
     this._total = { succeeded: { amount: 0, ids: [] }, failed: { amount: 0, ids: [] } };
   }
 

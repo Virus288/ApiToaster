@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, jest, it, expect 
 import express from 'express';
 import fs from 'fs';
 import Decoder from '../../../src/module/decode/index.js';
-import defaultConfig from '../../../src/tools/config.js';
+import {defaultMiddlewareConfig as defaultConfig,defaultToasterConfig} from '../../../src/tools/config.js';
 import State from '../../../src/tools/state.js';
 import { IFullError } from '../../../types/error.js';
 import { INotFormattedLogEntry } from '../../../types/logs.js';
@@ -31,11 +31,13 @@ describe('Decoder', () => {
   };
   beforeAll(() => {
     State.config = { ...defaultConfig(), ip: true };
+    State.toasterConfig = { ...defaultToasterConfig()};
   });
 
   beforeEach(async () => {
     await clear();
     State.config = { ...defaultConfig(), ip: true };
+    State.toasterConfig = { ...defaultToasterConfig()};
   });
 
   afterEach(async () => {

@@ -3,7 +3,7 @@ import { afterEach, beforeAll, beforeEach, describe, it, expect, jest } from '@j
 import * as errors from '../../../src/errors/index.js';
 import express from 'express';
 import fs from 'fs';
-import defaultConfig from '../../../src/tools/config.js';
+import {defaultMiddlewareConfig as defaultConfig,defaultToasterConfig} from '../../../src/tools/config.js';
 import * as utils from '../../utils/index.js';
 import Cli from '../../../src/cli/index.js';
 import State from '../../../src/tools/state.js';
@@ -64,12 +64,14 @@ describe('Unification', () => {
 
   beforeAll(() => {
     State.config = { ...defaultConfig(), ip: true };
+    State.toasterConfig=defaultToasterConfig()
   });
 
   beforeEach(async () => {
     jest.spyOn(Log, 'error').mockImplementation(() => { });
     await clear();
     State.config = { ...defaultConfig(), ip: true };
+    State.toasterConfig=defaultToasterConfig()
   });
 
   afterEach(async () => {
@@ -85,6 +87,8 @@ describe('Unification', () => {
       jest.spyOn(cli, 'readConfig').mockReturnValue({
         path: '/valid/path',
         port: 0,
+        countTime:false,
+        logFileSize:200
       });
       try {
         process.argv = ['npx', 'api-toaster', 'uni', '-p', 'logs_0.json', '-v', 'ksdjfsdkfj'];
