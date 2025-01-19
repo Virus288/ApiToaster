@@ -1,4 +1,5 @@
 import Log from '../../tools/logger.js';
+import State from '../../tools/state.js';
 import type FileReader from '../files/reader.js';
 import type FileWriter from '../files/writer.js';
 import readline from 'readline';
@@ -24,6 +25,13 @@ export default class Utils {
     const malformed = this.reader.getMalformedLogs();
     if (malformed.length > 0) {
       Log.warn('File finder', 'Found malformed logs. Prompting user for action.');
+
+      if (State.toasterConfig.removeMalformed) {
+        Log.log('Utils', 'Deleting automaticaly malformed logs...');
+        this.writer.deleteLog(malformed);
+        return;
+      }
+
       const shouldDelete = await new Promise<boolean>((resolve) => {
         const rl = readline.createInterface({
           input: process.stdin,
