@@ -169,7 +169,6 @@ export default class FileWriter {
     const logProto: ILogProto = {
       [uuid]: JSON.stringify(logBody),
     };
-
     this.currLogSize = Buffer.byteLength(JSON.stringify(logProto));
     this.logs.logs = { ...(this.logs.logs as ILogProto), ...logProto };
     this.index.indexes[uuid] = path.resolve(State.config.path, this.currLogFile);
@@ -405,6 +404,51 @@ export default class FileWriter {
     Log.debug('File writer', 'Reseting log count');
 
     this.currLogFile = 'logs_0.json';
+  }
+
+  /**
+   * Delete logs.
+   * @description Method to delete logs with id.
+   * @param logs Log id.
+   * @returns {void} Void.
+   * @private
+   */
+  deleteLog(logs: string[]): void {
+    if (!logs || logs.length === 0) {
+      Log.warn('File writer', 'No logs provided to delete.');
+    }
+    let modifiedData: ILogs | ILogsProto;
+    let modifiedIndexData: IIndex;
+    logs.forEach((log) => {
+      Log.debug('File writer', `Deleting log ${log}`);
+      const indexName = 'index.json';
+      const fileName = this.controller.findLog(log, 'index.json');
+      if (!fileName) {
+        return;
+      }
+      const indexLocation = path.resolve(State.config.path, indexName);
+      const indexData = JSON.parse(fs.readFileSync(indexLocation, 'utf8').toString()) as IIndex;
+
+      const location = path.resolve(State.config.path, fileName);
+      const data = JSON.parse(fs.readFileSync(location, 'utf8').toString()) as ILogs | ILogsProto;
+      if (data.logs[log]) {
+        delete data.logs[log];
+        Log.log('File writer', `Log ${log} deleted from data.`);
+      } else {
+        Log.warn('File writer', `Log ${log} not found in ${fileName}.`);
+      }
+      if (indexData.indexes[log]) {
+        delete indexData.indexes[log];
+        Log.debug('File writer', `Log ${log} deleted from index.`);
+      } else {
+        Log.warn('File writer', `Log ${log} not found in index.`);
+      }
+      modifiedIndexData = indexData;
+      modifiedData = data;
+      this.logs = modifiedData;
+      this.save(fileName, modifiedData);
+      this.save(indexLocation, modifiedIndexData);
+    });
   }
   /**
    * Increments log numeration.

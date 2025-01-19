@@ -39,7 +39,6 @@ export default class FileReader {
 
     const file = this.controller.fetchCurrentLogFile(fileName);
 
-    // const logCount=this.
     return this.controller.prepareLogfile(file);
   }
 
@@ -124,7 +123,7 @@ export default class FileReader {
     };
 
     const proto = new Proto();
-    // const malformed: string[] = [];
+
     const prepared = await Promise.all(
       Object.entries(logs).map(async ([k, v]) => {
         let decodedLog: ILogEntry | INotFormattedLogEntry;
@@ -137,16 +136,15 @@ export default class FileReader {
         try {
           // Dynamically construct the log entry
           const result: INotFormattedLogEntry = {
-            body:
-              typeof decodedLog.body === 'string'
-                ? (JSON.parse(decodedLog.body) as Record<string, unknown>)
-                : decodedLog.body,
+            body: decodedLog.body as unknown as Record<string, unknown>,
+            // typeof decodedLog.body === 'string'
+            //   ? (JSON.parse(decodedLog.body) as Record<string, unknown>)
+            //   : (decodedLog.body ?? {}),
             method: decodedLog.method,
             ip: decodedLog.ip,
             statusCode: decodedLog.statusCode,
             occured: decodedLog.occured,
           };
-
           // Conditionally include fields
           if (decodedLog.body) {
             result.body =
@@ -155,10 +153,13 @@ export default class FileReader {
                 : decodedLog.body;
           }
           if (decodedLog.queryParams) {
-            result.queryParams =
-              decodedLog.queryParams && typeof decodedLog.queryParams === 'string'
-                ? (JSON.parse(decodedLog.queryParams) as Record<string, string>)
-                : undefined;
+            if (typeof decodedLog.queryParams === 'string') {
+              result.queryParams = JSON.parse(decodedLog.queryParams) as {
+                [key: string]: undefined | string | string[];
+              };
+            } else {
+              result.queryParams = decodedLog.queryParams;
+            }
           }
           if (decodedLog.headers) {
             result.headers =
@@ -166,7 +167,6 @@ export default class FileReader {
                 ? (JSON.parse(decodedLog.headers) as Record<string, string | string[]>)
                 : decodedLog.headers;
           }
-
           const newResult = removeEmptyFields(result);
           return [k, newResult];
         } catch (_err) {
@@ -187,13 +187,6 @@ export default class FileReader {
       }),
     );
     const filteredPrepared = prepared.filter((e) => e);
-
-    if (this.malformed.length > 0) {
-      Log.error(
-        'File reader',
-        `Seems that logs ${this.malformed.join(', ')} were malformed. Currently this application cannot remove malformed logs. Please remove them manually, or via desktop app`,
-      );
-    }
 
     Log.debug('File reader', 'Formatted logs', JSON.stringify(filteredPrepared));
 

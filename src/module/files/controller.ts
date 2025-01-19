@@ -1,7 +1,7 @@
 import { MissingCoreStructureError, NoSavedLogsError, MalformedLogFilesError } from '../../errors/index.js';
 import Log from '../../tools/logger.js';
 import State from '../../tools/state.js';
-import type { ILogs, ILogsProto } from '../../../types/logs.js';
+import type { IIndex, ILogs, ILogsProto } from '../../../types/logs.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -106,6 +106,29 @@ export default class FileController {
         throw new MalformedLogFilesError(fileName);
       }
       return { meta: { logCount: 0 }, logs: {} };
+    }
+  }
+
+  findLog(_logId: string, indexName: string): string | undefined {
+    Log.debug('File controller', 'Finding log');
+
+    try {
+      const index = path.resolve(State.config.path, indexName);
+      const data = fs.readFileSync(index).toString();
+      const file = JSON.parse(data) as IIndex;
+      const logPath = file.indexes[_logId];
+      if (!logPath) {
+        return undefined;
+      }
+
+      // Extract the filename from the path
+      return logPath.split('/').pop();
+    } catch (error) {
+      Log.warn('File controller', 'Got error while parsing data', (error as Error).message);
+      if (State.config.shouldThrow) {
+        throw new MalformedLogFilesError(indexName);
+      }
+      return undefined;
     }
   }
 }

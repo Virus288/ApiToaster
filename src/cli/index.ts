@@ -99,7 +99,7 @@ export default class Cli {
         await this.decode();
         break;
       default:
-        Log.error('Cli', 'Unknown parameter.', enums.ECliResponses.TimeTravelUnknownCommand);
+        Log.error('Cli', 'Unknown parameter.', enums.ECliResponses.DecodeUnknownCommand);
         break;
     }
   }

@@ -66,3 +66,13 @@ export class MissingProtoConfigError extends FullError {
     this.code = '007';
   }
 }
+
+export class ApplyingDefaultsError extends FullError {
+  constructor() {
+    super('ApplyingDefaultsError');
+    this.message =
+      'Could not apply defaults. If you see this error check for malformed logs because one of the fields are incorrect.';
+    this.name = 'ApplyingDefaultsError';
+    this.code = '008';
+  }
+}
